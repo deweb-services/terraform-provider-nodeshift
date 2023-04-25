@@ -1,9 +1,6 @@
 package client
 
-import "context"
-
 type DWSClient struct {
-	ctx             context.Context
 	Config          DWSProviderConfiguration
 	transactionNote string
 }
@@ -27,14 +24,10 @@ func (dc *DWSProviderConfiguration) FromSlice(values []string) {
 	dc.SessionToken = values[4]
 }
 
-func (c *DWSClient) GetContext() context.Context {
-	return c.ctx
-}
-
 func (c *DWSClient) SetGlobalTransactionNote(note string) {
 	c.transactionNote = note
 }
 
-func NewClient(ctx context.Context, configuration DWSProviderConfiguration) *DWSClient {
-	return &DWSClient{ctx: ctx, Config: configuration}
+func NewClient(configuration DWSProviderConfiguration) *DWSClient {
+	return &DWSClient{Config: configuration}
 }

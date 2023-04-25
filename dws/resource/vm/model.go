@@ -3,7 +3,7 @@ package vm
 import (
 	"time"
 
-	"github.com/deweb-services/dws-terraform-provider/dws/provider/client"
+	"github.com/deweb-services/terraform-provider-dws/dws/provider/client"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

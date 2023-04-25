@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/deweb-services/dws-terraform-provider/dws/provider"
+	"github.com/deweb-services/terraform-provider-dws/dws/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )
 

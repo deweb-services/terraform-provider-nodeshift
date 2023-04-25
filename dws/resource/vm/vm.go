@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deweb-services/dws-terraform-provider/dws/provider/client"
+	"github.com/deweb-services/terraform-provider-dws/dws/provider/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -130,6 +131,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
 		return
 	}
 
@@ -149,7 +151,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		return
+		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
 	}
 }
 
@@ -160,6 +162,7 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
 		return
 	}
 
@@ -179,7 +182,7 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		return
+		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
 	}
 }
 
@@ -190,6 +193,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
 		return
 	}
 
@@ -218,7 +222,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		return
+		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
 	}
 }
 
@@ -229,6 +233,7 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
 		return
 	}
 

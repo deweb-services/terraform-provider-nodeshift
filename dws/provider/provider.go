@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/deweb-services/dws-terraform-provider/dws/provider/client"
-	res "github.com/deweb-services/dws-terraform-provider/dws/resource/vm"
+	"github.com/deweb-services/terraform-provider-dws/dws/provider/client"
+	res "github.com/deweb-services/terraform-provider-dws/dws/resource/vm"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -69,6 +69,7 @@ func (p *dwsProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	diags := req.Config.Get(ctx, &config)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
+		tflog.Error(ctx, "Errors configuring DWS client", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
 		return
 	}
 
@@ -150,7 +151,7 @@ func (p *dwsProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	var cfg client.DWSProviderConfiguration
 	cfg.FromSlice(values)
 	// Create a new dws client using the configuration values
-	cli := client.NewClient(ctx, cfg)
+	cli := client.NewClient(cfg)
 	// Make the dws client available during DataSource and Resource
 	resp.DataSourceData = cli
 	resp.ResourceData = cli

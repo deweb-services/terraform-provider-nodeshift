@@ -1,4 +1,4 @@
-module github.com/deweb-services/dws-terraform-provider
+module github.com/deweb-services/terraform-provider-dws
 
 go 1.19
 
