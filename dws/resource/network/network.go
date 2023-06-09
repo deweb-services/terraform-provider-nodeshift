@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	ttypes "github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -35,48 +34,48 @@ func (r *networkResource) Schema(c context.Context, request resource.SchemaReque
 			ID: schema.StringAttribute{
 				Computed: true,
 			},
-			LastUpdated: schema.StringAttribute{
-				Computed: true,
-			},
+			// LastUpdated: schema.StringAttribute{
+			// 	Computed: true,
+			// },
 			NetworkIPRangeKeys: schema.StringAttribute{
 				Required: true,
 			},
 			NetworkNameKeys: schema.StringAttribute{
 				Required: true,
 			},
-			NetworkNodesKeys: schema.ListAttribute{
-				Required:    true,
-				ElementType: ttypes.Int64Type,
-			},
-			NetworkAddWgAccessKeys: schema.BoolAttribute{
-				Optional: true,
-			},
+			// NetworkNodesKeys: schema.ListAttribute{
+			// 	Required:    true,
+			// 	ElementType: ttypes.Int64Type,
+			// },
+			// NetworkAddWgAccessKeys: schema.BoolAttribute{
+			// 	Optional: true,
+			// },
 			NetworkDescriptionKeys: schema.StringAttribute{
 				Optional: true,
 			},
-			NetworkNodesIPRangeKeys: schema.MapAttribute{
-				Optional:    true,
-				ElementType: ttypes.StringType,
-			},
-			NetworkSolutionTypeKeys: schema.StringAttribute{
-				Optional: true,
-			},
-			NetworkExternalIPKeys: schema.StringAttribute{
-				Computed: true,
-			},
-			NetworkExternalSKKeys: schema.StringAttribute{
-				Computed: true,
-			},
-			NetworkNodeDeploymentIDKeys: schema.MapAttribute{
-				Computed:    true,
-				ElementType: ttypes.StringType,
-			},
-			NetworkPublicNodeIDKeys: schema.Int64Attribute{
-				Computed: true,
-			},
-			NetworkAccessWgConfigKeys: schema.StringAttribute{
-				Computed: true,
-			},
+			// NetworkNodesIPRangeKeys: schema.MapAttribute{
+			// 	Optional:    true,
+			// 	ElementType: ttypes.StringType,
+			// },
+			// NetworkSolutionTypeKeys: schema.StringAttribute{
+			// 	Optional: true,
+			// },
+			// NetworkExternalIPKeys: schema.StringAttribute{
+			// 	Computed: true,
+			// },
+			// NetworkExternalSKKeys: schema.StringAttribute{
+			// 	Computed: true,
+			// },
+			// NetworkNodeDeploymentIDKeys: schema.MapAttribute{
+			// 	Computed:    true,
+			// 	ElementType: ttypes.StringType,
+			// },
+			// NetworkPublicNodeIDKeys: schema.Int64Attribute{
+			// 	Computed: true,
+			// },
+			// NetworkAccessWgConfigKeys: schema.StringAttribute{
+			// 	Computed: true,
+			// },
 		},
 	}
 }
