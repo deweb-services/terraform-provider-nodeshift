@@ -2,7 +2,6 @@ package network
 
 const (
 	ID          = "id"
-	// LastUpdated = "last_updated"
 )
 
 const (

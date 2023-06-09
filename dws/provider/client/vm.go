@@ -2,7 +2,6 @@ package client
 
 import "context"
 
-
 func (c *DWSClient) CreateVM(ctx context.Context, r *VMConfig) (*VMConfig, error) {
 	return r, nil
 }
