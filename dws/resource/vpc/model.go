@@ -16,19 +16,19 @@ type VPCResourceModel struct {
 }
 
 func (m *VPCResourceModel) ToClientRequest() (*client.VPCConfig, error) {
-	n := client.VPCConfig{
+	vpc := client.VPCConfig{
 		Name:        m.Name.ValueString(),
 		Description: m.Description.ValueString(),
 	}
 
-	ip, ipNet, err := net.ParseCIDR(m.IPRange.ValueString())
+	_, _, err := net.ParseCIDR(m.IPRange.ValueString())
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse ip cidr: %s", m.IPRange.String())
 	}
-	ipNet.IP = ip
-	n.IPRange = *ipNet
 
-	return &n, nil
+	vpc.IPRange = m.IPRange.ValueString()
+
+	return &vpc, nil
 }
 
 func (m *VPCResourceModel) FromClientResponse(c *client.VPCConfig) error {
@@ -36,7 +36,7 @@ func (m *VPCResourceModel) FromClientResponse(c *client.VPCConfig) error {
 		ID:          types.StringValue(c.ID),
 		Name:        types.StringValue(c.Name),
 		Description: types.StringValue(c.Description),
-		IPRange:     types.StringValue(c.IPRange.String()),
+		IPRange:     types.StringValue(c.IPRange),
 	}
 
 	return nil

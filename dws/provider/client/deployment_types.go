@@ -1,6 +1,6 @@
 package client
 
-type VMConfig struct {
+type DeploymentConfig struct {
 	ImageVersion string `json:"imageVersion"`
 	Region       string `json:"region"`
 	CPU          int    `json:"cpu"`
@@ -15,22 +15,25 @@ type VMConfig struct {
 	NetworkUUID  string `json:"networkUuid,omitempty"`
 }
 
-type VMResponse struct {
-	StartTime   int64           `json:"startTime"`
-	ServiceType string          `json:"serviceType"`
-	EndTime     *int64          `json:"endTime"`
-	IsError     bool            `json:"isError"`
-	Data        *VMResponseData `json:"data"`
+type CreatedDeployment struct {
+	StartTime   int64                  `json:"startTime"`
+	ServiceType string                 `json:"serviceType"`
+	EndTime     *int64                 `json:"endTime"`
+	IsError     bool                   `json:"isError"`
+	Data        *CreatedDeploymentData `json:"data"`
+
+	//
+	ID string `json:"-"`
 }
 
-type VMResponseData struct {
-	IP   string             `json:"ip"`
-	IPv6 string             `json:"ipv6"`
-	Ygg  string             `json:"ygg"`
-	Plan VMResponseDataPlan `json:"plan"`
+type CreatedDeploymentData struct {
+	IP   string                    `json:"ip"`
+	IPv6 string                    `json:"ipv6"`
+	Ygg  string                    `json:"ygg"`
+	Plan CreatedDeploymentDataPlan `json:"plan"`
 }
 
-type VMResponseDataPlan struct {
+type CreatedDeploymentDataPlan struct {
 	ID      int    `json:"id"`
 	CPU     int    `json:"cpu"`
 	RAM     int    `json:"ram"`
@@ -38,7 +41,7 @@ type VMResponseDataPlan struct {
 	HddType string `json:"hddType"`
 }
 
-type VMResponseTask struct {
+type DeploymentCreateTask struct {
 	ID     string `json:"id"`
 	TaskID string `json:"task_id"`
 }

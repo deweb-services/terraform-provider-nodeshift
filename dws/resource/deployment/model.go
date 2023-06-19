@@ -28,10 +28,11 @@ type vmResourceModel struct {
 	YggIP      types.String `tfsdk:"ygg_ip"`
 }
 
-func (v *vmResourceModel) ToClientRequest() (*client.VMConfig, error) {
-	r := &client.VMConfig{
+func (v *vmResourceModel) ToClientRequest() (*client.DeploymentConfig, error) {
+	r := &client.DeploymentConfig{
 		Ipv4:        v.IPv4.ValueBool(),
 		Ipv6:        v.IPv6.ValueBool(),
+		Ygg:         v.Ygg.ValueBool(),
 		NetworkUUID: v.VPCID.ValueString(),
 	}
 
@@ -86,10 +87,11 @@ func (v *vmResourceModel) ToClientRequest() (*client.VMConfig, error) {
 	return r, nil
 }
 
-func (v *vmResourceModel) FromClientResponse(c *client.VMResponse) {
+func (v *vmResourceModel) FromClientResponse(c *client.CreatedDeployment) {
 	v.PublicIPv4 = types.StringValue(c.Data.IP)
 	v.PublicIPv6 = types.StringValue(c.Data.IPv6)
 	v.YggIP = types.StringValue(c.Data.Ygg)
+	v.ID = types.StringValue(c.ID)
 
 	return
 }

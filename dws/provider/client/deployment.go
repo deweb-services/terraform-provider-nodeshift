@@ -15,7 +15,7 @@ const (
 	TaskEndpoint       = "/api/task/%s"
 )
 
-func (c *DWSClient) CreateDeployment(ctx context.Context, r *VMConfig) (*VMResponse, error) {
+func (c *DWSClient) CreateDeployment(ctx context.Context, r *DeploymentConfig) (*CreatedDeployment, error) {
 	b, err := json.Marshal(r)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode deployment: %w", err)
@@ -27,14 +27,14 @@ func (c *DWSClient) CreateDeployment(ctx context.Context, r *VMConfig) (*VMRespo
 		return nil, err
 	}
 
-	taskResponse := VMResponseTask{}
+	taskResponse := DeploymentCreateTask{}
 	err = json.Unmarshal(responseBody, &taskResponse)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create deployment, unmarshal response error: %w", err)
 	}
 
 	ticker := time.NewTicker(5 * time.Second)
-	deploymentResponse := new(VMResponse)
+	deploymentResponse := new(CreatedDeployment)
 
 pollingCycle:
 	for {
@@ -56,11 +56,13 @@ pollingCycle:
 		}
 	}
 
+	deploymentResponse.ID = taskResponse.ID
+
 	return deploymentResponse, nil
 
 }
 
-func (c *DWSClient) GetDeployment(ctx context.Context, id string) (*VMResponse, error) {
+func (c *DWSClient) GetDeployment(ctx context.Context, id string) (*CreatedDeployment, error) {
 	// errPrefix := "failed to get deployment: %w"
 	// b, err := c.DoSignedRequest(ctx, http.MethodGet, fmt.Sprintf(DeploymentEndpoint+"%s", id), nil)
 	// if err != nil {
@@ -76,7 +78,7 @@ func (c *DWSClient) GetDeployment(ctx context.Context, id string) (*VMResponse, 
 	return nil, errors.New("update not implemented")
 }
 
-func (c *DWSClient) UpdateDeployment(ctx context.Context, id string, r *VMConfig) (*VMResponse, error) {
+func (c *DWSClient) UpdateDeployment(ctx context.Context, id string, r *DeploymentConfig) (*CreatedDeployment, error) {
 	return nil, errors.New("update not implemented")
 }
 

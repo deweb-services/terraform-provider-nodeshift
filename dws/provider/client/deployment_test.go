@@ -15,14 +15,14 @@ import (
 func Test_DeploymentCreate(t *testing.T) {
 	mustPollTimes := 10
 
-	expectedResponse := VMResponse{
+	expectedResponse := CreatedDeployment{
 		StartTime:   time.Now().Unix(),
 		ServiceType: "Backend Service",
-		Data: &VMResponseData{
+		Data: &CreatedDeploymentData{
 			IP:   "190.12.32.19",
 			IPv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
 			Ygg:  "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
-			Plan: VMResponseDataPlan{
+			Plan: CreatedDeploymentDataPlan{
 				ID:      1,
 				CPU:     4,
 				RAM:     2,
@@ -37,7 +37,7 @@ func Test_DeploymentCreate(t *testing.T) {
 		switch {
 		case strings.HasPrefix(r.URL.Path, "/api/terraform/deployment"):
 			t.Log("received create deployment request")
-			response := VMResponseTask{
+			response := DeploymentCreateTask{
 				ID:     "ea50370f-ae1f-4a7b-8626-1d389020922e",
 				TaskID: "67e1c297-0d78-4668-b23a-6a268000a392",
 			}
@@ -54,7 +54,7 @@ func Test_DeploymentCreate(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 				return
 			}
-			response := VMResponse{
+			response := CreatedDeployment{
 				StartTime:   time.Now().Unix(),
 				ServiceType: "Backend Service",
 				EndTime:     nil,
@@ -72,7 +72,7 @@ func Test_DeploymentCreate(t *testing.T) {
 		SecretAccessKey: "secret_access_key",
 	}, ClientOptWithURL(mockServer.URL))
 
-	response, err := client.CreateDeployment(context.TODO(), &VMConfig{
+	response, err := client.CreateDeployment(context.TODO(), &DeploymentConfig{
 		ImageVersion: "Ubuntu-v22.04",
 		Region:       "USA",
 		CPU:          4,
