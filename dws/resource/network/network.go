@@ -19,6 +19,11 @@ var (
 	_ resource.ResourceWithImportState = &networkResource{}
 )
 
+// NewDeploymentResource is a helper function to simplify the provider implementation.
+func NewNetworkResource() resource.Resource {
+	return &networkResource{}
+}
+
 type networkResource struct {
 	client *client.DWSClient
 }

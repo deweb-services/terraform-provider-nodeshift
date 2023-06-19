@@ -6,7 +6,8 @@ import (
 	"os"
 
 	"github.com/deweb-services/terraform-provider-dws/dws/provider/client"
-	res "github.com/deweb-services/terraform-provider-dws/dws/resource/vm"
+	"github.com/deweb-services/terraform-provider-dws/dws/resource/deployment"
+	"github.com/deweb-services/terraform-provider-dws/dws/resource/network"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -38,23 +39,19 @@ func (p *dwsProvider) Metadata(_ context.Context, _ provider.MetadataRequest, re
 func (p *dwsProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			AccountName: schema.StringAttribute{
-				Required: true,
-			},
-			AccountKey: schema.StringAttribute{
+			AccessKey: schema.StringAttribute{
 				Optional:  true,
 				Sensitive: true,
 			},
-			AccessRegion: schema.StringAttribute{
+			SecretAccessKey: schema.StringAttribute{
+				Optional:  true,
+				Sensitive: true,
+			},
+			SharedConfigFile: schema.StringAttribute{
 				Optional: true,
 			},
-			ApiKey: schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
-			},
-			SessionToken: schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
+			Profile: schema.StringAttribute{
+				Optional: true,
 			},
 		},
 	}
@@ -80,25 +77,21 @@ func (p *dwsProvider) Configure(ctx context.Context, req provider.ConfigureReque
 
 	values := make([]string, 0)
 	attributes := map[string]Attribute{
-		AccountName: {
-			EnvName: "DWS_ACCOUNT_NAME",
-			Param:   &config.AccountName,
+		AccessKey: {
+			EnvName: "DWS_ACCESS_KEY_ID",
+			Param:   &config.AccessKey,
 		},
-		AccountKey: {
-			EnvName: "DWS_ACCOUNT_KEY",
-			Param:   &config.AccountKey,
+		SecretAccessKey: {
+			EnvName: "DWS_SECRET_ACCESS_KEY",
+			Param:   &config.SecretAccessKey,
 		},
-		AccessRegion: {
-			EnvName: "DWS_ACCESS_REGION",
-			Param:   &config.AccessRegion,
+		SharedConfigFile: {
+			EnvName: "DWS_SHARED_CREDENTIALS_FILE",
+			Param:   &config.SharedCredentialsFile,
 		},
-		ApiKey: {
-			EnvName: "DWS_API_KEY",
-			Param:   &config.ApiKey,
-		},
-		SessionToken: {
-			EnvName: "DWS_SESSION_TOKEN",
-			Param:   &config.SessionToken,
+		Profile: {
+			EnvName: "DWS_PROFILE",
+			Param:   &config.Profile,
 		},
 	}
 
@@ -144,9 +137,6 @@ func (p *dwsProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		return
 	}
 
-	ctx = tflog.SetField(ctx, "dws_region", config.AccessRegion)
-	ctx = tflog.SetField(ctx, "dws_account_name", config.AccountName)
-
 	tflog.Debug(ctx, "Creating DWS client")
 	var cfg client.DWSProviderConfiguration
 	cfg.FromSlice(values)
@@ -166,6 +156,7 @@ func (p *dwsProvider) DataSources(_ context.Context) []func() datasource.DataSou
 // Resources defines the resources implemented in the provider.
 func (p *dwsProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
-		res.NewVMResource,
+		deployment.NewDeploymentResource,
+		network.NewNetworkResource,
 	}
 }

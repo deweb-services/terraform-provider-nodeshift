@@ -1,4 +1,4 @@
-package vm
+package deployment
 
 import (
 	"context"
@@ -18,8 +18,8 @@ var (
 	_ resource.ResourceWithImportState = &vmResource{}
 )
 
-// NewVMResource is a helper function to simplify the provider implementation.
-func NewVMResource() resource.Resource {
+// NewDeploymentResource is a helper function to simplify the provider implementation.
+func NewDeploymentResource() resource.Resource {
 	return &vmResource{}
 }
 
@@ -30,7 +30,7 @@ type vmResource struct {
 
 // Metadata returns the resource type name.
 func (r *vmResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vm"
+	resp.TypeName = req.ProviderTypeName + "_deployment"
 }
 
 // Schema defines the schema for the resource.
@@ -40,78 +40,70 @@ func (r *vmResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 			ID: schema.StringAttribute{
 				Computed: true,
 			},
-			LastUpdated: schema.StringAttribute{
-				Computed: true,
+			DeploymentKeysImage: schema.StringAttribute{
+				Required:    true,
+				Description: ImageDescription,
 			},
-			VmKeysDeployment: schema.SingleNestedAttribute{
-				Optional: true,
-				Attributes: map[string]schema.Attribute{
-					VmKeysDeploymentName: schema.StringAttribute{
-						Optional: true,
-					},
-					VmKeysDeploymentImage: schema.StringAttribute{
-						Optional: true,
-					},
-					VmKeysDeploymentNetwork: schema.StringAttribute{
-						Optional: true,
-					},
-					VmKeysDeploymentRegion: schema.StringAttribute{
-						Optional: true,
-					},
-				},
+			DeploymentKeysRegion: schema.StringAttribute{
+				Required:    true,
+				Description: RegionDescription,
 			},
-			VmKeysCPU: schema.ListNestedAttribute{
-				Optional: true,
-				Computed: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						VmKeysCPUQuantity: schema.Int64Attribute{
-							Optional: true,
-						},
-						VmKeysCPUType: schema.StringAttribute{
-							Optional: true,
-						},
-					},
-				},
+			DeploymentKeysCPU: schema.Int64Attribute{
+				Required:    true,
+				Description: CPUDescription,
 			},
-			VmKeysRam: schema.SingleNestedAttribute{
-				Optional: true,
-				Attributes: map[string]schema.Attribute{
-					VmKeysRamVolume: schema.Int64Attribute{
-						Optional: true,
-						Computed: true,
-					},
-				},
+			DeploymentKeysRAM: schema.Int64Attribute{
+				Required:    true,
+				Description: RAMDescription,
 			},
-			VmKeysDisk: schema.ListNestedAttribute{
-				Optional: true,
-				Computed: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						VmKeysDiskType: schema.StringAttribute{
-							Optional: true,
-						},
-						VmKeysDiskVolume: schema.Int64Attribute{
-							Optional: true,
-						},
-					},
-				},
+			DeploymentKeysDiskSize: schema.Int64Attribute{
+				Required:    true,
+				Description: DiskSizeDescription,
 			},
-			VmKeysProtocols: schema.SingleNestedAttribute{
-				Optional: true,
-				Attributes: map[string]schema.Attribute{
-					VmKeysProtocolsIP: schema.SingleNestedAttribute{
-						Optional: true,
-						Attributes: map[string]schema.Attribute{
-							VmKeysProtocolsIPV4: schema.BoolAttribute{
-								Optional: true,
-							},
-							VmKeysProtocolsIPV6: schema.BoolAttribute{
-								Optional: true,
-							},
-						},
-					},
-				},
+			DeploymentKeysDiskType: schema.StringAttribute{
+				Required:    true,
+				Description: DiskTypeDescription,
+			},
+			DeploymentKeysAssignPublicIPv4: schema.BoolAttribute{
+				Computed:    true,
+				Optional:    true,
+				Description: AssignPublicIPv4Description,
+			},
+			DeploymentKeysAssignPublicIPv6: schema.BoolAttribute{
+				Computed:    true,
+				Optional:    true,
+				Description: AssignPublicIPv6Description,
+			},
+			DeploymentKeysAssignYggIP: schema.BoolAttribute{
+				Computed:    true,
+				Optional:    true,
+				Description: AssignYggIPDescription,
+			},
+			DeploymentKeysSSHKey: schema.StringAttribute{
+				Required:    true,
+				Description: SSHKeyDescription,
+				Sensitive:   true,
+			},
+			DeploymentKeysHostName: schema.StringAttribute{
+				Required:    true,
+				Description: HostNameDescription,
+			},
+			DeploymentKeysNetworkID: schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: NetworkIDDescription,
+			},
+			DeploymentKeysPublicIPv4: schema.StringAttribute{
+				Computed:    true,
+				Description: PublicIPv4Description,
+			},
+			DeploymentKeysPublicIPv6: schema.StringAttribute{
+				Computed:    true,
+				Description: PublicIPv4Description,
+			},
+			DeploymentKeysYggIP: schema.StringAttribute{
+				Computed:    true,
+				Description: YggIPDescription,
 			},
 		},
 	}
@@ -135,12 +127,21 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 		return
 	}
 
-	// Create new VM
-	vm, err := r.client.CreateVM(ctx, plan.ToClientRequest())
+	requestData, err := plan.ToClientRequest()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating VM",
-			fmt.Sprintf("Could not create VM, unexpected error: %s", err),
+			"Error creating Deployment",
+			fmt.Sprintf("Could not create Deployment, unexpected error: %s", err.Error()),
+		)
+		return
+	}
+
+	// Create new Deployment
+	vm, err := r.client.CreateDeployment(ctx, requestData)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating Deployment",
+			fmt.Sprintf("Could not create Deployment, unexpected error: %s", err),
 		)
 		return
 	}
@@ -167,11 +168,11 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 	}
 
 	// Get refreshed order value from client
-	vm, err := r.client.GetVM(ctx, state.ID.ValueString())
+	vm, err := r.client.GetDeployment(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading VM state",
-			fmt.Sprintf("Could not read VM state ID %s: %s", state.ID.ValueString(), err),
+			"Error Reading Deployment state",
+			fmt.Sprintf("Could not read Deployment state ID %s: %s", state.ID.ValueString(), err),
 		)
 		return
 	}
@@ -197,22 +198,31 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		return
 	}
 
-	// Update existing order
-	_, err := r.client.UpdateVM(ctx, plan.ID.ValueString(), plan.ToClientRequest())
+	requestData, err := plan.ToClientRequest()
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Updating VM state",
-			fmt.Sprintf("Could not update VM state %s, unexpected error: %s", plan.ID.ValueString(), err),
+			"Error creating Deployment",
+			fmt.Sprintf("Could not update Deployment, unexpected error: %s", err.Error()),
 		)
 		return
 	}
 
-	// Fetch updated items from GetVM as UpdateVM items are not populated.
-	vm, err := r.client.GetVM(ctx, plan.ID.ValueString())
+	// Update existing order
+	_, err = r.client.UpdateDeployment(ctx, plan.ID.ValueString(), requestData)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading VM state",
-			fmt.Sprintf("Could not read VM name %s: %s", plan.ID.ValueString(), err),
+			"Error Updating Deployment state",
+			fmt.Sprintf("Could not update Deployment state %s, unexpected error: %s", plan.ID.ValueString(), err),
+		)
+		return
+	}
+
+	// Fetch updated items from GetDeployment as UpdateDeployment items are not populated.
+	vm, err := r.client.GetDeployment(ctx, plan.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Reading Deployment state",
+			fmt.Sprintf("Could not read Deployment name %s: %s", plan.ID.ValueString(), err),
 		)
 		return
 	}
@@ -237,8 +247,8 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 		return
 	}
 
-	// Delete existing VM
-	if err := r.client.DeleteVM(ctx, state.ID.ValueString()); err != nil {
+	// Delete existing Deployment
+	if err := r.client.DeleteDeployment(ctx, state.ID.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting VM",
 			fmt.Sprintf("Could not delete vm, unexpected error: %s", err),
