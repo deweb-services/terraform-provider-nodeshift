@@ -17,7 +17,7 @@ const (
 	DeploymentKeysAssignYggIP      = "assign_ygg_ip"
 	DeploymentKeysSSHKey           = "ssh_key"
 	DeploymentKeysHostName         = "host_name"
-	DeploymentKeysNetworkID        = "network_id"
+	DeploymentKeysVPCID            = "vpc_id"
 
 	DeploymentKeysPublicIPv6 = "public_ipv6"
 	DeploymentKeysPublicIPv4 = "public_ipv4"
@@ -38,7 +38,7 @@ Available options: USA`
 	AssignYggIPDescription      = `If true assigns a yggdrasil address for your Deployment`
 	SSHKeyDescription           = `SSH key to add to the target VM to make it possible to connect to your VM`
 	HostNameDescription         = `Host name for your Deployment`
-	NetworkIDDescription        = `ID of the network to deploy your VM into`
+	VPCIDDescription            = `ID of the vpc to deploy your VM into`
 	PublicIPv4Description       = `Public IPv4 of your VM`
 	PublicIPv6Description       = `Public IPv6 of your VM`
 	YggIPDescription            = `Yggdrasil IP of your VM`

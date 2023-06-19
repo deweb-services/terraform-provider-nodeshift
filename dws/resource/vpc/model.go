@@ -1,4 +1,4 @@
-package network
+package vpc
 
 import (
 	"fmt"
@@ -8,15 +8,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type networkResourceModel struct {
+type VPCResourceModel struct {
 	ID          types.String `tfsdk:"id"`
 	IPRange     types.String `tfsdk:"ip_range"`
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
 }
 
-func (m *networkResourceModel) ToClientRequest() (*client.NetworkConfig, error) {
-	n := client.NetworkConfig{
+func (m *VPCResourceModel) ToClientRequest() (*client.VPCConfig, error) {
+	n := client.VPCConfig{
 		Name:        m.Name.ValueString(),
 		Description: m.Description.ValueString(),
 	}
@@ -31,8 +31,8 @@ func (m *networkResourceModel) ToClientRequest() (*client.NetworkConfig, error) 
 	return &n, nil
 }
 
-func (m *networkResourceModel) FromClientResponse(c *client.NetworkConfig) error {
-	m = &networkResourceModel{
+func (m *VPCResourceModel) FromClientResponse(c *client.VPCConfig) error {
+	m = &VPCResourceModel{
 		ID:          types.StringValue(c.ID),
 		Name:        types.StringValue(c.Name),
 		Description: types.StringValue(c.Description),

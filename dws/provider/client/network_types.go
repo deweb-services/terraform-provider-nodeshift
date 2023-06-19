@@ -4,7 +4,7 @@ import (
 	"net"
 )
 
-type NetworkConfig struct {
+type VPCConfig struct {
 	ID          string
 	Name        string
 	Description string

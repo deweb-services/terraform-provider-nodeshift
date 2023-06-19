@@ -8,19 +8,19 @@ import (
 )
 
 type vmResourceModel struct {
-	ID        types.String `tfsdk:"id"`
-	Image     types.String `tfsdk:"image"`
-	Region    types.String `tfsdk:"region"`
-	CPU       types.Int64  `tfsdk:"cpu"`
-	RAM       types.Int64  `tfsdk:"ram"`
-	Disk      types.Int64  `tfsdk:"disk_size"`
-	DiskType  types.String `tfsdk:"disk_type"`
-	IPv4      types.Bool   `tfsdk:"assign_public_ipv4"`
-	IPv6      types.Bool   `tfsdk:"assign_public_ipv6"`
-	Ygg       types.Bool   `tfsdk:"assign_ygg_ip"`
-	SSHKey    types.String `tfsdk:"ssh_key"`
-	HostName  types.String `tfsdk:"host_name"`
-	NetworkID types.String `tfsdk:"network_id"`
+	ID       types.String `tfsdk:"id"`
+	Image    types.String `tfsdk:"image"`
+	Region   types.String `tfsdk:"region"`
+	CPU      types.Int64  `tfsdk:"cpu"`
+	RAM      types.Int64  `tfsdk:"ram"`
+	Disk     types.Int64  `tfsdk:"disk_size"`
+	DiskType types.String `tfsdk:"disk_type"`
+	IPv4     types.Bool   `tfsdk:"assign_public_ipv4"`
+	IPv6     types.Bool   `tfsdk:"assign_public_ipv6"`
+	Ygg      types.Bool   `tfsdk:"assign_ygg_ip"`
+	SSHKey   types.String `tfsdk:"ssh_key"`
+	HostName types.String `tfsdk:"host_name"`
+	VPCID    types.String `tfsdk:"vpc_id"`
 
 	// Computed
 	PublicIPv4 types.String `tfsdk:"public_ipv4"`
@@ -32,7 +32,7 @@ func (v *vmResourceModel) ToClientRequest() (*client.VMConfig, error) {
 	r := &client.VMConfig{
 		Ipv4:        v.IPv4.ValueBool(),
 		Ipv6:        v.IPv6.ValueBool(),
-		NetworkUUID: v.NetworkID.ValueString(),
+		NetworkUUID: v.VPCID.ValueString(),
 	}
 
 	if v.Image.IsUnknown() || v.Image.IsNull() {

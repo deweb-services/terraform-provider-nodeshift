@@ -22,9 +22,9 @@ provider "dws" {
 
 provider "dws" {}
 
-resource "dws_network" "example" {
+resource "dws_vpc" "example" {
   name = "example"
-  description = "just an example network"
+  description = "just an example vpc"
   // CIDR is always "/16"
   ip_range = "10.0.0.0" 
 }

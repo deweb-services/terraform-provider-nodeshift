@@ -7,7 +7,7 @@ import (
 
 	"github.com/deweb-services/terraform-provider-dws/dws/provider/client"
 	"github.com/deweb-services/terraform-provider-dws/dws/resource/deployment"
-	"github.com/deweb-services/terraform-provider-dws/dws/resource/network"
+	"github.com/deweb-services/terraform-provider-dws/dws/resource/vpc"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -157,6 +157,6 @@ func (p *dwsProvider) DataSources(_ context.Context) []func() datasource.DataSou
 func (p *dwsProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		deployment.NewDeploymentResource,
-		network.NewNetworkResource,
+		vpc.NewVPCResource,
 	}
 }

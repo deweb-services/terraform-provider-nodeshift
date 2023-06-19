@@ -88,10 +88,10 @@ func (r *vmResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				Required:    true,
 				Description: HostNameDescription,
 			},
-			DeploymentKeysNetworkID: schema.StringAttribute{
+			DeploymentKeysVPCID: schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: NetworkIDDescription,
+				Description: VPCIDDescription,
 			},
 			DeploymentKeysPublicIPv4: schema.StringAttribute{
 				Computed:    true,

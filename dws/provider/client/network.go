@@ -10,36 +10,36 @@ import (
 )
 
 const (
-	NetworkEndpoint = "/api/terraform/vpc"
+	VPCEndpoint = "/api/terraform/vpc"
 )
 
-func (c *DWSClient) CreateNetwork(ctx context.Context, network *NetworkConfig) (*NetworkConfig, error) {
-	errPrefix := "failed to create network: %w"
-	b, err := json.Marshal(network)
+func (c *DWSClient) CreateVPC(ctx context.Context, vpc *VPCConfig) (*VPCConfig, error) {
+	errPrefix := "failed to create vpc: %w"
+	b, err := json.Marshal(vpc)
 	if err != nil {
 		return nil, fmt.Errorf(errPrefix, err)
 	}
 
-	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, NetworkEndpoint, bytes.NewReader(b))
+	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, VPCEndpoint, bytes.NewReader(b))
 	if err != nil {
 		return nil, fmt.Errorf(errPrefix, err)
 	}
 
-	if err = json.Unmarshal(responseBody, network); err != nil {
+	if err = json.Unmarshal(responseBody, vpc); err != nil {
 		return nil, fmt.Errorf(errPrefix, err)
 	}
 
-	return network, nil
+	return vpc, nil
 }
 
-func (c *DWSClient) GetNetwork(ctx context.Context, id string) (*NetworkConfig, error) {
+func (c *DWSClient) GetVPC(ctx context.Context, id string) (*VPCConfig, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *DWSClient) UpdateNetwork(ctx context.Context, id string, network *NetworkConfig) (*NetworkConfig, error) {
+func (c *DWSClient) UpdateVPC(ctx context.Context, id string, vpc *VPCConfig) (*VPCConfig, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *DWSClient) DeleteNetwork(ctx context.Context, id string) error {
+func (c *DWSClient) DeleteVPC(ctx context.Context, id string) error {
 	return errors.New("not implemented")
 }
