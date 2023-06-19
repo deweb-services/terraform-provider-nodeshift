@@ -22,7 +22,7 @@ func (c *DWSClient) CreateDeployment(ctx context.Context, r *VMConfig) (*VMRespo
 	}
 
 	body := bytes.NewReader(b)
-	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, DeploymentEndpoint, body)
+	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, c.url+DeploymentEndpoint, body)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ pollingCycle:
 	for {
 		select {
 		case <-ticker.C:
-			b, err := c.DoSignedRequest(ctx, http.MethodGet, fmt.Sprintf(TaskEndpoint, taskResponse.TaskID), nil)
+			b, err := c.DoSignedRequest(ctx, http.MethodGet, c.url+fmt.Sprintf(TaskEndpoint, taskResponse.TaskID), nil)
 			if err != nil {
 				return nil, err
 			}

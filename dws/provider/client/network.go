@@ -20,7 +20,7 @@ func (c *DWSClient) CreateVPC(ctx context.Context, vpc *VPCConfig) (*VPCConfig, 
 		return nil, fmt.Errorf(errPrefix, err)
 	}
 
-	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, VPCEndpoint, bytes.NewReader(b))
+	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, c.url+VPCEndpoint, bytes.NewReader(b))
 	if err != nil {
 		return nil, fmt.Errorf(errPrefix, err)
 	}

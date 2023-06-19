@@ -8,11 +8,16 @@ import (
 	"time"
 )
 
+const (
+	apiURL = "https://app.dws.sh"
+)
+
 type DWSClient struct {
 	Config          DWSProviderConfiguration
 	transactionNote string
 	client          *http.Client
 	signer          *Signer
+	url             string
 }
 
 type DWSProviderConfiguration struct {
@@ -31,6 +36,8 @@ type TaskResponse struct {
 	Data        any    `json:"data"`
 }
 
+type ClientOpt func(c *DWSClient)
+
 func (dc *DWSProviderConfiguration) FromSlice(values []string) {
 	if len(values) < 5 {
 		return
@@ -45,7 +52,7 @@ func (c *DWSClient) SetGlobalTransactionNote(note string) {
 	c.transactionNote = note
 }
 
-func NewClient(configuration DWSProviderConfiguration) *DWSClient {
+func NewClient(configuration DWSProviderConfiguration, opts ...ClientOpt) *DWSClient {
 
 	signerOpts := []SignerOpt{}
 
@@ -59,13 +66,20 @@ func NewClient(configuration DWSProviderConfiguration) *DWSClient {
 
 	signer := NewSigner(signerOpts[len(signerOpts)-1])
 
-	return &DWSClient{
+	c := &DWSClient{
 		Config: configuration,
 		client: &http.Client{
 			Timeout: configuration.Timeout,
 		},
 		signer: signer,
+		url:    apiURL,
 	}
+
+	for _, opt := range opts {
+		opt(c)
+	}
+
+	return c
 }
 
 func (c *DWSClient) DoRequest(req *http.Request) ([]byte, error) {
@@ -89,7 +103,7 @@ func (c *DWSClient) DoRequest(req *http.Request) ([]byte, error) {
 }
 
 func (c *DWSClient) DoSignedRequest(ctx context.Context, method string, endpoint string, body io.ReadSeeker) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, DeploymentEndpoint, body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create \"create deployment\" request: %w", err)
 	}
@@ -107,4 +121,10 @@ func checkResponse(res *http.Response) error {
 	}
 
 	return nil
+}
+
+func ClientOptWithURL(url string) ClientOpt {
+	return func(c *DWSClient) {
+		c.url = url
+	}
 }
