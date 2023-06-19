@@ -1,27 +1,44 @@
 package client
 
+import (
+	"context"
+	"fmt"
+	"io"
+	"net/http"
+	"time"
+)
+
 type DWSClient struct {
 	Config          DWSProviderConfiguration
 	transactionNote string
+	client          *http.Client
+	signer          *Signer
 }
 
 type DWSProviderConfiguration struct {
-	AccountName  string
-	AccountKey   string
-	AccessRegion string
-	ApiKey       string
-	SessionToken string
+	Timeout               time.Duration
+	AccessKey             string
+	SecretAccessKey       string
+	SharedCredentialsFile string
+	Profile               string
+}
+
+type TaskResponse struct {
+	StartTime   int64  `json:"startTime"`
+	ServiceType string `json:"serviceType"`
+	EndTime     any    `json:"endTime"`
+	IsError     bool   `json:"isError"`
+	Data        any    `json:"data"`
 }
 
 func (dc *DWSProviderConfiguration) FromSlice(values []string) {
 	if len(values) < 5 {
 		return
 	}
-	dc.AccountName = values[0]
-	dc.AccountKey = values[1]
-	dc.AccessRegion = values[2]
-	dc.ApiKey = values[3]
-	dc.SessionToken = values[4]
+	dc.AccessKey = values[0]
+	dc.SecretAccessKey = values[1]
+	dc.SharedCredentialsFile = values[2]
+	dc.Profile = values[3]
 }
 
 func (c *DWSClient) SetGlobalTransactionNote(note string) {
@@ -29,5 +46,75 @@ func (c *DWSClient) SetGlobalTransactionNote(note string) {
 }
 
 func NewClient(configuration DWSProviderConfiguration) *DWSClient {
-	return &DWSClient{Config: configuration}
+
+	signerOpts := []SignerOpt{}
+
+	if configuration.AccessKey != "" && configuration.SecretAccessKey != "" {
+		signerOpts = append(signerOpts, WithStaticCredentials(configuration.AccessKey, configuration.SecretAccessKey))
+	}
+
+	if configuration.SharedCredentialsFile != "" && configuration.Profile != "" {
+		signerOpts = append(signerOpts, WithSharedCredentials(configuration.SharedCredentialsFile, configuration.Profile))
+	}
+
+	signer := NewSigner(signerOpts[len(signerOpts)-1])
+
+	return &DWSClient{
+		Config: configuration,
+		client: &http.Client{
+			Timeout: configuration.Timeout,
+		},
+		signer: signer,
+	}
+}
+
+func (c *DWSClient) DoRequest(req *http.Request) ([]byte, error) {
+	res, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error making request: %w", err)
+	}
+
+	err = checkResponse(res)
+	if err != nil {
+		return nil, fmt.Errorf("external API returned an error code: %w", err)
+	}
+
+	defer res.Body.Close()
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	return b, nil
+}
+
+func (c *DWSClient) DoSignedRequest(ctx context.Context, method string, endpoint string, body io.ReadSeeker) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, DeploymentEndpoint, body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create \"create deployment\" request: %w", err)
+	}
+
+	if err = c.signer.SignRequest(req, body); err != nil {
+		return nil, err
+	}
+
+	return c.DoRequest(req)
+}
+
+func checkResponse(res *http.Response) error {
+	if res.StatusCode >= 400 && res.StatusCode <= 599 {
+		// var e APIError
+		// defer res.Body.Close()
+		// b, err := io.ReadAll(res.Body)
+		// if err != nil {
+		// 	return fmt.Errorf("request failed, status code: %d, read err msg failed: %w", res.StatusCode, err)
+		// }
+		// err = json.Unmarshal(b, &e)
+		// if err != nil {
+		// 	return fmt.Errorf("request failed, status code: %d, failed to unmarshal err msg: %w", res.StatusCode, err)
+		// }
+		// return fmt.Errorf("request failed, status code: %d, msg: %s", res.StatusCode, e.Error)
+	}
+
+	return nil
 }
