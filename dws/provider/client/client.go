@@ -103,17 +103,7 @@ func (c *DWSClient) DoSignedRequest(ctx context.Context, method string, endpoint
 
 func checkResponse(res *http.Response) error {
 	if res.StatusCode >= 400 && res.StatusCode <= 599 {
-		// var e APIError
-		// defer res.Body.Close()
-		// b, err := io.ReadAll(res.Body)
-		// if err != nil {
-		// 	return fmt.Errorf("request failed, status code: %d, read err msg failed: %w", res.StatusCode, err)
-		// }
-		// err = json.Unmarshal(b, &e)
-		// if err != nil {
-		// 	return fmt.Errorf("request failed, status code: %d, failed to unmarshal err msg: %w", res.StatusCode, err)
-		// }
-		// return fmt.Errorf("request failed, status code: %d, msg: %s", res.StatusCode, e.Error)
+		return fmt.Errorf("request failed, status code: %d", res.StatusCode)
 	}
 
 	return nil
