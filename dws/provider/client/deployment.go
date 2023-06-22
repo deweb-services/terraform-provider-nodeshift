@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	DeploymentEndpoint = "/api/terraform/deployment"
-	TaskEndpoint       = "/api/task/%s"
+	DeploymentEndpoint = "/terraform/deployment"
+	TaskEndpoint       = "/task/%s"
 )
 
 func (c *DWSClient) CreateDeployment(ctx context.Context, r *DeploymentConfig) (*CreatedDeployment, error) {

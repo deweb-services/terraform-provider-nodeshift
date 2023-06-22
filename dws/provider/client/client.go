@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 const (
@@ -56,12 +58,18 @@ func NewClient(configuration DWSProviderConfiguration, opts ...ClientOpt) *DWSCl
 
 	signerOpts := []SignerOpt{}
 
+	tflog.Debug(context.TODO(), fmt.Sprintf("configuration: %+v", configuration))
+
 	if configuration.AccessKey != "" && configuration.SecretAccessKey != "" {
 		signerOpts = append(signerOpts, WithStaticCredentials(configuration.AccessKey, configuration.SecretAccessKey))
 	}
 
 	if configuration.SharedCredentialsFile != "" && configuration.Profile != "" {
 		signerOpts = append(signerOpts, WithSharedCredentials(configuration.SharedCredentialsFile, configuration.Profile))
+	}
+
+	if len(signerOpts) == 0 {
+		signerOpts = append(signerOpts, WithAnonymousCredentials())
 	}
 
 	signer := NewSigner(signerOpts[len(signerOpts)-1])
@@ -111,6 +119,8 @@ func (c *DWSClient) DoSignedRequest(ctx context.Context, method string, endpoint
 	if err = c.signer.SignRequest(req, body); err != nil {
 		return nil, err
 	}
+
+	// panic(fmt.Sprintf("%+v", req))
 
 	return c.DoRequest(req)
 }

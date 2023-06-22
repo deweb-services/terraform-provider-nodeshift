@@ -18,15 +18,13 @@ provider "dws" {
   profile = "main-profile"
 }
 
-// OR in case you want to set Previous params with environment variables
+// OR in case you want to set params with environment variables
 
 provider "dws" {}
 
 resource "dws_vpc" "example" {
   name = "example"
   description = "just an example vpc"
-  // CIDR is always "/16"
-  ip_range = "10.0.0.0" 
 }
 
 resource "dws_deployment" "hello_world" {

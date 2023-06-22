@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	VPCEndpoint = "/api/terraform/vpc"
+	VPCEndpoint = "/terraform/vpc"
 )
 
 func (c *DWSClient) CreateVPC(ctx context.Context, vpc *VPCConfig) (*VPCConfig, error) {

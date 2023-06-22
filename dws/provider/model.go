@@ -9,6 +9,4 @@ type dwsProviderModel struct {
 
 	SharedCredentialsFile types.String `tfsdk:"shared_credentials_file"`
 	Profile               types.String `tfsdk:"profile"`
-
-	Timeout types.Int64 `tfsdk:"timeout"`
 }

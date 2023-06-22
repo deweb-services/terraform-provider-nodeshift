@@ -1,8 +1,10 @@
 package provider
 
 const (
-	AccessKey        = "access_key"
-	SecretAccessKey  = "secret_access_key"
-	SharedConfigFile = "shared_config_file"
-	Profile          = "profile"
+	AccessKey             = "access_key"
+	SecretAccessKey       = "secret_access_key"
+	SharedCredentialsFile = "shared_credentials_file"
+	Profile               = "profile"
+	Address               = "address"
+	Port                  = "port"
 )

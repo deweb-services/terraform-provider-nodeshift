@@ -11,7 +11,7 @@ import (
 func main() {
 	if err := providerserver.Serve(context.Background(), provider.NewDWSProvider,
 		providerserver.ServeOpts{
-			Address: "hashicorp.com/edu/dws",
+			Address: "registry.terraform.io/dws/dws",
 		}); err != nil {
 		log.Printf("server error: %v", err)
 	}
