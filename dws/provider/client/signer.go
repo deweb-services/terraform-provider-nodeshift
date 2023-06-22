@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	v4 "github.com/aws/aws-sdk-go/aws/signer/v4"
 )
@@ -22,7 +23,7 @@ func NewSigner(opt SignerOpt) *Signer {
 	credentials := opt()
 
 	signer := v4.NewSigner(credentials)
-	signer.DisableRequestBodyOverwrite = true
+	signer.Debug = aws.LogDebug
 	signer.DisableURIPathEscaping = true
 	signer.DisableRequestBodyOverwrite = true
 
