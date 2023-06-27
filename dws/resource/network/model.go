@@ -31,13 +31,11 @@ func (m *networkResourceModel) ToClientRequest() (*client.NetworkConfig, error) 
 	return &n, nil
 }
 
-func (m *networkResourceModel) FromClientResponse(c *client.NetworkConfig) error {
-	m = &networkResourceModel{
+func (m *networkResourceModel) FromClientResponse(c *client.NetworkConfig) {
+	*m = networkResourceModel{
 		ID:          types.StringValue(c.ID),
 		Name:        types.StringValue(c.Name),
 		Description: types.StringValue(c.Description),
 		IPRange:     types.StringValue(c.IPRange.String()),
 	}
-
-	return nil
 }
