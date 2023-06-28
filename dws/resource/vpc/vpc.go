@@ -1,4 +1,4 @@
-package network
+package vpc
 
 import (
 	"context"
@@ -14,40 +14,45 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &networkResource{}
-	_ resource.ResourceWithConfigure   = &networkResource{}
-	_ resource.ResourceWithImportState = &networkResource{}
+	_ resource.Resource                = &vpcResource{}
+	_ resource.ResourceWithConfigure   = &vpcResource{}
+	_ resource.ResourceWithImportState = &vpcResource{}
 )
 
-type networkResource struct {
+// NewDeploymentResource is a helper function to simplify the provider implementation.
+func NewVPCResource() resource.Resource {
+	return &vpcResource{}
+}
+
+type vpcResource struct {
 	client *client.DWSClient
 }
 
 // Metadata returns the resource type name.
-func (r *networkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_network"
+func (r *vpcResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_vpc"
 }
 
-func (r *networkResource) Schema(c context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
+func (r *vpcResource) Schema(c context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			ID: schema.StringAttribute{
 				Computed: true,
 			},
-			NetworkIPRangeKeys: schema.StringAttribute{
+			VPCIPRangeKeys: schema.StringAttribute{
 				Required: true,
 			},
-			NetworkNameKeys: schema.StringAttribute{
+			VPCNameKeys: schema.StringAttribute{
 				Required: true,
 			},
-			NetworkDescriptionKeys: schema.StringAttribute{
+			VPCDescriptionKeys: schema.StringAttribute{
 				Optional: true,
 			},
 		},
 	}
 }
 
-func (r *networkResource) Configure(_ context.Context, req resource.ConfigureRequest, _ *resource.ConfigureResponse) {
+func (r *vpcResource) Configure(_ context.Context, req resource.ConfigureRequest, _ *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -55,9 +60,9 @@ func (r *networkResource) Configure(_ context.Context, req resource.ConfigureReq
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *networkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan networkResourceModel
+	var plan VPCResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -65,23 +70,31 @@ func (r *networkResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	// Create new Network
+	// Create new VPC
 	clientRequest, err := plan.ToClientRequest()
 	if err != nil {
 		tflog.Error(ctx, "failed to convert resource to client required type", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
 	}
 
-	network, err := r.client.CreateNetwork(ctx, clientRequest)
+	vpc, err := r.client.CreateVPC(ctx, clientRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating network",
-			fmt.Sprintf("Could not create network, unexpected error: %s", err),
+			"Error creating vpc",
+			fmt.Sprintf("Could not create vpc, unexpected error: %s", err),
 		)
 		return
 	}
 
 	// Map response body to schema and populate Computed attribute values
-	plan.FromClientResponse(network)
+	err = plan.FromClientResponse(vpc)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating vpc",
+			fmt.Sprintf("Could not convert created VPC from client response, unexpected error: %s", err),
+		)
+		return
+	}
+	tflog.Info(ctx, fmt.Sprintf("VPC from client response: %+v", vpc))
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -91,9 +104,9 @@ func (r *networkResource) Create(ctx context.Context, req resource.CreateRequest
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *networkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *vpcResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state networkResourceModel
+	var state VPCResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -102,17 +115,24 @@ func (r *networkResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Get refreshed order value from client
-	network, err := r.client.GetNetwork(ctx, state.ID.ValueString())
+	vpc, err := r.client.GetVPC(ctx, state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading network state",
-			fmt.Sprintf("Could not read network state ID %s: %s", state.ID.ValueString(), err),
+			"Error Reading vpc state",
+			fmt.Sprintf("Could not read vpc state ID %s: %s", state.ID.ValueString(), err),
 		)
 		return
 	}
 
 	// Overwrite items with refreshed state
-	state.FromClientResponse(network)
+	err = state.FromClientResponse(vpc)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating vpc",
+			fmt.Sprintf("Could not convert read VPC from client response, unexpected error: %s", err),
+		)
+		return
+	}
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -122,9 +142,9 @@ func (r *networkResource) Read(ctx context.Context, req resource.ReadRequest, re
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *networkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *vpcResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan networkResourceModel
+	var plan VPCResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -138,26 +158,33 @@ func (r *networkResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Update existing order
-	_, err = r.client.UpdateNetwork(ctx, plan.ID.ValueString(), clientRequest)
+	_, err = r.client.UpdateVPC(ctx, plan.ID.ValueString(), clientRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Updating network state",
-			fmt.Sprintf("Could not update network state %s, unexpected error: %s", plan.ID.ValueString(), err),
+			"Error Updating vpc state",
+			fmt.Sprintf("Could not update vpc state %s, unexpected error: %s", plan.ID.ValueString(), err),
 		)
 		return
 	}
 
-	// Fetch updated items from GetNetwork as UpdateNetwork items are not populated.
-	network, err := r.client.GetNetwork(ctx, plan.ID.ValueString())
+	// Fetch updated items from GetVPC as UpdateVPC items are not populated.
+	vpc, err := r.client.GetVPC(ctx, plan.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading network state",
-			fmt.Sprintf("Could not read network name %s: %s", plan.ID.ValueString(), err),
+			"Error Reading vpc state",
+			fmt.Sprintf("Could not read vpc name %s: %s", plan.ID.ValueString(), err),
 		)
 		return
 	}
 
-	plan.FromClientResponse(network)
+	err = plan.FromClientResponse(vpc)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating vpc",
+			fmt.Sprintf("Could not convert updated VPC from client response, unexpected error: %s", err),
+		)
+		return
+	}
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -167,9 +194,9 @@ func (r *networkResource) Update(ctx context.Context, req resource.UpdateRequest
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *networkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *vpcResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state networkResourceModel
+	var state VPCResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -177,17 +204,17 @@ func (r *networkResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
-	// Delete existing network
-	if err := r.client.DeleteNetwork(ctx, state.ID.ValueString()); err != nil {
+	// Delete existing vpc
+	if err := r.client.DeleteVPC(ctx, state.ID.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
-			"Error Deleting network",
-			fmt.Sprintf("Could not delete network, unexpected error: %s", err),
+			"Error Deleting vpc",
+			fmt.Sprintf("Could not delete vpc, unexpected error: %s", err),
 		)
 		return
 	}
 }
 
-func (r *networkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *vpcResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Retrieve import ID and save to id attribute
 	resource.ImportStatePassthroughID(ctx, path.Root(ID), req, resp)
 }

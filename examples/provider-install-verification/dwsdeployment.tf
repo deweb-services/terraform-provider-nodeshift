@@ -7,39 +7,38 @@ terraform {
 }
 
 provider "dws" {
-  account_name = "dws_acc"
-  account_key = "dws_key"
-  access_region = "us"
-  api_key = "api"
-  session_token = "tok"
+  access_key = "ACCESS_KEY"
+  secret_access_key = "SECRET_ACCESS_KEY"
 }
 
-resource "dws_vm" "hello_world" {
-  deployment = {
-    name = "string"
-    image = "string"
-    network = "string"
-    region = "string"
-  }
-  cpu = [
-    {
-      quantity = 1
-      type = "string"
-    }
-  ]
-  ram = {
-    volume = 1024
-  }
-  disk = [
-    {
-      type = "string"
-      volume = 12
-    }
-  ]
-  protocols = {
-    ip = {
-      v4 = true
-      v6 = false
-    }
-  }
+// OR
+
+provider "dws" {
+  shared_credentials_file = "~/.dws/credentials"
+  profile = "main-profile"
+}
+
+// OR in case you want to set params with environment variables
+
+provider "dws" {}
+
+resource "dws_vpc" "example" {
+  name = "example"
+  description = "just an example vpc"
+}
+
+resource "dws_deployment" "hello_world" {
+  image = "Ubuntu-v22.04"
+  region = "USA"
+  cpu = 4
+  // RAM in GB
+  ram = 2
+  // Disk in GB
+  disk_size = 20
+  disk_type = "hdd"
+  assign_public_ipv4 = true
+  assign_public_ipv6 = true
+  assign_ygg_ip = true
+  ssh-key = "ssh-rsa ..."
+  network_id = dws_network.example.id
 }

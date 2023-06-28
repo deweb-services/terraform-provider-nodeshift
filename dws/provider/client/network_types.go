@@ -1,12 +1,8 @@
 package client
 
-import (
-	"net"
-)
-
-type NetworkConfig struct {
-	ID          string
-	Name        string
-	Description string
-	IPRange     net.IPNet
+type VPCConfig struct {
+	ID          string `json:"id,omitempty"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	IPRange     string `json:"ipRange"`
 }
