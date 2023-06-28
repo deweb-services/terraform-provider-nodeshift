@@ -1,35 +1,35 @@
 package client
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	v4 "github.com/aws/aws-sdk-go/aws/signer/v4"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type Signer struct {
-	*v4.Signer
+	v4 *v4.Signer
 }
 
-type SignerOpt func() *credentials.Credentials
+type CredentialsOpt func() *credentials.Credentials
 
-func NewSigner(opt SignerOpt) *Signer {
-	credentials := opt()
+type SignerOpt func(signer *Signer)
 
-	signer := v4.NewSigner(credentials)
-	signer.Debug = aws.LogDebug
-	signer.DisableURIPathEscaping = true
-	signer.DisableRequestBodyOverwrite = true
+func NewSigner(credentialsOpt CredentialsOpt, opts ...SignerOpt) *Signer {
+	credentials := credentialsOpt()
+	signer := &Signer{v4: v4.NewSigner(credentials)}
 
-	return &Signer{
-		signer,
+	for _, opt := range opts {
+		opt(signer)
 	}
+
+	return signer
 }
 
 func (s *Signer) SignRequest(req *http.Request, body io.ReadSeeker) error {
@@ -37,11 +37,11 @@ func (s *Signer) SignRequest(req *http.Request, body io.ReadSeeker) error {
 		return err
 	}
 
-	return s.replaceAuthenticationHeaders(req.Header)
+	return nil
 }
 
 func (s *Signer) signRequest(req *http.Request, body io.ReadSeeker) error {
-	_, err := s.Sign(req, body, "terraform", "global", time.Now())
+	_, err := s.v4.Sign(req, body, "terraform", "global", time.Now())
 	if err != nil {
 		return fmt.Errorf("failed to sign request: %w", err)
 	}
@@ -49,37 +49,35 @@ func (s *Signer) signRequest(req *http.Request, body io.ReadSeeker) error {
 	return nil
 }
 
-func WithStaticCredentials(accessKey, secretKey string) SignerOpt {
+func WithStaticCredentials(accessKey, secretKey string) CredentialsOpt {
 	return func() *credentials.Credentials {
 		return credentials.NewStaticCredentials(accessKey, secretKey, "")
 	}
 }
 
-func WithSharedCredentials(filename, profile string) SignerOpt {
+func WithSharedCredentials(filename, profile string) CredentialsOpt {
 	return func() *credentials.Credentials {
 		return credentials.NewSharedCredentials(filename, profile)
 	}
 }
 
-func WithAnonymousCredentials() SignerOpt {
+func WithAnonymousCredentials() CredentialsOpt {
 	return func() *credentials.Credentials {
 		return credentials.AnonymousCredentials
 	}
 }
 
-func (s *Signer) replaceAuthenticationHeaders(header http.Header) error {
-	value := header.Get("Authorization")
-	authHeaderParts := strings.Split(value, ",")
-	header.Del("Authorization")
-	algorithmCredentials := strings.Split(authHeaderParts[0], " ")
-	if len(algorithmCredentials) < 2 {
-		return errors.New("invalid Authorization header")
+func WithDebugLogger(logger aws.Logger) SignerOpt {
+	return func(signer *Signer) {
+		signer.v4.Debug = aws.LogDebugWithSigning
+		signer.v4.Logger = logger
 	}
-	header.Set("X-Amz-Expires", "900")
-	header.Set("X-Amz-Algorithm", algorithmCredentials[0])
-	header.Set("X-Amz-Credential", strings.Replace(strings.TrimPrefix(strings.TrimSpace(algorithmCredentials[1]), "Credential="), "//", "/", -1))
-	header.Set("X-Amz-SignedHeaders", strings.TrimPrefix(strings.TrimSpace(authHeaderParts[1]), "SignedHeaders="))
-	header.Set("X-Amz-Signature", strings.TrimPrefix(strings.TrimSpace(authHeaderParts[2]), "Signature="))
+}
 
-	return nil
+type DebugLogger struct{}
+
+func (l *DebugLogger) Log(values ...interface{}) {
+	for _, item := range values {
+		tflog.Info(context.TODO(), fmt.Sprintf("%+v", item))
+	}
 }

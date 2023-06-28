@@ -6,12 +6,11 @@ import (
 	"io"
 	"net/http"
 	"time"
-
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 const (
-	apiURL = "https://app.dws.sh"
+	APIURL                = "https://app.dws.sh"
+	defaultTimeoutSeconds = 120
 )
 
 type DWSClient struct {
@@ -55,10 +54,7 @@ func (c *DWSClient) SetGlobalTransactionNote(note string) {
 }
 
 func NewClient(configuration DWSProviderConfiguration, opts ...ClientOpt) *DWSClient {
-
-	signerOpts := []SignerOpt{}
-
-	tflog.Debug(context.TODO(), fmt.Sprintf("configuration: %+v", configuration))
+	signerOpts := []CredentialsOpt{}
 
 	if configuration.AccessKey != "" && configuration.SecretAccessKey != "" {
 		signerOpts = append(signerOpts, WithStaticCredentials(configuration.AccessKey, configuration.SecretAccessKey))
@@ -72,15 +68,17 @@ func NewClient(configuration DWSProviderConfiguration, opts ...ClientOpt) *DWSCl
 		signerOpts = append(signerOpts, WithAnonymousCredentials())
 	}
 
-	signer := NewSigner(signerOpts[len(signerOpts)-1])
+	signer := NewSigner(signerOpts[len(signerOpts)-1], WithDebugLogger(&DebugLogger{}))
 
 	c := &DWSClient{
 		Config: configuration,
-		client: &http.Client{
-			Timeout: configuration.Timeout,
-		},
+		client: &http.Client{},
 		signer: signer,
-		url:    apiURL,
+		url:    APIURL,
+	}
+
+	if configuration.Timeout == 0 {
+		c.client.Timeout = defaultTimeoutSeconds * time.Second
 	}
 
 	for _, opt := range opts {
@@ -111,16 +109,16 @@ func (c *DWSClient) DoRequest(req *http.Request) ([]byte, error) {
 }
 
 func (c *DWSClient) DoSignedRequest(ctx context.Context, method string, endpoint string, body io.ReadSeeker) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, body)
+	req, err := http.NewRequestWithContext(ctx, method, endpoint, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create \"create deployment\" request: %w", err)
 	}
 
+	req.Header.Set("Content-Type", "application/json")
+
 	if err = c.signer.SignRequest(req, body); err != nil {
 		return nil, err
 	}
-
-	// panic(fmt.Sprintf("%+v", req))
 
 	return c.DoRequest(req)
 }

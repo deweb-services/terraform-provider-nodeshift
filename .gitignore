@@ -1,5 +1,6 @@
 .DS_Store
 vendor
+main.tf
 
 terraform-provider-dws
 bin

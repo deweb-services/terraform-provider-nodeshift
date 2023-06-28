@@ -14,7 +14,7 @@ func TestNewSigner_WithStaticCredentials(t *testing.T) {
 
 	signer := NewSigner(WithStaticCredentials(accessKey, secretKey))
 
-	creds, _ := signer.Credentials.Get()
+	creds, _ := signer.v4.Credentials.Get()
 
 	assert.NotNil(t, signer)
 	assert.Equal(t, accessKey, creds.AccessKeyID)
@@ -27,7 +27,7 @@ func TestNewSigner_WithSharedCredentials(t *testing.T) {
 
 	signer := NewSigner(WithSharedCredentials(filename, profile))
 
-	creds, _ := signer.Credentials.Get()
+	creds, _ := signer.v4.Credentials.Get()
 
 	assert.NotNil(t, signer)
 	assert.Equal(t, credentials.SharedCredsProviderName, creds.ProviderName)
@@ -37,10 +37,10 @@ func TestSigner_SignRequest(t *testing.T) {
 	accessKey := "ACCESS_KEY"
 	secretKey := "SECRET_KEY"
 
-	signer := NewSigner(WithStaticCredentials(accessKey, secretKey))
+	signer := NewSigner(WithStaticCredentials(accessKey, secretKey), WithDebugLogger(t))
 
 	// Create a sample HTTP request
-	req, err := http.NewRequest("GET", "https://example.com/api", nil)
+	req, err := http.NewRequest("POST", "https://example.com/api", nil)
 	assert.NoError(t, err)
 
 	err = signer.SignRequest(req, nil)
@@ -58,27 +58,4 @@ func TestSigner_SignRequest(t *testing.T) {
 	assert.Equal(t, "host;x-amz-date", req.Header.Get("X-Amz-SignedHeaders"))
 
 	// Assert other necessary headers or values as needed
-}
-
-func TestSigner_ReplaceHeaders(t *testing.T) {
-	accessKey := "ACCESS_KEY"
-	secretKey := "SECRET_KEY"
-
-	signer := NewSigner(WithStaticCredentials(accessKey, secretKey))
-
-	// Create a sample HTTP request
-	req, err := http.NewRequest("GET", "https://example.com/api", nil)
-	assert.NoError(t, err)
-
-	err = signer.signRequest(req, nil)
-	assert.NoError(t, err)
-
-	err = signer.replaceAuthenticationHeaders(req.Header)
-	assert.NoError(t, err)
-
-	for header, value := range req.Header {
-		t.Logf("header: %s, value: %s", header, value)
-	}
-
-	assert.Equal(t, "AWS4-HMAC-SHA256", req.Header.Get("X-Amz-Algorithm"))
 }

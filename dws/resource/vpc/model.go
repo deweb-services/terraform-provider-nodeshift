@@ -32,12 +32,10 @@ func (m *VPCResourceModel) ToClientRequest() (*client.VPCConfig, error) {
 }
 
 func (m *VPCResourceModel) FromClientResponse(c *client.VPCConfig) error {
-	m = &VPCResourceModel{
-		ID:          types.StringValue(c.ID),
-		Name:        types.StringValue(c.Name),
-		Description: types.StringValue(c.Description),
-		IPRange:     types.StringValue(c.IPRange),
-	}
-
+	m.ID = types.StringValue(c.ID)
+	m.Name = types.StringValue(c.Name)
+	m.Description = types.StringValue(c.Description)
+	m.IPRange = types.StringValue(c.IPRange)
+	
 	return nil
 }

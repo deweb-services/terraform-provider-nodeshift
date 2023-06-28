@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 const (
@@ -20,10 +22,14 @@ func (c *DWSClient) CreateVPC(ctx context.Context, vpc *VPCConfig) (*VPCConfig, 
 		return nil, fmt.Errorf(errPrefix, err)
 	}
 
+	tflog.Info(ctx, fmt.Sprintf("VPC to create: %s", string(b)))
+
 	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, c.url+VPCEndpoint, bytes.NewReader(b))
 	if err != nil {
 		return nil, fmt.Errorf(errPrefix, err)
 	}
+
+	tflog.Info(ctx, fmt.Sprintf("created VPC: %s", string(responseBody)))
 
 	if err = json.Unmarshal(responseBody, vpc); err != nil {
 		return nil, fmt.Errorf(errPrefix, err)

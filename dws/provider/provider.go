@@ -87,7 +87,7 @@ func (p *dwsProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	}
 
 	if config.SecretAccessKey.ValueString() != "" {
-		values[1] = config.AccessKey.ValueString()
+		values[1] = config.SecretAccessKey.ValueString()
 	}
 
 	if config.SharedCredentialsFile.ValueString() != "" {
@@ -172,8 +172,9 @@ func (p *dwsProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	tflog.Debug(ctx, "Creating DWS client")
 	var cfg client.DWSProviderConfiguration
 	cfg.FromSlice(values)
+	tflog.Debug(ctx, fmt.Sprintf("%+v", values))
 	// Create a new dws client using the configuration values
-	cli := client.NewClient(cfg, client.ClientOptWithURL("http://localhost:6005"))
+	cli := client.NewClient(cfg, client.ClientOptWithURL(client.APIURL))
 	// Make the dws client available during DataSource and Resource
 	resp.DataSourceData = cli
 	resp.ResourceData = cli

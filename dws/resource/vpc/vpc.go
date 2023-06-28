@@ -87,6 +87,7 @@ func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// Map response body to schema and populate Computed attribute values
 	plan.FromClientResponse(vpc)
+	tflog.Info(ctx, fmt.Sprintf("VPC from client response: %+v", vpc))
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)

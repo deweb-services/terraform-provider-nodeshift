@@ -136,6 +136,8 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 		return
 	}
 
+	tflog.Info(ctx, fmt.Sprintf("Deployment to create: %+v", requestData))
+
 	// Create new Deployment
 	vm, err := r.client.CreateDeployment(ctx, requestData)
 	if err != nil {

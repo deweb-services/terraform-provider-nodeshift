@@ -43,5 +43,5 @@ type CreatedDeploymentDataPlan struct {
 
 type DeploymentCreateTask struct {
 	ID     string `json:"id"`
-	TaskID string `json:"task_id"`
+	TaskID string `json:"taskId"`
 }
