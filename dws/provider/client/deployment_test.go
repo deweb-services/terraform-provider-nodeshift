@@ -103,6 +103,7 @@ func Test_VPCCreate(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Logf("header: %+v", r.Header)
 		b, _ := json.Marshal(expectedResponse)
+		//nolint:errcheck
 		w.Write(b)
 	}))
 	defer mockServer.Close()
