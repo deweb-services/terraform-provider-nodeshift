@@ -42,6 +42,7 @@ func Test_DeploymentCreate(t *testing.T) {
 				TaskID: "67e1c297-0d78-4668-b23a-6a268000a392",
 			}
 			b, _ := json.Marshal(response)
+			//nolint:errcheck
 			w.Write(b)
 			return
 		case strings.HasPrefix(r.URL.Path, "/api/task"):
@@ -50,8 +51,8 @@ func Test_DeploymentCreate(t *testing.T) {
 			if mustPollTimes == 0 {
 				expectedResponse.EndTime = Int64P(time.Now().Unix())
 				b, _ := json.Marshal(expectedResponse)
+				//nolint:errcheck
 				w.Write(b)
-				w.WriteHeader(http.StatusOK)
 				return
 			}
 			response := CreatedDeployment{
@@ -62,6 +63,7 @@ func Test_DeploymentCreate(t *testing.T) {
 				IsError:     false,
 			}
 			b, _ := json.Marshal(response)
+			//nolint:errcheck
 			w.Write(b)
 		}
 	}))

@@ -86,7 +86,14 @@ func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	// Map response body to schema and populate Computed attribute values
-	plan.FromClientResponse(vpc)
+	err = plan.FromClientResponse(vpc)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating vpc",
+			fmt.Sprintf("Could not convert created VPC from client response, unexpected error: %s", err),
+		)
+		return
+	}
 	tflog.Info(ctx, fmt.Sprintf("VPC from client response: %+v", vpc))
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -118,7 +125,14 @@ func (r *vpcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	// Overwrite items with refreshed state
-	state.FromClientResponse(vpc)
+	err = state.FromClientResponse(vpc)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating vpc",
+			fmt.Sprintf("Could not convert read VPC from client response, unexpected error: %s", err),
+		)
+		return
+	}
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -163,7 +177,14 @@ func (r *vpcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	plan.FromClientResponse(vpc)
+	err = plan.FromClientResponse(vpc)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error creating vpc",
+			fmt.Sprintf("Could not convert updated VPC from client response, unexpected error: %s", err),
+		)
+		return
+	}
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)

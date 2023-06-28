@@ -64,6 +64,8 @@ pollingCycle:
 			if deploymentResponse.Data != nil && deploymentResponse.EndTime != nil {
 				break pollingCycle
 			}
+		case <-ctx.Done():
+			return nil, errors.New("failed to create deployment: context deadline exceeded")
 		}
 	}
 

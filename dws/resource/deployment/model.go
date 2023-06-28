@@ -92,6 +92,4 @@ func (v *vmResourceModel) FromClientResponse(c *client.CreatedDeployment) {
 	v.PublicIPv6 = types.StringValue(c.Data.IPv6)
 	v.YggIP = types.StringValue(c.Data.Ygg)
 	v.ID = types.StringValue(c.ID)
-
-	return
 }

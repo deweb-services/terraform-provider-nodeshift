@@ -2,6 +2,7 @@ package client
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -51,11 +52,13 @@ func TestSigner_SignRequest(t *testing.T) {
 	}
 
 	assert.NoError(t, err)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, req.Header.Get("X-Amz-Date"))
-	assert.NotEmpty(t, req.Header.Get("X-Amz-Credential"))
-	assert.Equal(t, "AWS4-HMAC-SHA256", req.Header.Get("X-Amz-Algorithm"))
-	assert.Equal(t, "host;x-amz-date", req.Header.Get("X-Amz-SignedHeaders"))
 
-	// Assert other necessary headers or values as needed
+	authHeader := req.Header.Get("Authorization")
+	assert.NotEmpty(t, authHeader)
+
+	authHeaderValues := strings.Split(strings.Replace(authHeader, ",", "", -1), " ")
+
+	assert.Equal(t, "AWS4-HMAC-SHA256", authHeaderValues[0])
+	assert.Equal(t, "Credential=ACCESS_KEY/20230628/global/terraform/aws4_request", authHeaderValues[1])
+	assert.Equal(t, "SignedHeaders=host;x-amz-date", authHeaderValues[2])
 }
