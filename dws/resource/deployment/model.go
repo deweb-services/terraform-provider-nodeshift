@@ -106,13 +106,11 @@ func (v *vmResourceModel) FromAsyncAPIResponse(c *client.AsyncAPIDeploymentRespo
 	}
 }
 
-func (v *vmResourceModel) FromClientResponse(c *client.CreatedDeployment) error {
+func (v *vmResourceModel) FromClientResponse(c *client.CreatedDeployment) {
 	v.Image = types.StringValue(c.ImageVersion)
 	v.CPU = types.Int64Value(int64(c.Cru))
 	v.RAM = types.Int64Value(int64(c.Mru))
 	v.Disk = types.Int64Value(int64(c.Sru))
 	v.PublicIPv4 = types.StringValue(c.IP)
 	v.HostName = types.StringValue(c.Hostname)
-
-	return nil
 }
