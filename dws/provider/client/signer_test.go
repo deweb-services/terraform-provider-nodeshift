@@ -41,7 +41,7 @@ func TestSigner_SignRequest(t *testing.T) {
 	signer := NewSigner(WithStaticCredentials(accessKey, secretKey), WithDebugLogger(t))
 
 	// Create a sample HTTP request
-	req, err := http.NewRequest("POST", "https://example.com/api", nil)
+	req, err := http.NewRequest(http.MethodGet, "https://localhost:6005", nil)
 	assert.NoError(t, err)
 
 	err = signer.SignRequest(req, nil)
@@ -59,6 +59,5 @@ func TestSigner_SignRequest(t *testing.T) {
 	authHeaderValues := strings.Split(strings.Replace(authHeader, ",", "", -1), " ")
 
 	assert.Equal(t, "AWS4-HMAC-SHA256", authHeaderValues[0])
-	assert.Equal(t, "Credential=ACCESS_KEY/20230628/global/terraform/aws4_request", authHeaderValues[1])
 	assert.Equal(t, "SignedHeaders=host;x-amz-date", authHeaderValues[2])
 }

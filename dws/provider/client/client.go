@@ -6,11 +6,19 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 const (
 	APIURL                = "https://app.dws.sh"
 	defaultTimeoutSeconds = 120
+
+	TaskEndpoint = "/api/task/terraform/%s"
+
+	DeploymentEndpoint = "/api/terraform/deployment"
+
+	VPCEndpoint = "/api/terraform/vpc"
 )
 
 type DWSClient struct {
@@ -53,7 +61,7 @@ func (c *DWSClient) SetGlobalTransactionNote(note string) {
 	c.transactionNote = note
 }
 
-func NewClient(configuration DWSProviderConfiguration, opts ...ClientOpt) *DWSClient {
+func NewClient(ctx context.Context, configuration DWSProviderConfiguration, opts ...ClientOpt) *DWSClient {
 	signerOpts := []CredentialsOpt{}
 
 	if configuration.AccessKey != "" && configuration.SecretAccessKey != "" {
@@ -68,7 +76,7 @@ func NewClient(configuration DWSProviderConfiguration, opts ...ClientOpt) *DWSCl
 		signerOpts = append(signerOpts, WithAnonymousCredentials())
 	}
 
-	signer := NewSigner(signerOpts[len(signerOpts)-1], WithDebugLogger(&DebugLogger{}))
+	signer := NewSigner(signerOpts[len(signerOpts)-1], WithDebugLogger(&DebugLogger{ctx}))
 
 	c := &DWSClient{
 		Config: configuration,
@@ -111,11 +119,14 @@ func (c *DWSClient) DoRequest(req *http.Request) ([]byte, error) {
 func (c *DWSClient) DoSignedRequest(ctx context.Context, method string, endpoint string, body io.ReadSeeker) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, method, endpoint, body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create \"create deployment\" request: %w", err)
+		return nil, fmt.Errorf("failed to create http request: %w", err)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
 
+	tflog.Debug(ctx, "signing request")
 	if err = c.signer.SignRequest(req, body); err != nil {
 		return nil, err
 	}
