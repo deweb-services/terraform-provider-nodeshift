@@ -6,3 +6,10 @@ type VPCConfig struct {
 	Description string `json:"description"`
 	IPRange     string `json:"ipRange"`
 }
+
+type VPCConfigResponse struct {
+	ID          string `json:"uuid,omitempty"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	IPRange     string `json:"addressRange"`
+}

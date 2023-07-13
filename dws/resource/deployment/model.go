@@ -87,9 +87,30 @@ func (v *vmResourceModel) ToClientRequest() (*client.DeploymentConfig, error) {
 	return r, nil
 }
 
-func (v *vmResourceModel) FromClientResponse(c *client.CreatedDeployment) {
+func (v *vmResourceModel) FromAsyncAPIResponse(c *client.AsyncAPIDeploymentResponse) {
 	v.PublicIPv4 = types.StringValue(c.Data.IP)
 	v.PublicIPv6 = types.StringValue(c.Data.IPv6)
 	v.YggIP = types.StringValue(c.Data.Ygg)
 	v.ID = types.StringValue(c.ID)
+
+	if c.Data.Ygg == "" {
+		v.Ygg = types.BoolValue(false)
+	}
+
+	if c.Data.IPv6 == "" {
+		v.IPv6 = types.BoolValue(false)
+	}
+
+	if c.Data.IP == "" {
+		v.IPv4 = types.BoolValue(false)
+	}
+}
+
+func (v *vmResourceModel) FromClientResponse(c *client.CreatedDeployment) {
+	v.Image = types.StringValue(c.ImageVersion)
+	v.CPU = types.Int64Value(int64(c.Cru))
+	v.RAM = types.Int64Value(int64(c.Mru))
+	v.Disk = types.Int64Value(int64(c.Sru))
+	v.PublicIPv4 = types.StringValue(c.IP)
+	v.HostName = types.StringValue(c.Hostname)
 }

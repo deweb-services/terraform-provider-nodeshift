@@ -174,7 +174,7 @@ func (p *dwsProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	cfg.FromSlice(values)
 	tflog.Debug(ctx, fmt.Sprintf("%+v", values))
 	// Create a new dws client using the configuration values
-	cli := client.NewClient(cfg, client.ClientOptWithURL(client.APIURL))
+	cli := client.NewClient(ctx, cfg, client.ClientOptWithURL(client.APIURL))
 	// Make the dws client available during DataSource and Resource
 	resp.DataSourceData = cli
 	resp.ResourceData = cli

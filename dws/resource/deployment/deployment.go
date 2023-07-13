@@ -149,7 +149,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	}
 
 	// Map response body to schema and populate Computed attribute values
-	plan.FromClientResponse(vm)
+	plan.FromAsyncAPIResponse(vm)
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)

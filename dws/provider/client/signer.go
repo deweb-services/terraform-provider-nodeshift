@@ -74,10 +74,12 @@ func WithDebugLogger(logger aws.Logger) SignerOpt {
 	}
 }
 
-type DebugLogger struct{}
+type DebugLogger struct {
+	context.Context
+}
 
 func (l *DebugLogger) Log(values ...interface{}) {
 	for _, item := range values {
-		tflog.Info(context.TODO(), fmt.Sprintf("%+v", item))
+		tflog.Debug(l, fmt.Sprintf("%+v", item))
 	}
 }

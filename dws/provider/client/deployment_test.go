@@ -15,14 +15,14 @@ import (
 func Test_DeploymentCreate(t *testing.T) {
 	mustPollTimes := 10
 
-	expectedResponse := CreatedDeployment{
+	expectedResponse := AsyncAPIDeploymentResponse{
 		StartTime:   time.Now().Unix(),
 		ServiceType: "Backend Service",
-		Data: &CreatedDeploymentData{
+		Data: &DeploymentResponseData{
 			IP:   "190.12.32.19",
 			IPv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
 			Ygg:  "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
-			Plan: CreatedDeploymentDataPlan{
+			Plan: DeploymentResponseDataPlan{
 				ID:      1,
 				CPU:     4,
 				RAM:     2,
@@ -37,7 +37,7 @@ func Test_DeploymentCreate(t *testing.T) {
 		switch {
 		case strings.HasPrefix(r.URL.Path, "/api/terraform/deployment"):
 			t.Log("received create deployment request")
-			response := DeploymentCreateTask{
+			response := AsyncAPIDeploymentTask{
 				ID:     "ea50370f-ae1f-4a7b-8626-1d389020922e",
 				TaskID: "67e1c297-0d78-4668-b23a-6a268000a392",
 			}
@@ -45,7 +45,7 @@ func Test_DeploymentCreate(t *testing.T) {
 			//nolint:errcheck
 			w.Write(b)
 			return
-		case strings.HasPrefix(r.URL.Path, "/api/task"):
+		case strings.HasPrefix(r.URL.Path, "/api/task/terraform"):
 			t.Log("received poll deployment task request")
 			mustPollTimes--
 			if mustPollTimes == 0 {
@@ -55,7 +55,7 @@ func Test_DeploymentCreate(t *testing.T) {
 				w.Write(b)
 				return
 			}
-			response := CreatedDeployment{
+			response := AsyncAPIDeploymentResponse{
 				StartTime:   time.Now().Unix(),
 				ServiceType: "Backend Service",
 				EndTime:     nil,
@@ -65,11 +65,13 @@ func Test_DeploymentCreate(t *testing.T) {
 			b, _ := json.Marshal(response)
 			//nolint:errcheck
 			w.Write(b)
+		default:
+			w.WriteHeader(http.StatusNotFound)
 		}
 	}))
 	defer mockServer.Close()
 
-	client := NewClient(DWSProviderConfiguration{
+	client := NewClient(context.TODO(), DWSProviderConfiguration{
 		AccessKey:       "access_key",
 		SecretAccessKey: "secret_access_key",
 	}, ClientOptWithURL(mockServer.URL))
@@ -108,7 +110,7 @@ func Test_VPCCreate(t *testing.T) {
 	}))
 	defer mockServer.Close()
 
-	client := NewClient(DWSProviderConfiguration{
+	client := NewClient(context.TODO(), DWSProviderConfiguration{
 		AccessKey:       "access_key",
 		SecretAccessKey: "secret_access_key",
 	}, ClientOptWithURL(mockServer.URL))

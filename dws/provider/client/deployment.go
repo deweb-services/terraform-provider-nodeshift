@@ -12,12 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-const (
-	DeploymentEndpoint = "/api/terraform/deployment"
-	TaskEndpoint       = "/api/task/%s"
-)
-
-func (c *DWSClient) CreateDeployment(ctx context.Context, r *DeploymentConfig) (*CreatedDeployment, error) {
+func (c *DWSClient) CreateDeployment(ctx context.Context, r *DeploymentConfig) (*AsyncAPIDeploymentResponse, error) {
 	b, err := json.Marshal(r)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode deployment: %w", err)
@@ -33,40 +28,15 @@ func (c *DWSClient) CreateDeployment(ctx context.Context, r *DeploymentConfig) (
 
 	tflog.Debug(ctx, fmt.Sprintf("Create deployment responseBody: %s", string(responseBody)))
 
-	taskResponse := DeploymentCreateTask{}
+	taskResponse := AsyncAPIDeploymentTask{}
 	err = json.Unmarshal(responseBody, &taskResponse)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create deployment, unmarshal response error: %w", err)
 	}
 
-	ticker := time.NewTicker(5 * time.Second)
-	deploymentResponse := new(CreatedDeployment)
-
-pollingCycle:
-	for {
-		select {
-		case <-ticker.C:
-			tflog.Debug(ctx, fmt.Sprintf("polling deployment by taskId: %s", taskResponse.TaskID))
-			b, err := c.DoSignedRequest(ctx, http.MethodGet, c.url+fmt.Sprintf(TaskEndpoint, taskResponse.TaskID), nil)
-			if err != nil {
-				return nil, err
-			}
-
-			err = json.Unmarshal(b, deploymentResponse)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create deployment, unmarshal response error: %w", err)
-			}
-
-			tflog.Debug(ctx, fmt.Sprintf("polling deployment by taskId: %s", taskResponse.TaskID), map[string]interface{}{
-				"response": string(b),
-			})
-
-			if deploymentResponse.Data != nil && deploymentResponse.EndTime != nil {
-				break pollingCycle
-			}
-		case <-ctx.Done():
-			return nil, errors.New("failed to create deployment: context deadline exceeded")
-		}
+	deploymentResponse, err := c.pollDeploymentTask(ctx, taskResponse.TaskID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create deployment: %w", err)
 	}
 
 	deploymentResponse.ID = taskResponse.ID
@@ -76,13 +46,83 @@ pollingCycle:
 }
 
 func (c *DWSClient) GetDeployment(ctx context.Context, id string) (*CreatedDeployment, error) {
-	return nil, errors.New("update not implemented")
+	tflog.Debug(ctx, fmt.Sprintf("Get deployment by id: %s", id))
+
+	responseBody, err := c.DoSignedRequest(ctx, http.MethodGet, fmt.Sprintf(c.url+DeploymentEndpoint+"/%s", id), nil)
+	tflog.Debug(ctx, fmt.Sprintf("Get Deployment responseBody: %s", string(responseBody)))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get deployment: %w", err)
+	}
+
+	deployment := new(CreatedDeployment)
+
+	err = json.Unmarshal(responseBody, deployment)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal get deployment response: %w", err)
+	}
+
+	return deployment, nil
 }
 
-func (c *DWSClient) UpdateDeployment(ctx context.Context, id string, r *DeploymentConfig) (*CreatedDeployment, error) {
+func (c *DWSClient) UpdateDeployment(ctx context.Context, id string, r *DeploymentConfig) (*AsyncAPIDeploymentResponse, error) {
 	return nil, errors.New("update not implemented")
 }
 
 func (c *DWSClient) DeleteDeployment(ctx context.Context, id string) error {
-	return errors.New("update not implemented")
+	tflog.Debug(ctx, fmt.Sprintf("Delete deployment by id: %s", id))
+
+	responseBody, err := c.DoSignedRequest(ctx, http.MethodDelete, fmt.Sprintf(c.url+DeploymentEndpoint+"/%s", id), nil)
+	if err != nil {
+		return fmt.Errorf("failed to delete deployment: %w", err)
+	}
+
+	taskResponse := new(AsyncAPIDeploymentTask)
+	err = json.Unmarshal(responseBody, taskResponse)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal delete deployment response: %w", err)
+	}
+
+	_, err = c.pollDeploymentTask(ctx, taskResponse.TaskID)
+	if err != nil {
+		return fmt.Errorf("failed to delete deployment: %w", err)
+	}
+
+	return nil
+}
+
+func (c *DWSClient) pollDeploymentTask(ctx context.Context, taskID string) (*AsyncAPIDeploymentResponse, error) {
+	deploymentResponse := new(AsyncAPIDeploymentResponse)
+	ticker := time.NewTicker(5 * time.Second)
+pollingCycle:
+	for {
+		select {
+		case <-ticker.C:
+			tflog.Debug(ctx, fmt.Sprintf("polling deployment by taskId: %s", taskID))
+			b, err := c.DoSignedRequest(ctx, http.MethodGet, c.url+fmt.Sprintf(TaskEndpoint, taskID), nil)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(b, deploymentResponse)
+			if err != nil {
+				return nil, fmt.Errorf("failed to poll deployment, unmarshal response error: %w", err)
+			}
+
+			tflog.Debug(ctx, fmt.Sprintf("polling deployment by taskId: %s", taskID), map[string]interface{}{
+				"response": string(b),
+			})
+
+			if (deploymentResponse.Data != nil && deploymentResponse.EndTime != nil) || deploymentResponse.IsError {
+				break pollingCycle
+			}
+		case <-ctx.Done():
+			return nil, errors.New("failed to poll deployment: context deadline exceeded")
+		}
+	}
+
+	if deploymentResponse.IsError {
+		return nil, fmt.Errorf("failed to poll deployment: %s", deploymentResponse.FailedReason)
+	}
+
+	return deploymentResponse, nil
 }
