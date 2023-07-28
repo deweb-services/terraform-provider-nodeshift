@@ -35,12 +35,5 @@ jobs:
       - name: Run golang test
         run: go test -v ./...
 
-  create_tag:
-    runs-on: ubuntu-latest
-    if: github.event.workflow || github.event.pull_request.merged == true
-    steps:
-      - name: Bump version and push tag
-        uses: anothrNick/github-tag-action@1.64.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
