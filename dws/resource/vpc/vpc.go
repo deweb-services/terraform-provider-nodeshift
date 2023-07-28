@@ -35,18 +35,23 @@ func (r *vpcResource) Metadata(_ context.Context, req resource.MetadataRequest, 
 
 func (r *vpcResource) Schema(c context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
 	response.Schema = schema.Schema{
+		Description: "Manages a VPC",
 		Attributes: map[string]schema.Attribute{
 			ID: schema.StringAttribute{
-				Computed: true,
+				Description: "String ID of the VPC, computed",
+				Computed:    true,
 			},
 			VPCIPRangeKeys: schema.StringAttribute{
-				Required: true,
+				Description: "IP range of the VPC",
+				Required:    true,
 			},
 			VPCNameKeys: schema.StringAttribute{
-				Required: true,
+				Description: "Name of the VPC",
+				Required:    true,
 			},
 			VPCDescriptionKeys: schema.StringAttribute{
-				Optional: true,
+				Description: "Description of the VPC",
+				Optional:    true,
 			},
 		},
 	}

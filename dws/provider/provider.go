@@ -38,20 +38,26 @@ func (p *dwsProvider) Metadata(_ context.Context, _ provider.MetadataRequest, re
 // Schema defines the provider-level schema for configuration data.
 func (p *dwsProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description: "Interact with DWS provider",
 		Attributes: map[string]schema.Attribute{
 			AccessKey: schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
+				Description: "Access Key for DWS",
+				Optional:    true,
+				Sensitive:   true,
 			},
 			SecretAccessKey: schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
+				Description: "Secret Access Key for DWS",
+				Optional:    true,
+				Sensitive:   true,
 			},
 			SharedCredentialsFile: schema.StringAttribute{
+				Description: "Path to credentials file DWS",
+
 				Optional: true,
 			},
 			Profile: schema.StringAttribute{
-				Optional: true,
+				Description: "DWS profile name",
+				Optional:    true,
 			},
 		},
 	}
