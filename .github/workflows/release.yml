@@ -15,6 +15,7 @@ permissions:
 
 jobs:
   create_tag:
+    environment: production
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
     permissions:
@@ -37,6 +38,7 @@ jobs:
           DEFAULT_BUMP: patch
           INITIAL_VERSION: ${{ steps.previoustag.outputs.tag }}
   goreleaser:
+    environment: production
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
