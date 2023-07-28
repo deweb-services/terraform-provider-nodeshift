@@ -36,9 +36,11 @@ func (r *vmResource) Metadata(_ context.Context, req resource.MetadataRequest, r
 // Schema defines the schema for the resource.
 func (r *vmResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description: "Manages a deployment",
 		Attributes: map[string]schema.Attribute{
 			ID: schema.StringAttribute{
-				Computed: true,
+				Description: "String ID of the deployment, computed",
+				Computed:    true,
 			},
 			DeploymentKeysImage: schema.StringAttribute{
 				Required:    true,
