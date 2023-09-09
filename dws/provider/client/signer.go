@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -33,9 +35,13 @@ func NewSigner(credentialsOpt CredentialsOpt, opts ...SignerOpt) *Signer {
 }
 
 func (s *Signer) SignRequest(req *http.Request, body io.ReadSeeker) error {
+	// TODO: normal fix
+	originalURL := req.URL
+	req.URL, _ = url.Parse(strings.Replace(req.URL.String(), "/api", "", -1))
 	if err := s.signRequest(req, body); err != nil {
 		return err
 	}
+	req.URL = originalURL
 
 	return nil
 }
