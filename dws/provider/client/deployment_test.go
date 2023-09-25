@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -130,4 +132,41 @@ func Test_VPCCreate(t *testing.T) {
 
 func Int64P(n int64) *int64 {
 	return &n
+}
+
+func Test_GPUCreate(t *testing.T) {
+	expectedResponse := GPUConfigResponse{
+		Region:   "Central America",
+		Image:    "ubuntu:latest",
+		GPUName:  "RTX A4000",
+		GPUCount: 2,
+		UUID:     uuid.NewString(),
+	}
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Logf("header: %+v", r.Header)
+		b, _ := json.Marshal(expectedResponse)
+		//nolint:errcheck
+		w.Write(b)
+	}))
+	defer mockServer.Close()
+
+	client := NewClient(context.TODO(), DWSProviderConfiguration{
+		AccessKey:       "access_key",
+		SecretAccessKey: "secret_access_key",
+	}, ClientOptWithURL(mockServer.URL))
+
+	response, err := client.CreateGPU(context.TODO(), &GPUConfig{
+		GPUName:  "RTX A4000",
+		Image:    "ubuntu:latest",
+		SSHKey:   "ssh-rsa ...",
+		GPUCount: 2,
+		Region:   "Central America",
+	})
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedResponse.GPUName, response.GPUName)
+	assert.Equal(t, expectedResponse.GPUCount, response.GPUCount)
+	assert.Equal(t, expectedResponse.Image, response.Image)
+	assert.Equal(t, expectedResponse.Region, response.Region)
 }
