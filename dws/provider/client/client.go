@@ -3,9 +3,12 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -148,4 +151,11 @@ func ClientOptWithURL(url string) ClientOpt {
 	return func(c *DWSClient) {
 		c.url = url
 	}
+}
+
+func (c *DWSClient) newAwsClient() {
+	s3.NewFromConfig()
+	s3.New()
+	cfg := aws.NewConfig()
+	cfg.Credentials =
 }
