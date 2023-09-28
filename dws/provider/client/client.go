@@ -2,14 +2,16 @@ package client
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"io"
 	"net/http"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -32,6 +34,7 @@ type DWSClient struct {
 	client          *http.Client
 	signer          *Signer
 	url             string
+	s3client        *s3.Client
 }
 
 type DWSProviderConfiguration struct {
@@ -40,6 +43,8 @@ type DWSProviderConfiguration struct {
 	SecretAccessKey       string
 	SharedCredentialsFile string
 	Profile               string
+	S3Endpoint            string
+	S3Region              string
 }
 
 type TaskResponse struct {
@@ -53,13 +58,15 @@ type TaskResponse struct {
 type ClientOpt func(c *DWSClient)
 
 func (dc *DWSProviderConfiguration) FromSlice(values []string) {
-	if len(values) < 5 {
+	if len(values) < 6 {
 		return
 	}
 	dc.AccessKey = values[0]
 	dc.SecretAccessKey = values[1]
 	dc.SharedCredentialsFile = values[2]
 	dc.Profile = values[3]
+	dc.S3Endpoint = values[4]
+	dc.S3Region = values[5]
 }
 
 func (c *DWSClient) SetGlobalTransactionNote(note string) {
@@ -153,9 +160,36 @@ func ClientOptWithURL(url string) ClientOpt {
 	}
 }
 
-func (c *DWSClient) newAwsClient() {
-	s3.NewFromConfig()
-	s3.New()
-	cfg := aws.NewConfig()
-	cfg.Credentials =
+func ClientOptWithS3() ClientOpt {
+	return func(c *DWSClient) {
+		if c.Config.S3Endpoint == "" {
+			return
+		}
+		if err := c.newAwsClient(); err != nil {
+			tflog.Error(context.Background(), err.Error())
+		}
+	}
+}
+
+func (c *DWSClient) newAwsClient() error {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	httpCli := &http.Client{Transport: tr}
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		return fmt.Errorf("s3 load deafault config error: %w", err)
+	}
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.Region = c.Config.S3Region
+		o.HTTPClient = httpCli
+		o.Credentials = credentials.NewStaticCredentialsProvider(c.Config.AccessKey,
+			c.Config.SecretAccessKey, "")
+		o.BaseEndpoint = aws.String(c.Config.S3Endpoint)
+	})
+	if err != nil {
+		return fmt.Errorf("s3 create client error: %w", err)
+	}
+	c.s3client = client
+	return nil
 }

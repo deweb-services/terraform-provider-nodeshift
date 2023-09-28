@@ -9,4 +9,7 @@ type dwsProviderModel struct {
 
 	SharedCredentialsFile types.String `tfsdk:"shared_credentials_file"`
 	Profile               types.String `tfsdk:"profile"`
+
+	S3Endpoint types.String `tfsdk:"s3_endpoint"`
+	S3Region   types.String `tfsdk:"s3_region"`
 }

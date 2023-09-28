@@ -132,7 +132,7 @@ func (r *vpcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	err = state.FromClientResponse(vpc)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating vpc",
+			"Error getting vpc",
 			fmt.Sprintf("Could not convert read VPC from client response, unexpected error: %s", err),
 		)
 		return

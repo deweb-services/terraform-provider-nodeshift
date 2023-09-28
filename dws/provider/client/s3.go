@@ -1,68 +1,50 @@
 package client
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-func (c *DWSClient) CreateBucket(ctx context.Context, bucket *BucketConfig) (*BucketConfigResponse, error) {
-	errPrefix := "failed to create bucket: %w"
-	b, err := json.Marshal(bucket)
+func (c *DWSClient) CreateBucket(ctx context.Context, bucket *S3BucketConfig) (*S3BucketConfig, error) {
+	_, err := c.s3client.CreateBucket(ctx, &s3.CreateBucketInput{
+		Bucket: aws.String(bucket.Key),
+	})
 	if err != nil {
-		return nil, fmt.Errorf(errPrefix, err)
+		return nil, fmt.Errorf("failed to create bucket: %w", err)
 	}
-
-	tflog.Info(ctx, fmt.Sprintf("Bucket to create: %s", string(b)))
-
-	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, c.url+BucketEndpoint, bytes.NewReader(b))
-	if err != nil {
-		return nil, fmt.Errorf(errPrefix, err)
-	}
-
-	tflog.Info(ctx, fmt.Sprintf("created Bucket: %s", string(responseBody)))
-	resp := BucketConfigResponse{}
-	if err = json.Unmarshal(responseBody, &resp); err != nil {
-		return nil, fmt.Errorf(errPrefix, err)
-	}
-
-	return &resp, nil
+	tflog.Info(ctx, fmt.Sprintf("created bucket: %s", bucket.Key))
+	return &S3BucketConfig{Key: bucket.Key}, nil
 }
 
-func (c *DWSClient) GetBucket(ctx context.Context, id string) (*RentedGpuInfoResponse, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Get Bucket by id: %s", id))
-
-	responseBody, err := c.DoSignedRequest(ctx, http.MethodGet, fmt.Sprintf(c.url+BucketEndpoint+"/%s", id), nil)
-	tflog.Debug(ctx, fmt.Sprintf("Get Bucket responseBody: %s", string(responseBody)))
+func (c *DWSClient) GetBucket(ctx context.Context, key string) (*S3BucketConfig, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Get bucket by key: %s", key))
+	_, err := c.s3client.HeadBucket(ctx, &s3.HeadBucketInput{
+		Bucket: aws.String(key + " "),
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to get Bucket: %w", err)
+		return nil, fmt.Errorf("failed to get bucket: %w", err)
 	}
-
-	bucket := RentedGpuInfoResponse{}
-	err = json.Unmarshal(responseBody, &bucket)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal get deployment response body: %w", err)
-	}
-
-	return &bucket, nil
+	tflog.Info(ctx, fmt.Sprintf("head bucket: %s", key))
+	return &S3BucketConfig{Key: key}, nil
 }
 
-func (c *DWSClient) UpdateBucket(ctx context.Context, id string, bucket *BucketConfig) (*BucketConfig, error) {
-	return nil, errors.New("not implemented")
+func (c *DWSClient) UpdateBucket(ctx context.Context, bucket *S3BucketConfig) error {
+	return errors.New("not implemented")
 }
 
-func (c *DWSClient) DeleteBucket(ctx context.Context, id string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Delete Bucket by id: %s", id))
-
-	_, err := c.DoSignedRequest(ctx, http.MethodDelete, fmt.Sprintf(c.url+BucketEndpoint+"/%s", id), nil)
+func (c *DWSClient) DeleteBucket(ctx context.Context, key string) error {
+	tflog.Debug(ctx, fmt.Sprintf("Delete bucket by key: %s", key))
+	_, err := c.s3client.DeleteBucket(ctx, &s3.DeleteBucketInput{
+		Bucket: aws.String(key + " "),
+	})
 	if err != nil {
-		return fmt.Errorf("failed to delete Bucket: %w", err)
+		return fmt.Errorf("failed to delete bucket: %w", err)
 	}
-
+	tflog.Info(ctx, fmt.Sprintf("delete bucket: %s", key))
 	return nil
 }

@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -169,4 +168,30 @@ func Test_GPUCreate(t *testing.T) {
 	assert.Equal(t, expectedResponse.GPUCount, response.GPUCount)
 	assert.Equal(t, expectedResponse.Image, response.Image)
 	assert.Equal(t, expectedResponse.Region, response.Region)
+}
+
+func Test_S3BucketCreate(t *testing.T) {
+	expectedResponse := S3BucketConfig{
+		Key: "new_bucket",
+	}
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Logf("header: %+v", r.Header)
+		b, _ := json.Marshal(expectedResponse)
+		//nolint:errcheck
+		w.Write(b)
+	}))
+	defer mockServer.Close()
+
+	client := NewClient(context.TODO(), DWSProviderConfiguration{
+		AccessKey:       "access_key",
+		SecretAccessKey: "secret_access_key",
+	}, ClientOptWithURL(mockServer.URL))
+
+	response, err := client.CreateBucket(context.TODO(), &S3BucketConfig{
+		Key: "new_bucket",
+	})
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedResponse.Key, response.Key)
 }

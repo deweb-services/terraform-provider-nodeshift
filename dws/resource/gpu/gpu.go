@@ -140,7 +140,7 @@ func (r *gpuResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	err = state.FromClientRentedGPUResponse(gpu)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating gpu",
+			"Error getting gpu",
 			fmt.Sprintf("Could not convert read GPU from client response, unexpected error: %s", err),
 		)
 		return

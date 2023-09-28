@@ -34,7 +34,7 @@ func (r *bucketResource) Metadata(_ context.Context, req resource.MetadataReques
 
 func (r *bucketResource) Schema(c context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
 	response.Schema = schema.Schema{
-		Description: "Manages a Bucket",
+		Description: "Manages a s3 Bucket",
 		Attributes: map[string]schema.Attribute{
 			KeyBucketName: schema.StringAttribute{
 				Description: DescriptionBucketName,
@@ -77,16 +77,16 @@ func (r *bucketResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	// Map response body to schema and populate Computed attribute values
 	err = plan.FromClientResponse(bucket)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating bucket",
-			fmt.Sprintf("Could not convert created Bucket from client response, unexpected error: %s", err),
+			fmt.Sprintf("Could not convert created bucket from client response, unexpected error: %s", err),
 		)
 		return
 	}
-	tflog.Info(ctx, fmt.Sprintf("Bucket from client response: %+v", bucket))
+
+	tflog.Info(ctx, fmt.Sprintf("Bucket from client response: %+v", clientRequest))
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -107,24 +107,25 @@ func (r *bucketResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 
 	// Get refreshed order value from client
-	bucket, err := r.client.GetBucket(ctx, state.UUID.ValueString())
+	bucket, err := r.client.GetBucket(ctx, state.Key.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading bucket state",
-			fmt.Sprintf("Could not read bucket state UUID %s: %s", state.UUID.ValueString(), err),
+			fmt.Sprintf("Could not read bucket state key %s: %s", state.Key.ValueString(), err),
 		)
 		return
 	}
 
 	// Overwrite items with refreshed state
-	err = state.FromClientRentedBucketResponse(bucket)
+	err = state.FromClientResponse(bucket)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating bucket",
-			fmt.Sprintf("Could not convert read Bucket from client response, unexpected error: %s", err),
+			"Error getting bucket",
+			fmt.Sprintf("Could not convert read bucket from client response, unexpected error: %s", err),
 		)
 		return
 	}
+
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -150,26 +151,25 @@ func (r *bucketResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	// Update existing order
-	_, err = r.client.UpdateBucket(ctx, plan.UUID.ValueString(), clientRequest)
-	if err != nil {
+	if err := r.client.UpdateBucket(ctx, clientRequest); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating bucket state",
-			fmt.Sprintf("Could not update bucket state %s, unexpected error: %s", plan.UUID.ValueString(), err),
+			fmt.Sprintf("Could not update bucket state %s, unexpected error: %s", plan.Key.ValueString(), err),
 		)
 		return
 	}
 
 	// Fetch updated items from GetBucket as UpdateBucket items are not populated.
-	bucket, err := r.client.GetBucket(ctx, plan.UUID.ValueString())
+	bucket, err := r.client.GetBucket(ctx, plan.Key.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading bucket state",
-			fmt.Sprintf("Could not read bucket name %s: %s", plan.UUID.ValueString(), err),
+			fmt.Sprintf("Could not read bucket name %s: %s", plan.Key.ValueString(), err),
 		)
 		return
 	}
 
-	err = plan.FromClientBucketResponse(bucket)
+	err = plan.FromClientResponse(bucket)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating bucket",
@@ -197,7 +197,7 @@ func (r *bucketResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 
 	// Delete existing bucket
-	if err := r.client.DeleteBucket(ctx, state.UUID.ValueString()); err != nil {
+	if err := r.client.DeleteBucket(ctx, state.Key.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting bucket",
 			fmt.Sprintf("Could not delete bucket, unexpected error: %s", err),
@@ -207,6 +207,5 @@ func (r *bucketResource) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 func (r *bucketResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Retrieve import UUID and save to uuid attribute
-	resource.ImportStatePassthroughID(ctx, path.Root(UUID), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root(KeyBucketName), req, resp)
 }
