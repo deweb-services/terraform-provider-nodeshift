@@ -40,7 +40,7 @@ func (c *DWSClient) UpdateBucket(ctx context.Context, bucket *S3BucketConfig) er
 func (c *DWSClient) DeleteBucket(ctx context.Context, key string) error {
 	tflog.Debug(ctx, fmt.Sprintf("Delete bucket by key: %s", key))
 	_, err := c.s3client.DeleteBucket(ctx, &s3.DeleteBucketInput{
-		Bucket: aws.String(key + " "),
+		Bucket: aws.String(key),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to delete bucket: %w", err)
