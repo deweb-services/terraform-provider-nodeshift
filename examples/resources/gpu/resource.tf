@@ -1,7 +1,7 @@
 resource "dws_gpu" "example" {
-  gpu_name = "RTX A4000"
+  gpu_name = "RTX_A4000"
   image = "ubuntu:latest"
-  region = "Central America"
+  region = "Europe"
   ssh-key = "ssh-rsa ..."
-  gpu_count = 2
+  gpu_count = 1
 }
