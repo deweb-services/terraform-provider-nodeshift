@@ -19,6 +19,8 @@ const (
 	DeploymentEndpoint = "/api/terraform/deployment"
 
 	VPCEndpoint = "/api/terraform/vpc"
+
+	GPUEndpoint = "/api/terraform/gpu"
 )
 
 type DWSClient struct {

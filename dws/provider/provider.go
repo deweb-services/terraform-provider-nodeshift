@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/deweb-services/terraform-provider-dws/dws/resource/gpu"
+
 	"github.com/deweb-services/terraform-provider-dws/dws/provider/client"
 	"github.com/deweb-services/terraform-provider-dws/dws/resource/deployment"
 	"github.com/deweb-services/terraform-provider-dws/dws/resource/vpc"
@@ -197,5 +199,6 @@ func (p *dwsProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		deployment.NewDeploymentResource,
 		vpc.NewVPCResource,
+		gpu.NewGPUResource,
 	}
 }

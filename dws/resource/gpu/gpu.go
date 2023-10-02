@@ -1,4 +1,4 @@
-package vpc
+package gpu
 
 import (
 	"context"
@@ -13,50 +13,58 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &vpcResource{}
-	_ resource.ResourceWithConfigure   = &vpcResource{}
-	_ resource.ResourceWithImportState = &vpcResource{}
+	_ resource.Resource                = &gpuResource{}
+	_ resource.ResourceWithConfigure   = &gpuResource{}
+	_ resource.ResourceWithImportState = &gpuResource{}
 )
 
-// NewVPCResource is a helper function to simplify the provider implementation.
-func NewVPCResource() resource.Resource {
-	return &vpcResource{}
+// NewGPUResource is a helper function to simplify the provider implementation.
+func NewGPUResource() resource.Resource {
+	return &gpuResource{}
 }
 
-type vpcResource struct {
+type gpuResource struct {
 	client *client.DWSClient
 }
 
 // Metadata returns the resource type name.
-func (r *vpcResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_vpc"
+func (r *gpuResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_gpu"
 }
 
-func (r *vpcResource) Schema(c context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
+func (r *gpuResource) Schema(c context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
 	response.Schema = schema.Schema{
-		Description: "Manages a VPC",
+		Description: "Manages a GPU",
 		Attributes: map[string]schema.Attribute{
-			ID: schema.StringAttribute{
-				Description: "String ID of the VPC, computed",
+			UUID: schema.StringAttribute{
+				Description: DescriptionUUID,
 				Computed:    true,
 			},
-			VPCIPRangeKeys: schema.StringAttribute{
-				Description: "IP range of the VPC",
+			KeyGPUName: schema.StringAttribute{
+				Description: DescriptionGPUName,
 				Required:    true,
 			},
-			VPCNameKeys: schema.StringAttribute{
-				Description: "Name of the VPC",
+			KeyImage: schema.StringAttribute{
+				Description: DescriptionImage,
 				Required:    true,
 			},
-			VPCDescriptionKeys: schema.StringAttribute{
-				Description: "Description of the VPC",
+			KeySSHKey: schema.StringAttribute{
+				Description: DescriptionSSHKey,
+				Required:    true,
+			},
+			KeyGPUCount: schema.Int64Attribute{
+				Description: DescriptionGPUCount,
+				Optional:    true,
+			},
+			KeyRegion: schema.StringAttribute{
+				Description: DescriptionRegion,
 				Optional:    true,
 			},
 		},
 	}
 }
 
-func (r *vpcResource) Configure(_ context.Context, req resource.ConfigureRequest, _ *resource.ConfigureResponse) {
+func (r *gpuResource) Configure(_ context.Context, req resource.ConfigureRequest, _ *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -64,9 +72,9 @@ func (r *vpcResource) Configure(_ context.Context, req resource.ConfigureRequest
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *gpuResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan VPCResourceModel
+	var plan GPUResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -74,31 +82,31 @@ func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	// Create new VPC
+	// Create new GPU
 	clientRequest, err := plan.ToClientRequest()
 	if err != nil {
 		tflog.Error(ctx, "failed to convert resource to client required type", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
 	}
 
-	vpc, err := r.client.CreateVPC(ctx, clientRequest)
+	gpu, err := r.client.CreateGPU(ctx, clientRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating vpc",
-			fmt.Sprintf("Could not create vpc, unexpected error: %s", err),
+			"Error creating gpu",
+			fmt.Sprintf("Could not create gpu, unexpected error: %s", err),
 		)
 		return
 	}
 
 	// Map response body to schema and populate Computed attribute values
-	err = plan.FromClientResponse(vpc)
+	err = plan.FromClientResponse(gpu)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating vpc",
-			fmt.Sprintf("Could not convert created VPC from client response, unexpected error: %s", err),
+			"Error creating gpu",
+			fmt.Sprintf("Could not convert created GPU from client response, unexpected error: %s", err),
 		)
 		return
 	}
-	tflog.Info(ctx, fmt.Sprintf("VPC from client response: %+v", vpc))
+	tflog.Info(ctx, fmt.Sprintf("GPU from client response: %+v", gpu))
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -108,9 +116,9 @@ func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, re
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *vpcResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *gpuResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state VPCResourceModel
+	var state GPUResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -119,21 +127,21 @@ func (r *vpcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	// Get refreshed order value from client
-	vpc, err := r.client.GetVPC(ctx, state.ID.ValueString())
+	gpu, err := r.client.GetGPU(ctx, state.UUID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading vpc state",
-			fmt.Sprintf("Could not read vpc state ID %s: %s", state.ID.ValueString(), err),
+			"Error Reading gpu state",
+			fmt.Sprintf("Could not read gpu state UUID %s: %s", state.UUID.ValueString(), err),
 		)
 		return
 	}
 
 	// Overwrite items with refreshed state
-	err = state.FromClientResponse(vpc)
+	err = state.FromClientRentedGPUResponse(gpu)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating vpc",
-			fmt.Sprintf("Could not convert read VPC from client response, unexpected error: %s", err),
+			"Error creating gpu",
+			fmt.Sprintf("Could not convert read GPU from client response, unexpected error: %s", err),
 		)
 		return
 	}
@@ -146,9 +154,9 @@ func (r *vpcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *vpcResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *gpuResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan VPCResourceModel
+	var plan GPUResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -162,30 +170,30 @@ func (r *vpcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	// Update existing order
-	_, err = r.client.UpdateVPC(ctx, plan.ID.ValueString(), clientRequest)
+	_, err = r.client.UpdateGPU(ctx, plan.UUID.ValueString(), clientRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Updating vpc state",
-			fmt.Sprintf("Could not update vpc state %s, unexpected error: %s", plan.ID.ValueString(), err),
+			"Error Updating gpu state",
+			fmt.Sprintf("Could not update gpu state %s, unexpected error: %s", plan.UUID.ValueString(), err),
 		)
 		return
 	}
 
-	// Fetch updated items from GetVPC as UpdateVPC items are not populated.
-	vpc, err := r.client.GetVPC(ctx, plan.ID.ValueString())
+	// Fetch updated items from GetGPU as UpdateGPU items are not populated.
+	gpu, err := r.client.GetGPU(ctx, plan.UUID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading vpc state",
-			fmt.Sprintf("Could not read vpc name %s: %s", plan.ID.ValueString(), err),
+			"Error Reading gpu state",
+			fmt.Sprintf("Could not read gpu name %s: %s", plan.UUID.ValueString(), err),
 		)
 		return
 	}
 
-	err = plan.FromClientResponse(vpc)
+	err = plan.FromClientRentedGPUResponse(gpu)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating vpc",
-			fmt.Sprintf("Could not convert updated VPC from client response, unexpected error: %s", err),
+			"Error creating gpu",
+			fmt.Sprintf("Could not convert updated GPU from client response, unexpected error: %s", err),
 		)
 		return
 	}
@@ -198,9 +206,9 @@ func (r *vpcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *vpcResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *gpuResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state VPCResourceModel
+	var state GPUResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -208,17 +216,17 @@ func (r *vpcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	// Delete existing vpc
-	if err := r.client.DeleteVPC(ctx, state.ID.ValueString()); err != nil {
+	// Delete existing gpu
+	if err := r.client.DeleteGPU(ctx, state.UUID.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
-			"Error Deleting vpc",
-			fmt.Sprintf("Could not delete vpc, unexpected error: %s", err),
+			"Error Deleting gpu",
+			fmt.Sprintf("Could not delete gpu, unexpected error: %s", err),
 		)
 		return
 	}
 }
 
-func (r *vpcResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root(ID), req, resp)
+func (r *gpuResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import UUID and save to uuid attribute
+	resource.ImportStatePassthroughID(ctx, path.Root(UUID), req, resp)
 }
