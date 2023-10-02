@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/deweb-services/terraform-provider-dws/dws/resource/gpu"
-
 	"github.com/deweb-services/terraform-provider-dws/dws/provider/client"
 	"github.com/deweb-services/terraform-provider-dws/dws/resource/deployment"
 	"github.com/deweb-services/terraform-provider-dws/dws/resource/gpu"
