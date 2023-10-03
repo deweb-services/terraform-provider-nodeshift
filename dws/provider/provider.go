@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/deweb-services/terraform-provider-dws/dws/resource/gpu"
-
 	"github.com/deweb-services/terraform-provider-dws/dws/provider/client"
 	"github.com/deweb-services/terraform-provider-dws/dws/resource/deployment"
+	"github.com/deweb-services/terraform-provider-dws/dws/resource/gpu"
+	s3terraform "github.com/deweb-services/terraform-provider-dws/dws/resource/s3"
 	"github.com/deweb-services/terraform-provider-dws/dws/resource/vpc"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -61,6 +61,14 @@ func (p *dwsProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *
 				Description: "DWS profile name",
 				Optional:    true,
 			},
+			S3Endpoint: schema.StringAttribute{
+				Description: "DWS s3 endpoint address",
+				Optional:    true,
+			},
+			S3Region: schema.StringAttribute{
+				Description: "DWS s3 region",
+				Optional:    true,
+			},
 		},
 	}
 }
@@ -69,16 +77,20 @@ func (p *dwsProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *
 func (p *dwsProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	tflog.Info(ctx, "Configuring DWS client")
 
-	accessKey := os.Getenv("DWS_ACCESS_KEY_ID")
-	secretAccessKey := os.Getenv("DWS_SECRET_ACCESS_KEY")
-	sharedCredentialsFile := os.Getenv("DWS_SHARED_CREDENTIALS_FILE")
-	profile := os.Getenv("DWS_PROFILE")
+	accessKey := os.Getenv(EnvKeyAccessKey)
+	secretAccessKey := os.Getenv(EnvKeySecretAccessKey)
+	sharedCredentialsFile := os.Getenv(EnvKeySharedCredentialsFile)
+	profile := os.Getenv(EnvKeyProfile)
+	s3Endpoint := os.Getenv(EnvKeyS3Endpoint)
+	s3Region := os.Getenv(EnvKeyS3Region)
 
 	values := []string{
 		accessKey,
 		secretAccessKey,
 		sharedCredentialsFile,
 		profile,
+		s3Endpoint,
+		s3Region,
 	}
 
 	// Retrieve provider data from configuration
@@ -106,6 +118,14 @@ func (p *dwsProvider) Configure(ctx context.Context, req provider.ConfigureReque
 		values[3] = config.Profile.ValueString()
 	}
 
+	if config.S3Endpoint.ValueString() != "" {
+		values[4] = config.S3Endpoint.ValueString()
+	}
+
+	if config.S3Region.ValueString() != "" {
+		values[5] = config.S3Region.ValueString()
+	}
+
 	type Attribute struct {
 		EnvName  string
 		Param    *types.String
@@ -114,23 +134,33 @@ func (p *dwsProvider) Configure(ctx context.Context, req provider.ConfigureReque
 
 	attributes := map[string]Attribute{
 		AccessKey: {
-			EnvName:  "DWS_ACCESS_KEY_ID",
+			EnvName:  EnvKeyAccessKey,
 			Param:    &config.AccessKey,
 			Required: false,
 		},
 		SecretAccessKey: {
-			EnvName:  "DWS_SECRET_ACCESS_KEY",
+			EnvName:  EnvKeySecretAccessKey,
 			Param:    &config.SecretAccessKey,
 			Required: false,
 		},
 		SharedCredentialsFile: {
-			EnvName:  "DWS_SHARED_CREDENTIALS_FILE",
+			EnvName:  EnvKeySharedCredentialsFile,
 			Param:    &config.SharedCredentialsFile,
 			Required: false,
 		},
 		Profile: {
-			EnvName:  "DWS_PROFILE",
+			EnvName:  EnvKeyProfile,
 			Param:    &config.Profile,
+			Required: false,
+		},
+		S3Endpoint: {
+			EnvName:  EnvKeyS3Endpoint,
+			Param:    &config.S3Endpoint,
+			Required: false,
+		},
+		S3Region: {
+			EnvName:  EnvKeyS3Region,
+			Param:    &config.S3Region,
 			Required: false,
 		},
 	}
@@ -182,7 +212,7 @@ func (p *dwsProvider) Configure(ctx context.Context, req provider.ConfigureReque
 	cfg.FromSlice(values)
 	tflog.Debug(ctx, fmt.Sprintf("%+v", values))
 	// Create a new dws client using the configuration values
-	cli := client.NewClient(ctx, cfg, client.ClientOptWithURL(client.APIURL))
+	cli := client.NewClient(ctx, cfg, client.ClientOptWithURL(client.APIURL), client.ClientOptWithS3())
 	// Make the dws client available during DataSource and Resource
 	resp.DataSourceData = cli
 	resp.ResourceData = cli
@@ -200,5 +230,6 @@ func (p *dwsProvider) Resources(_ context.Context) []func() resource.Resource {
 		deployment.NewDeploymentResource,
 		vpc.NewVPCResource,
 		gpu.NewGPUResource,
+		s3terraform.NewBucketResource,
 	}
 }

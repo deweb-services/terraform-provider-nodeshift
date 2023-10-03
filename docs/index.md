@@ -34,5 +34,7 @@ provider "dws" {
 
 - `access_key` (String, Sensitive) Access Key for DWS
 - `profile` (String) DWS profile name
+- `s3_endpoint` (String) DWS s3 endpoint address
+- `s3_region` (String) DWS s3 region
 - `secret_access_key` (String, Sensitive) Secret Access Key for DWS
 - `shared_credentials_file` (String) Path to credentials file DWS

@@ -1,4 +1,4 @@
-package gpu
+package s3
 
 import (
 	"context"
@@ -13,58 +13,38 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &gpuResource{}
-	_ resource.ResourceWithConfigure   = &gpuResource{}
-	_ resource.ResourceWithImportState = &gpuResource{}
+	_ resource.Resource                = &bucketResource{}
+	_ resource.ResourceWithConfigure   = &bucketResource{}
+	_ resource.ResourceWithImportState = &bucketResource{}
 )
 
-// NewGPUResource is a helper function to simplify the provider implementation.
-func NewGPUResource() resource.Resource {
-	return &gpuResource{}
+// NewBucketResource is a helper function to simplify the provider implementation.
+func NewBucketResource() resource.Resource {
+	return &bucketResource{}
 }
 
-type gpuResource struct {
+type bucketResource struct {
 	client *client.DWSClient
 }
 
 // Metadata returns the resource type name.
-func (r *gpuResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_gpu"
+func (r *bucketResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_bucket"
 }
 
-func (r *gpuResource) Schema(c context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
+func (r *bucketResource) Schema(c context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
 	response.Schema = schema.Schema{
-		Description: "Manages a GPU",
+		Description: "Manages a s3 Bucket",
 		Attributes: map[string]schema.Attribute{
-			UUID: schema.StringAttribute{
-				Description: DescriptionUUID,
-				Computed:    true,
-			},
-			KeyGPUName: schema.StringAttribute{
-				Description: DescriptionGPUName,
+			KeyBucketName: schema.StringAttribute{
+				Description: DescriptionBucketName,
 				Required:    true,
-			},
-			KeyImage: schema.StringAttribute{
-				Description: DescriptionImage,
-				Required:    true,
-			},
-			KeySSHKey: schema.StringAttribute{
-				Description: DescriptionSSHKey,
-				Required:    true,
-			},
-			KeyGPUCount: schema.Int64Attribute{
-				Description: DescriptionGPUCount,
-				Optional:    true,
-			},
-			KeyRegion: schema.StringAttribute{
-				Description: DescriptionRegion,
-				Optional:    true,
 			},
 		},
 	}
 }
 
-func (r *gpuResource) Configure(_ context.Context, req resource.ConfigureRequest, _ *resource.ConfigureResponse) {
+func (r *bucketResource) Configure(_ context.Context, req resource.ConfigureRequest, _ *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -72,9 +52,9 @@ func (r *gpuResource) Configure(_ context.Context, req resource.ConfigureRequest
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (r *gpuResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *bucketResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan GPUResourceModel
+	var plan BucketResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -82,31 +62,31 @@ func (r *gpuResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	// Create new GPU
+	// Create new Bucket
 	clientRequest, err := plan.ToClientRequest()
 	if err != nil {
 		tflog.Error(ctx, "failed to convert resource to client required type", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
 	}
 
-	gpu, err := r.client.CreateGPU(ctx, clientRequest)
+	bucket, err := r.client.CreateBucket(ctx, clientRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating gpu",
-			fmt.Sprintf("Could not create gpu, unexpected error: %s", err),
+			"Error creating bucket",
+			fmt.Sprintf("Could not create bucket, unexpected error: %s", err),
 		)
 		return
 	}
 
-	// Map response body to schema and populate Computed attribute values
-	err = plan.FromClientResponse(gpu)
+	err = plan.FromClientResponse(bucket)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating gpu",
-			fmt.Sprintf("Could not convert created GPU from client response, unexpected error: %s", err),
+			"Error creating bucket",
+			fmt.Sprintf("Could not convert created bucket from client response, unexpected error: %s", err),
 		)
 		return
 	}
-	tflog.Info(ctx, fmt.Sprintf("GPU from client response: %+v", gpu))
+
+	tflog.Info(ctx, fmt.Sprintf("Bucket from client response: %+v", clientRequest))
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
@@ -116,9 +96,9 @@ func (r *gpuResource) Create(ctx context.Context, req resource.CreateRequest, re
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (r *gpuResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *bucketResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state GPUResourceModel
+	var state BucketResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -127,24 +107,25 @@ func (r *gpuResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	// Get refreshed order value from client
-	gpu, err := r.client.GetGPU(ctx, state.UUID.ValueString())
+	bucket, err := r.client.GetBucket(ctx, state.Key.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading gpu state",
-			fmt.Sprintf("Could not read gpu state UUID %s: %s", state.UUID.ValueString(), err),
+			"Error Reading bucket state",
+			fmt.Sprintf("Could not read bucket state key %s: %s", state.Key.ValueString(), err),
 		)
 		return
 	}
 
 	// Overwrite items with refreshed state
-	err = state.FromClientRentedGPUResponse(gpu)
+	err = state.FromClientResponse(bucket)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error getting gpu",
-			fmt.Sprintf("Could not convert read GPU from client response, unexpected error: %s", err),
+			"Error getting bucket",
+			fmt.Sprintf("Could not convert read bucket from client response, unexpected error: %s", err),
 		)
 		return
 	}
+
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -154,9 +135,9 @@ func (r *gpuResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (r *gpuResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *bucketResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan GPUResourceModel
+	var plan BucketResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -170,30 +151,29 @@ func (r *gpuResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	}
 
 	// Update existing order
-	_, err = r.client.UpdateGPU(ctx, plan.UUID.ValueString(), clientRequest)
-	if err != nil {
+	if err := r.client.UpdateBucket(ctx, clientRequest); err != nil {
 		resp.Diagnostics.AddError(
-			"Error Updating gpu state",
-			fmt.Sprintf("Could not update gpu state %s, unexpected error: %s", plan.UUID.ValueString(), err),
+			"Error Updating bucket state",
+			fmt.Sprintf("Could not update bucket state %s, unexpected error: %s", plan.Key.ValueString(), err),
 		)
 		return
 	}
 
-	// Fetch updated items from GetGPU as UpdateGPU items are not populated.
-	gpu, err := r.client.GetGPU(ctx, plan.UUID.ValueString())
+	// Fetch updated items from GetBucket as UpdateBucket items are not populated.
+	bucket, err := r.client.GetBucket(ctx, plan.Key.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error Reading gpu state",
-			fmt.Sprintf("Could not read gpu name %s: %s", plan.UUID.ValueString(), err),
+			"Error Reading bucket state",
+			fmt.Sprintf("Could not read bucket name %s: %s", plan.Key.ValueString(), err),
 		)
 		return
 	}
 
-	err = plan.FromClientRentedGPUResponse(gpu)
+	err = plan.FromClientResponse(bucket)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating gpu",
-			fmt.Sprintf("Could not convert updated GPU from client response, unexpected error: %s", err),
+			"Error creating bucket",
+			fmt.Sprintf("Could not convert updated Bucket from client response, unexpected error: %s", err),
 		)
 		return
 	}
@@ -206,9 +186,9 @@ func (r *gpuResource) Update(ctx context.Context, req resource.UpdateRequest, re
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (r *gpuResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *bucketResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state GPUResourceModel
+	var state BucketResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -216,17 +196,16 @@ func (r *gpuResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		return
 	}
 
-	// Delete existing gpu
-	if err := r.client.DeleteGPU(ctx, state.UUID.ValueString()); err != nil {
+	// Delete existing bucket
+	if err := r.client.DeleteBucket(ctx, state.Key.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
-			"Error Deleting gpu",
-			fmt.Sprintf("Could not delete gpu, unexpected error: %s", err),
+			"Error Deleting bucket",
+			fmt.Sprintf("Could not delete bucket, unexpected error: %s", err),
 		)
 		return
 	}
 }
 
-func (r *gpuResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Retrieve import UUID and save to uuid attribute
-	resource.ImportStatePassthroughID(ctx, path.Root(UUID), req, resp)
+func (r *bucketResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root(KeyBucketName), req, resp)
 }

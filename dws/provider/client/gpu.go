@@ -18,7 +18,7 @@ func (c *DWSClient) CreateGPU(ctx context.Context, gpu *GPUConfig) (*GPUConfigRe
 		return nil, fmt.Errorf(errPrefix, err)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("GPU to create: %s", string(b)))
+	tflog.Info(ctx, fmt.Sprintf("GPU to create: %s", string(b)))
 
 	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, c.url+GPUEndpoint, bytes.NewReader(b))
 	if err != nil {
