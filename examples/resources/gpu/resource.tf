@@ -1,5 +1,5 @@
 resource "dws_gpu" "example" {
-  gpu_name = "RTX_A4000"
+  gpu_name = "RTX 3090"
   image = "ubuntu:latest"
   region = "Europe"
   ssh_key = "ssh-rsa ..."

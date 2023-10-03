@@ -114,15 +114,15 @@ func (c *DWSClient) DoRequest(req *http.Request) ([]byte, error) {
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
 
-	err = checkResponse(res)
-	if err != nil {
-		return nil, fmt.Errorf("external API returned an error code: %w", err)
-	}
-
 	defer res.Body.Close()
 	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	err = checkResponse(res)
+	if err != nil {
+		return nil, fmt.Errorf("external API returned an error code: %w", err)
 	}
 
 	return b, nil
