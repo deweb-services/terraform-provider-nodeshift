@@ -25,25 +25,25 @@ type RentedGpuInfoResponse struct {
 	CpuCoresEffective int64    `json:"cpu_cores_effective"`
 	CpuName           string   `json:"cpu_name"`
 	CpuRam            int64    `json:"cpu_ram"`
-	CudaMaxGood       int64    `json:"cuda_max_good"`
+	CudaMaxGood       float64  `json:"cuda_max_good"`
 	DirectPortCount   int64    `json:"direct_port_count"`
-	DiskBw            int64    `json:"disk_bw"`
+	DiskBw            float64  `json:"disk_bw"`
 	DiskName          string   `json:"disk_name"`
-	DiskSpace         int64    `json:"disk_space"`
-	Dlperf            int64    `json:"dlperf"`
-	DlperfPerDphtotal int64    `json:"dlperf_per_dphtotal"`
-	DphBase           int64    `json:"dph_base"`
-	DphTotal          int64    `json:"dph_total"`
+	DiskSpace         float64  `json:"disk_space"`
+	Dlperf            float64  `json:"dlperf"`
+	DlperfPerDphtotal float64  `json:"dlperf_per_dphtotal"`
+	DphBase           float64  `json:"dph_base"`
+	DphTotal          float64  `json:"dph_total"`
 	DriverVersion     string   `json:"driver_version"`
-	Duration          int64    `json:"duration"`
-	EndDate           int64    `json:"end_date"`
+	Duration          float64  `json:"duration"`
+	EndDate           float64  `json:"end_date"`
 	External          bool     `json:"external"`
-	FlopsPerDphtotal  int64    `json:"flops_per_dphtotal"`
+	FlopsPerDphtotal  float64  `json:"flops_per_dphtotal"`
 	Geolocation       string   `json:"geolocation,omitempty"`
 	GpuDisplayActive  bool     `json:"gpu_display_active"`
-	GpuFrac           int64    `json:"gpu_frac"`
-	GpuLanes          int64    `json:"gpu_lanes"`
-	GpuMemBw          int64    `json:"gpu_mem_bw"`
+	GpuFrac           float64  `json:"gpu_frac"`
+	GpuLanes          float64  `json:"gpu_lanes"`
+	GpuMemBw          float64  `json:"gpu_mem_bw"`
 	GpuName           string   `json:"gpu_name"`
 	GpuRam            int64    `json:"gpu_ram"`
 	HasAvx            int64    `json:"has_avx"`
@@ -51,39 +51,39 @@ type RentedGpuInfoResponse struct {
 	HostRunTime       int64    `json:"host_run_time"`
 	HostingType       string   `json:"hosting_type,omitempty"`
 	Id                int64    `json:"id"`
-	InetDown          int64    `json:"inet_down"`
-	InetDownBilled    string   `json:"inet_down_billed,omitempty"`
-	InetDownCost      int64    `json:"inet_down_cost"`
-	InetUp            int64    `json:"inet_up"`
-	InetUpBilled      string   `json:"inet_up_billed,omitempty"`
-	InetUpCost        int64    `json:"inet_up_cost"`
+	InetDown          float64  `json:"inet_down"`
+	InetDownBilled    float64  `json:"inet_down_billed,omitempty"`
+	InetDownCost      float64  `json:"inet_down_cost"`
+	InetUp            float64  `json:"inet_up"`
+	InetUpBilled      float64  `json:"inet_up_billed,omitempty"`
+	InetUpCost        float64  `json:"inet_up_cost"`
 	IsBid             bool     `json:"is_bid"`
 	MachineId         int64    `json:"machine_id"`
-	MinBid            int64    `json:"min_bid"`
+	MinBid            float64  `json:"min_bid"`
 	MoboName          string   `json:"mobo_name"`
 	NumGpus           int64    `json:"num_gpus"`
 	PciGen            int64    `json:"pci_gen"`
-	PcieBw            int64    `json:"pcie_bw"`
+	PcieBw            float64  `json:"pcie_bw"`
 	PendingCount      int64    `json:"pending_count"`
 	PublicIpaddr      string   `json:"public_ipaddr"`
-	Reliability2      int64    `json:"reliability2"`
+	Reliability2      float64  `json:"reliability2"`
 	Rentable          bool     `json:"rentable"`
 	Rented            bool     `json:"rented"`
-	Score             int64    `json:"score"`
-	StartDate         int64    `json:"start_date"`
-	StorageCost       int64    `json:"storage_cost"`
-	StorageTotalCost  int64    `json:"storage_total_cost"`
-	TotalFlops        int64    `json:"total_flops"`
+	Score             float64  `json:"score"`
+	StartDate         float64  `json:"start_date"`
+	StorageCost       float64  `json:"storage_cost"`
+	StorageTotalCost  float64  `json:"storage_total_cost"`
+	TotalFlops        float64  `json:"total_flops"`
 	Verification      string   `json:"verification"`
 	Webpage           string   `json:"webpage,omitempty"`
 	ActualStatus      string   `json:"actual_status,omitempty"`
-	CurState          int64    `json:"cur_state"`
+	CurState          string   `json:"cur_state"`
 	DirectPortEnd     int64    `json:"direct_port_end"`
 	DirectPortStart   int64    `json:"direct_port_start"`
-	DiskUtil          int64    `json:"disk_util"`
-	ExtraEnv          string   `json:"extra_env"`
-	GpuTemp           *string  `json:"gpu_temp,omitempty"`
-	GpuUtil           *string  `json:"gpu_util,omitempty"`
+	DiskUtil          float64  `json:"disk_util"`
+	ExtraEnv          []string `json:"extra_env"`
+	GpuTemp           float64  `json:"gpu_temp,omitempty"`
+	GpuUtil           float64  `json:"gpu_util,omitempty"`
 	ImageArgs         []string `json:"image_args,omitempty"`
 	ImageRuntype      string   `json:"image_runtype"`
 	ImageUuid         string   `json:"image_uuid"`
@@ -93,13 +93,13 @@ type RentedGpuInfoResponse struct {
 	LocalIpaddrs      string   `json:"local_ipaddrs"`
 	Logo              string   `json:"logo"`
 	MachineDirSshPort int64    `json:"machine_dir_ssh_port"`
-	MemLimit          *string  `json:"mem_limit,omitempty"`
-	MemUsage          *string  `json:"mem_usage,omitempty"`
+	MemLimit          float64  `json:"mem_limit,omitempty"`
+	MemUsage          float64  `json:"mem_usage,omitempty"`
 	NextState         string   `json:"next_state"`
 	Onstart           string   `json:"onstart"`
 	SshHost           string   `json:"ssh_host"`
 	SshIdx            string   `json:"ssh_idx"`
 	SshPort           int64    `json:"ssh_port"`
 	StatusMsg         string   `json:"status_msg"`
-	VmemUsage         *string  `json:"vmem_usage,omitempty"`
+	VmemUsage         float64  `json:"vmem_usage,omitempty"`
 }

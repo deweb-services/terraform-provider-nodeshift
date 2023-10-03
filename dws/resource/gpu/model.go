@@ -2,6 +2,7 @@ package gpu
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/deweb-services/terraform-provider-dws/dws/provider/client"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -29,8 +30,9 @@ func (m *GPUResourceModel) ToClientRequest() (*client.GPUConfig, error) {
 	if m.Image.IsUnknown() || m.Image.IsNull() {
 		return nil, errors.New("image property is required and cannot be empty")
 	}
+	gn := strings.TrimSpace(m.GPUName.ValueString())
 	gpu := client.GPUConfig{
-		GPUName:  m.GPUName.ValueString(),
+		GPUName:  strings.ReplaceAll(gn, " ", "_"),
 		Image:    m.Image.ValueString(),
 		SSHKey:   m.SSHKey.ValueString(),
 		GPUCount: m.GPUCount.ValueInt64(),
