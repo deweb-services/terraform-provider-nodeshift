@@ -187,9 +187,6 @@ func (c *DWSClient) newAwsClient() error {
 			c.Config.SecretAccessKey, "")
 		o.BaseEndpoint = aws.String(c.Config.S3Endpoint)
 	})
-	if err != nil {
-		return fmt.Errorf("s3 create client error: %w", err)
-	}
 	c.s3client = client
 	return nil
 }

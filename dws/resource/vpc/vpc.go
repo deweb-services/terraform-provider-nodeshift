@@ -24,7 +24,7 @@ func NewVPCResource() resource.Resource {
 }
 
 type vpcResource struct {
-	client *client.DWSClient
+	client client.IDWSClient
 }
 
 // Metadata returns the resource type name.
