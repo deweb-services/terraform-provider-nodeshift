@@ -34,7 +34,7 @@ func (c *DWSClient) CreateDeployment(ctx context.Context, r *DeploymentConfig) (
 		return nil, fmt.Errorf("failed to create deployment, unmarshal response error: %w", err)
 	}
 
-	deploymentResponse, err := c.pollDeploymentTask(ctx, taskResponse.TaskID)
+	deploymentResponse, err := c.PollDeploymentTask(ctx, taskResponse.TaskID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create deployment: %w", err)
 	}
@@ -82,7 +82,7 @@ func (c *DWSClient) DeleteDeployment(ctx context.Context, id string) error {
 		return fmt.Errorf("failed to unmarshal delete deployment response: %w", err)
 	}
 
-	_, err = c.pollDeploymentTask(ctx, taskResponse.TaskID)
+	_, err = c.PollDeploymentTask(ctx, taskResponse.TaskID)
 	if err != nil {
 		return fmt.Errorf("failed to delete deployment: %w", err)
 	}
@@ -90,7 +90,7 @@ func (c *DWSClient) DeleteDeployment(ctx context.Context, id string) error {
 	return nil
 }
 
-func (c *DWSClient) pollDeploymentTask(ctx context.Context, taskID string) (*AsyncAPIDeploymentResponse, error) {
+func (c *DWSClient) PollDeploymentTask(ctx context.Context, taskID string) (*AsyncAPIDeploymentResponse, error) {
 	deploymentResponse := new(AsyncAPIDeploymentResponse)
 	ticker := time.NewTicker(5 * time.Second)
 pollingCycle:

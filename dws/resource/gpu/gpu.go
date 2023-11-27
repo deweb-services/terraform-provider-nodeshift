@@ -24,7 +24,7 @@ func NewGPUResource() resource.Resource {
 }
 
 type gpuResource struct {
-	client *client.DWSClient
+	client client.IDWSClient
 }
 
 // Metadata returns the resource type name.

@@ -27,9 +27,6 @@ func (m *GPUResourceModel) ToClientRequest() (*client.GPUConfig, error) {
 	if m.SSHKey.IsUnknown() || m.SSHKey.IsNull() {
 		return nil, errors.New("ssh key property is required and cannot be empty")
 	}
-	if m.Image.IsUnknown() || m.Image.IsNull() {
-		return nil, errors.New("image property is required and cannot be empty")
-	}
 	gn := strings.TrimSpace(m.GPUName.ValueString())
 	gpu := client.GPUConfig{
 		GPUName:  strings.ReplaceAll(gn, " ", "_"),

@@ -42,7 +42,7 @@ func (v *vmResourceModel) ToClientRequest() (*client.DeploymentConfig, error) {
 
 	r.ImageVersion = v.Image.ValueString()
 
-	if v.Region.IsUnknown() || v.CPU.IsNull() {
+	if v.Region.IsUnknown() || v.Region.IsNull() {
 		return nil, errors.New("region property is required and cannot be empty")
 	}
 

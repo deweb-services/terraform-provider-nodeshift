@@ -13,10 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_DeploymentCreate(t *testing.T) {
+func newServer(t *testing.T, requestType string) (*httptest.Server, *AsyncAPIDeploymentResponse, IDWSClient) {
 	mustPollTimes := 10
-
-	expectedResponse := AsyncAPIDeploymentResponse{
+	expectedResponse := &AsyncAPIDeploymentResponse{
 		StartTime:   time.Now().Unix(),
 		ServiceType: "Backend Service",
 		Data: &DeploymentResponseData{
@@ -37,7 +36,7 @@ func Test_DeploymentCreate(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case strings.HasPrefix(r.URL.Path, "/api/terraform/deployment"):
-			t.Log("received create deployment request")
+			t.Logf("received %s deployment request", requestType)
 			response := AsyncAPIDeploymentTask{
 				ID:     "ea50370f-ae1f-4a7b-8626-1d389020922e",
 				TaskID: "67e1c297-0d78-4668-b23a-6a268000a392",
@@ -70,12 +69,17 @@ func Test_DeploymentCreate(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}
 	}))
-	defer mockServer.Close()
 
 	client := NewClient(context.TODO(), DWSProviderConfiguration{
 		AccessKey:       "access_key",
 		SecretAccessKey: "secret_access_key",
 	}, ClientOptWithURL(mockServer.URL))
+	return mockServer, expectedResponse, client
+}
+
+func Test_DeploymentCreate(t *testing.T) {
+	mockServer, expectedResponse, client := newServer(t, "create")
+	defer mockServer.Close()
 
 	response, err := client.CreateDeployment(context.TODO(), &DeploymentConfig{
 		ImageVersion: "Ubuntu-v22.04",
@@ -89,7 +93,6 @@ func Test_DeploymentCreate(t *testing.T) {
 		SSHKey:       "test",
 	})
 	assert.NoError(t, err)
-
 	assert.Equal(t, expectedResponse.EndTime, response.EndTime)
 	assert.Equal(t, expectedResponse.Data, response.Data)
 	assert.Equal(t, expectedResponse.ServiceType, response.ServiceType)
@@ -168,4 +171,38 @@ func Test_GPUCreate(t *testing.T) {
 	assert.Equal(t, expectedResponse.GPUCount, response.GPUCount)
 	assert.Equal(t, expectedResponse.Image, response.Image)
 	assert.Equal(t, expectedResponse.Region, response.Region)
+}
+
+func TestDWSClient_DeleteDeployment(t *testing.T) {
+	mockServer, _, client := newServer(t, "delete")
+	defer mockServer.Close()
+
+	err := client.DeleteDeployment(context.TODO(), "id")
+	assert.NoError(t, err)
+}
+
+func TestDWSClient_GetDeployment(t *testing.T) {
+	mockServer, _, client := newServer(t, "get")
+	defer mockServer.Close()
+	_, err := client.GetDeployment(context.TODO(), "id")
+	assert.NoError(t, err)
+}
+
+func TestDWSClient_UpdateDeployment(t *testing.T) {
+	mockServer, _, client := newServer(t, "update")
+	defer mockServer.Close()
+	resp, err := client.UpdateDeployment(context.TODO(), "id", &DeploymentConfig{})
+	assert.Nil(t, resp)
+	assert.EqualError(t, err, "update not implemented")
+}
+
+func TestDWSClient_PollDeploymentTask(t *testing.T) {
+	mockServer, expectedResponse, client := newServer(t, "create")
+	defer mockServer.Close()
+
+	response, err := client.PollDeploymentTask(context.TODO(), "taskID")
+	assert.NoError(t, err)
+	assert.Equal(t, expectedResponse.EndTime, response.EndTime)
+	assert.Equal(t, expectedResponse.Data, response.Data)
+	assert.Equal(t, expectedResponse.ServiceType, response.ServiceType)
 }

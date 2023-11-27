@@ -25,7 +25,7 @@ func NewDeploymentResource() resource.Resource {
 
 // vmResource is the resource implementation.
 type vmResource struct {
-	client *client.DWSClient
+	client client.IDWSClient
 }
 
 // Metadata returns the resource type name.
@@ -115,7 +115,7 @@ func (r *vmResource) Configure(_ context.Context, req resource.ConfigureRequest,
 	if req.ProviderData == nil {
 		return
 	}
-	r.client = req.ProviderData.(*client.DWSClient)
+	r.client = req.ProviderData.(client.IDWSClient)
 }
 
 // Create creates the resource and sets the initial Terraform state.

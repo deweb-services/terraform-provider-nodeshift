@@ -24,7 +24,7 @@ func NewBucketResource() resource.Resource {
 }
 
 type bucketResource struct {
-	client *client.DWSClient
+	client client.IDWSClient
 }
 
 // Metadata returns the resource type name.
@@ -66,6 +66,7 @@ func (r *bucketResource) Create(ctx context.Context, req resource.CreateRequest,
 	clientRequest, err := plan.ToClientRequest()
 	if err != nil {
 		tflog.Error(ctx, "failed to convert resource to client required type", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		return
 	}
 
 	bucket, err := r.client.CreateBucket(ctx, clientRequest)
