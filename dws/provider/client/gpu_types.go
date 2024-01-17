@@ -49,7 +49,7 @@ type RentedGpuInfoResponse struct {
 	HasAvx            int64    `json:"has_avx"`
 	HostId            int64    `json:"host_id"`
 	HostRunTime       int64    `json:"host_run_time"`
-	HostingType       string   `json:"hosting_type,omitempty"`
+	HostingType       any      `json:"hosting_type,omitempty"`
 	Id                int64    `json:"id"`
 	InetDown          float64  `json:"inet_down"`
 	InetDownBilled    float64  `json:"inet_down_billed,omitempty"`

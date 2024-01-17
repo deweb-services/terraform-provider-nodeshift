@@ -72,7 +72,7 @@ func TestGPUResourceModel_FromClientRentedGPUResponse(t *testing.T) {
 					HasAvx:            0,
 					HostId:            0,
 					HostRunTime:       0,
-					HostingType:       "",
+					HostingType:       0,
 					Id:                0,
 					InetDown:          0,
 					InetDownBilled:    0,
