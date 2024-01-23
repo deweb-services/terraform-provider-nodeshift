@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	APIURL                = "https://app.dws.sh"
+	APIURL                = "https://app.nodeshift.com"
 	defaultTimeoutSeconds = 120
 
 	TaskEndpoint = "/api/task/terraform/%s"
@@ -173,7 +173,7 @@ func ClientOptWithS3() ClientOpt {
 
 func (c *DWSClient) newAwsClient() error {
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig: &tls.Config{},
 	}
 	httpCli := &http.Client{Transport: tr}
 	cfg, err := config.LoadDefaultConfig(context.TODO())

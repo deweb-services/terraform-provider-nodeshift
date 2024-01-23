@@ -18,8 +18,6 @@ func (c *DWSClient) CreateDeployment(ctx context.Context, r *DeploymentConfig) (
 		return nil, fmt.Errorf("failed to encode deployment: %w", err)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Deployment to create json: %s", string(b)))
-
 	body := bytes.NewReader(b)
 	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, c.url+DeploymentEndpoint, body)
 	if err != nil {
