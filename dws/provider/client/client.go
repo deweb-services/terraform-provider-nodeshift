@@ -186,6 +186,7 @@ func (c *DWSClient) newAwsClient() error {
 		o.Credentials = credentials.NewStaticCredentialsProvider(c.Config.AccessKey,
 			c.Config.SecretAccessKey, "")
 		o.BaseEndpoint = aws.String(c.Config.S3Endpoint)
+		o.UsePathStyle = true
 	})
 	c.s3client = client
 	return nil
