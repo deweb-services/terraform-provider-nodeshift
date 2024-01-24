@@ -24,7 +24,7 @@ func (c *DWSClient) CreateBucket(ctx context.Context, bucket *S3BucketConfig) (*
 func (c *DWSClient) GetBucket(ctx context.Context, key string) (*S3BucketConfig, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Get bucket by key: %s", key))
 	_, err := c.s3client.HeadBucket(ctx, &s3.HeadBucketInput{
-		Bucket: aws.String(key + " "),
+		Bucket: aws.String(key),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get bucket: %w", err)
