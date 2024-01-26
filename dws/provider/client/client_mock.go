@@ -12,7 +12,9 @@ func NewMockedClient() IDWSClient {
 	return &mockedClient{}
 }
 
-func (m *mockedClient) DoRequest(req *http.Request) ([]byte, error) { return []byte{}, nil }
+func (m *mockedClient) DoRequest(ctx context.Context, req *http.Request) ([]byte, error) {
+	return []byte{}, nil
+}
 
 func (m *mockedClient) DoSignedRequest(ctx context.Context, method string, endpoint string, body io.ReadSeeker) ([]byte, error) {
 	return []byte{}, nil
@@ -27,7 +29,7 @@ func (m *mockedClient) PollDeploymentTask(ctx context.Context, taskID string) (*
 func (m *mockedClient) CreateDeployment(ctx context.Context, r *DeploymentConfig) (*AsyncAPIDeploymentResponse, error) {
 	return &AsyncAPIDeploymentResponse{
 		Data: &DeploymentResponseData{
-			Plan: DeploymentResponseDataPlan{},
+			ProviderPlan: "",
 		},
 	}, nil
 }

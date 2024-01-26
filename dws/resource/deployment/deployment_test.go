@@ -116,8 +116,9 @@ func Test_vmResource_Create(t *testing.T) {
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
+							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
-							DeploymentKeysVPCID:            tftypes.NewValue(tftypes.String, DeploymentKeysVPCID),
+							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
 							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
@@ -173,14 +174,17 @@ func Test_vmResource_Create(t *testing.T) {
 									Description: SSHKeyDescription,
 									Sensitive:   true,
 								},
+								DeploymentKeysSSHKeyName: schema.StringAttribute{
+									Required:    true,
+									Description: SSHKeyNameDescription,
+								},
 								DeploymentKeysHostName: schema.StringAttribute{
 									Required:    true,
 									Description: HostNameDescription,
 								},
-								DeploymentKeysVPCID: schema.StringAttribute{
+								DeploymentKeysNetworkUUID: schema.StringAttribute{
 									Optional:    true,
-									Computed:    true,
-									Description: VPCIDDescription,
+									Description: NetworkUUIDDescription,
 								},
 								DeploymentKeysPublicIPv4: schema.StringAttribute{
 									Computed:    true,
@@ -188,7 +192,7 @@ func Test_vmResource_Create(t *testing.T) {
 								},
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
-									Description: PublicIPv4Description,
+									Description: PublicIPv6Description,
 								},
 								DeploymentKeysYggIP: schema.StringAttribute{
 									Computed:    true,
@@ -247,8 +251,9 @@ func Test_vmResource_Create(t *testing.T) {
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
+							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
-							DeploymentKeysVPCID:            tftypes.NewValue(tftypes.String, DeploymentKeysVPCID),
+							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
 							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
@@ -304,14 +309,17 @@ func Test_vmResource_Create(t *testing.T) {
 									Description: SSHKeyDescription,
 									Sensitive:   true,
 								},
+								DeploymentKeysSSHKeyName: schema.StringAttribute{
+									Required:    true,
+									Description: SSHKeyNameDescription,
+								},
 								DeploymentKeysHostName: schema.StringAttribute{
 									Required:    true,
 									Description: HostNameDescription,
 								},
-								DeploymentKeysVPCID: schema.StringAttribute{
+								DeploymentKeysNetworkUUID: schema.StringAttribute{
 									Optional:    true,
-									Computed:    true,
-									Description: VPCIDDescription,
+									Description: NetworkUUIDDescription,
 								},
 								DeploymentKeysPublicIPv4: schema.StringAttribute{
 									Computed:    true,
@@ -319,7 +327,7 @@ func Test_vmResource_Create(t *testing.T) {
 								},
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
-									Description: PublicIPv4Description,
+									Description: PublicIPv6Description,
 								},
 								DeploymentKeysYggIP: schema.StringAttribute{
 									Computed:    true,
@@ -378,8 +386,9 @@ func Test_vmResource_Delete(t *testing.T) {
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
+							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
-							DeploymentKeysVPCID:            tftypes.NewValue(tftypes.String, DeploymentKeysVPCID),
+							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
 							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
@@ -435,14 +444,17 @@ func Test_vmResource_Delete(t *testing.T) {
 									Description: SSHKeyDescription,
 									Sensitive:   true,
 								},
+								DeploymentKeysSSHKeyName: schema.StringAttribute{
+									Required:    true,
+									Description: SSHKeyNameDescription,
+								},
 								DeploymentKeysHostName: schema.StringAttribute{
 									Required:    true,
 									Description: HostNameDescription,
 								},
-								DeploymentKeysVPCID: schema.StringAttribute{
+								DeploymentKeysNetworkUUID: schema.StringAttribute{
 									Optional:    true,
-									Computed:    true,
-									Description: VPCIDDescription,
+									Description: NetworkUUIDDescription,
 								},
 								DeploymentKeysPublicIPv4: schema.StringAttribute{
 									Computed:    true,
@@ -450,7 +462,7 @@ func Test_vmResource_Delete(t *testing.T) {
 								},
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
-									Description: PublicIPv4Description,
+									Description: PublicIPv6Description,
 								},
 								DeploymentKeysYggIP: schema.StringAttribute{
 									Computed:    true,
@@ -608,8 +620,9 @@ func Test_vmResource_Read(t *testing.T) {
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
+							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
-							DeploymentKeysVPCID:            tftypes.NewValue(tftypes.String, DeploymentKeysVPCID),
+							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
 							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
@@ -665,14 +678,17 @@ func Test_vmResource_Read(t *testing.T) {
 									Description: SSHKeyDescription,
 									Sensitive:   true,
 								},
+								DeploymentKeysSSHKeyName: schema.StringAttribute{
+									Required:    true,
+									Description: SSHKeyNameDescription,
+								},
 								DeploymentKeysHostName: schema.StringAttribute{
 									Required:    true,
 									Description: HostNameDescription,
 								},
-								DeploymentKeysVPCID: schema.StringAttribute{
+								DeploymentKeysNetworkUUID: schema.StringAttribute{
 									Optional:    true,
-									Computed:    true,
-									Description: VPCIDDescription,
+									Description: NetworkUUIDDescription,
 								},
 								DeploymentKeysPublicIPv4: schema.StringAttribute{
 									Computed:    true,
@@ -680,7 +696,7 @@ func Test_vmResource_Read(t *testing.T) {
 								},
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
-									Description: PublicIPv4Description,
+									Description: PublicIPv6Description,
 								},
 								DeploymentKeysYggIP: schema.StringAttribute{
 									Computed:    true,
@@ -799,8 +815,9 @@ func Test_vmResource_Update(t *testing.T) {
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
+							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
-							DeploymentKeysVPCID:            tftypes.NewValue(tftypes.String, DeploymentKeysVPCID),
+							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
 							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
@@ -856,14 +873,17 @@ func Test_vmResource_Update(t *testing.T) {
 									Description: SSHKeyDescription,
 									Sensitive:   true,
 								},
+								DeploymentKeysSSHKeyName: schema.StringAttribute{
+									Required:    true,
+									Description: SSHKeyNameDescription,
+								},
 								DeploymentKeysHostName: schema.StringAttribute{
 									Required:    true,
 									Description: HostNameDescription,
 								},
-								DeploymentKeysVPCID: schema.StringAttribute{
+								DeploymentKeysNetworkUUID: schema.StringAttribute{
 									Optional:    true,
-									Computed:    true,
-									Description: VPCIDDescription,
+									Description: NetworkUUIDDescription,
 								},
 								DeploymentKeysPublicIPv4: schema.StringAttribute{
 									Computed:    true,
@@ -871,7 +891,7 @@ func Test_vmResource_Update(t *testing.T) {
 								},
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
-									Description: PublicIPv4Description,
+									Description: PublicIPv6Description,
 								},
 								DeploymentKeysYggIP: schema.StringAttribute{
 									Computed:    true,
@@ -932,8 +952,9 @@ func Test_vmResource_Update(t *testing.T) {
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
+							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
-							DeploymentKeysVPCID:            tftypes.NewValue(tftypes.String, DeploymentKeysVPCID),
+							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
 							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
@@ -989,14 +1010,17 @@ func Test_vmResource_Update(t *testing.T) {
 									Description: SSHKeyDescription,
 									Sensitive:   true,
 								},
+								DeploymentKeysSSHKeyName: schema.StringAttribute{
+									Required:    true,
+									Description: SSHKeyNameDescription,
+								},
 								DeploymentKeysHostName: schema.StringAttribute{
 									Required:    true,
 									Description: HostNameDescription,
 								},
-								DeploymentKeysVPCID: schema.StringAttribute{
+								DeploymentKeysNetworkUUID: schema.StringAttribute{
 									Optional:    true,
-									Computed:    true,
-									Description: VPCIDDescription,
+									Description: NetworkUUIDDescription,
 								},
 								DeploymentKeysPublicIPv4: schema.StringAttribute{
 									Computed:    true,
@@ -1004,7 +1028,7 @@ func Test_vmResource_Update(t *testing.T) {
 								},
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
-									Description: PublicIPv4Description,
+									Description: PublicIPv6Description,
 								},
 								DeploymentKeysYggIP: schema.StringAttribute{
 									Computed:    true,

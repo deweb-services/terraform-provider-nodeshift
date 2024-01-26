@@ -108,7 +108,7 @@ func NewClient(ctx context.Context, configuration DWSProviderConfiguration, opts
 	return c
 }
 
-func (c *DWSClient) DoRequest(req *http.Request) ([]byte, error) {
+func (c *DWSClient) DoRequest(ctx context.Context, req *http.Request) ([]byte, error) {
 	res, err := c.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
@@ -119,10 +119,9 @@ func (c *DWSClient) DoRequest(req *http.Request) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
-
 	err = checkResponse(res)
 	if err != nil {
-		return nil, fmt.Errorf("external API returned an error code: %w", err)
+		return nil, fmt.Errorf("external API returned an error code: %w, response body: %s", err, string(b))
 	}
 
 	return b, nil
@@ -143,7 +142,7 @@ func (c *DWSClient) DoSignedRequest(ctx context.Context, method string, endpoint
 		return nil, err
 	}
 
-	return c.DoRequest(req)
+	return c.DoRequest(ctx, req)
 }
 
 func checkResponse(res *http.Response) error {

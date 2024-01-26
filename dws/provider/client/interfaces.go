@@ -7,7 +7,7 @@ import (
 )
 
 type IDWSClient interface {
-	DoRequest(req *http.Request) ([]byte, error)
+	DoRequest(ctx context.Context, req *http.Request) ([]byte, error)
 	DoSignedRequest(ctx context.Context, method string, endpoint string, body io.ReadSeeker) ([]byte, error)
 	SetGlobalTransactionNote(note string)
 	PollDeploymentTask(ctx context.Context, taskID string) (*AsyncAPIDeploymentResponse, error)

@@ -18,26 +18,27 @@ Manages a deployment
 ### Required
 
 - `cpu` (Number) Number of CPU cores for your Deployment
-- `disk_size` (Number) Amount of disk size for your Deployment in GB
+- `disk_size` (Number) Amount of disk size for your Deployment in MB
 - `disk_type` (String) Disk type for your Deployment. Available options: hdd, ssd
 - `host_name` (String) Host name for your Deployment
 - `image` (String) OS Image used to install on the target Vitrual Machine Deployment. 
 Available options: Ubuntu-v22.04
-- `ram` (Number) Amount of RAM for your Deployment in GB
+- `ram` (Number) Amount of RAM for your Deployment in MB
 - `region` (String) Region where you want to deploy your Deployment.
 Available options: USA
 - `ssh_key` (String, Sensitive) SSH key to add to the target VM to make it possible to connect to your VM
+- `ssh_key_name` (String) SSH key name for Deployment
 
 ### Optional
 
 - `assign_public_ipv4` (Boolean) If true assigns a public ipv4 address for your Deployment
 - `assign_public_ipv6` (Boolean) If true assigns a public ipv6 address for your Deployment
 - `assign_ygg_ip` (Boolean) If true assigns a yggdrasil address for your Deployment
-- `vpc_id` (String) ID of the vpc to deploy your VM into
+- `network_uuid` (String) ID of the network to deploy your VM into
 
 ### Read-Only
 
 - `id` (String) String ID of the deployment, computed
 - `public_ipv4` (String) Public IPv4 of your VM
-- `public_ipv6` (String) Public IPv4 of your VM
+- `public_ipv6` (String) Public IPv6 of your VM
 - `ygg_ip` (String) Yggdrasil IP of your VM

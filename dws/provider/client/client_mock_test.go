@@ -248,7 +248,7 @@ func Test_mockedClient_DoRequest(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &mockedClient{}
-			got, err := m.DoRequest(tt.args.req)
+			got, err := m.DoRequest(context.TODO(), tt.args.req)
 			assert.NoError(t, err, fmt.Sprintf("DoRequest(%v)", tt.args.req))
 			assert.Equalf(t, tt.want, got, "DoRequest(%v)", tt.args.req)
 		})

@@ -86,14 +86,18 @@ func (r *vmResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				Description: SSHKeyDescription,
 				Sensitive:   true,
 			},
+			DeploymentKeysSSHKeyName: schema.StringAttribute{
+				Required:    true,
+				Description: SSHKeyNameDescription,
+				Sensitive:   false,
+			},
 			DeploymentKeysHostName: schema.StringAttribute{
 				Required:    true,
 				Description: HostNameDescription,
 			},
-			DeploymentKeysVPCID: schema.StringAttribute{
+			DeploymentKeysNetworkUUID: schema.StringAttribute{
 				Optional:    true,
-				Computed:    true,
-				Description: VPCIDDescription,
+				Description: NetworkUUIDDescription,
 			},
 			DeploymentKeysPublicIPv4: schema.StringAttribute{
 				Computed:    true,
@@ -101,7 +105,7 @@ func (r *vmResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 			},
 			DeploymentKeysPublicIPv6: schema.StringAttribute{
 				Computed:    true,
-				Description: PublicIPv4Description,
+				Description: PublicIPv6Description,
 			},
 			DeploymentKeysYggIP: schema.StringAttribute{
 				Computed:    true,
@@ -128,12 +132,11 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
 		return
 	}
-
 	requestData, err := plan.ToClientRequest()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating Deployment",
-			fmt.Sprintf("Could not create Deployment, unexpected error: %s", err.Error()),
+			fmt.Sprintf("Could not create Deployment, cast to client error: %s", err.Error()),
 		)
 		return
 	}
@@ -145,7 +148,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating Deployment",
-			fmt.Sprintf("Could not create Deployment, unexpected error: %s", err),
+			fmt.Sprintf("Could not create Deployment, very unexpected error: %s", err),
 		)
 		return
 	}
