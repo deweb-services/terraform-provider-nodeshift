@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	APIURL                = "https://app.dws.so"
+	APIURL                = "https://app.nodeshift.com"
 	defaultTimeoutSeconds = 120
 
 	TaskEndpoint = "/api/task/terraform/%s"
