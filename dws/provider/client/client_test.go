@@ -193,7 +193,7 @@ func TestDWSClient_DoRequest(t *testing.T) {
 				client: tt.fields.client,
 				signer: tt.fields.signer,
 			}
-			got, err := c.DoRequest(tt.args.req)
+			got, err := c.DoRequest(context.TODO(), tt.args.req)
 			if tt.wantErr != nil {
 				assert.NotNil(t, err)
 			} else {

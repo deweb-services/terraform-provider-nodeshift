@@ -8,19 +8,20 @@ import (
 )
 
 type vmResourceModel struct {
-	ID       types.String `tfsdk:"id"`
-	Image    types.String `tfsdk:"image"`
-	Region   types.String `tfsdk:"region"`
-	CPU      types.Int64  `tfsdk:"cpu"`
-	RAM      types.Int64  `tfsdk:"ram"`
-	Disk     types.Int64  `tfsdk:"disk_size"`
-	DiskType types.String `tfsdk:"disk_type"`
-	IPv4     types.Bool   `tfsdk:"assign_public_ipv4"`
-	IPv6     types.Bool   `tfsdk:"assign_public_ipv6"`
-	Ygg      types.Bool   `tfsdk:"assign_ygg_ip"`
-	SSHKey   types.String `tfsdk:"ssh_key"`
-	HostName types.String `tfsdk:"host_name"`
-	VPCID    types.String `tfsdk:"vpc_id"`
+	ID          types.String `tfsdk:"id"`
+	Image       types.String `tfsdk:"image"`
+	Region      types.String `tfsdk:"region"`
+	CPU         types.Int64  `tfsdk:"cpu"`
+	RAM         types.Int64  `tfsdk:"ram"`
+	Disk        types.Int64  `tfsdk:"disk_size"`
+	DiskType    types.String `tfsdk:"disk_type"`
+	IPv4        types.Bool   `tfsdk:"assign_public_ipv4"`
+	IPv6        types.Bool   `tfsdk:"assign_public_ipv6"`
+	Ygg         types.Bool   `tfsdk:"assign_ygg_ip"`
+	SSHKey      types.String `tfsdk:"ssh_key"`
+	SSHKeyName  types.String `tfsdk:"ssh_key_name"`
+	HostName    types.String `tfsdk:"host_name"`
+	NetworkUUID types.String `tfsdk:"network_uuid"`
 
 	// Computed
 	PublicIPv4 types.String `tfsdk:"public_ipv4"`
@@ -33,7 +34,7 @@ func (v *vmResourceModel) ToClientRequest() (*client.DeploymentConfig, error) {
 		Ipv4:        v.IPv4.ValueBool(),
 		Ipv6:        v.IPv6.ValueBool(),
 		Ygg:         v.Ygg.ValueBool(),
-		NetworkUUID: v.VPCID.ValueString(),
+		NetworkUUID: v.NetworkUUID.ValueString(),
 	}
 
 	if v.Image.IsUnknown() || v.Image.IsNull() {
@@ -78,6 +79,12 @@ func (v *vmResourceModel) ToClientRequest() (*client.DeploymentConfig, error) {
 
 	r.SSHKey = v.SSHKey.ValueString()
 
+	if v.SSHKeyName.IsUnknown() || v.SSHKeyName.IsNull() {
+		return nil, errors.New("ssh_key_name property is required and cannot be empty")
+	}
+
+	r.SSHKeyName = v.SSHKeyName.ValueString()
+
 	if v.HostName.IsUnknown() || v.HostName.IsNull() {
 		return nil, errors.New("host_name property is required and cannot be empty")
 	}
@@ -92,18 +99,6 @@ func (v *vmResourceModel) FromAsyncAPIResponse(c *client.AsyncAPIDeploymentRespo
 	v.PublicIPv6 = types.StringValue(c.Data.IPv6)
 	v.YggIP = types.StringValue(c.Data.Ygg)
 	v.ID = types.StringValue(c.ID)
-
-	if c.Data.Ygg == "" {
-		v.Ygg = types.BoolValue(false)
-	}
-
-	if c.Data.IPv6 == "" {
-		v.IPv6 = types.BoolValue(false)
-	}
-
-	if c.Data.IP == "" {
-		v.IPv4 = types.BoolValue(false)
-	}
 }
 
 func (v *vmResourceModel) FromClientResponse(c *client.CreatedDeployment) {

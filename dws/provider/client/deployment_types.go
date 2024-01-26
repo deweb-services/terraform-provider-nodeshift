@@ -17,6 +17,7 @@ type DeploymentConfig struct {
 	Ipv6         bool   `json:"ipv6,omitempty"`
 	Ygg          bool   `json:"ygg,omitempty"`
 	SSHKey       string `json:"sshKey"`
+	SSHKeyName   string `json:"sshKeyName"`
 	HostName     string `json:"hostName"`
 	NetworkUUID  string `json:"networkUuid,omitempty"`
 }
@@ -36,6 +37,7 @@ type CreatedDeployment struct {
 	Hostname     string    `json:"hostname"`
 	Ipv6         int       `json:"ipv6"`
 	SSHKey       string    `json:"sshKey"`
+	SSHKeyName   string    `json:"sshKeyName"`
 	Image        int       `json:"image"`
 	ImageVersion string    `json:"imageVersion"`
 	ChosenPlanID int       `json:"chosenPlanId"`
@@ -52,7 +54,7 @@ type AsyncAPIDeploymentResponse struct {
 	EndTime      *int64                  `json:"endTime"`
 	IsError      bool                    `json:"isError"`
 	Data         *DeploymentResponseData `json:"data"`
-	FailedReason string                  `json:"failedReason"`
+	FailedReason string                  `json:"failedReason,omitempty"`
 
 	// Not presented in this response, but
 	// We still have to declare this property
@@ -61,10 +63,11 @@ type AsyncAPIDeploymentResponse struct {
 }
 
 type DeploymentResponseData struct {
-	IP   string                     `json:"ip"`
-	IPv6 string                     `json:"ipv6"`
-	Ygg  string                     `json:"ygg"`
-	Plan DeploymentResponseDataPlan `json:"plan"`
+	IP           string                      `json:"ip,omitempty"`
+	IPv6         string                      `json:"ipv6,omitempty"`
+	Ygg          string                      `json:"ygg,omitempty"`
+	ProviderPlan string                      `json:"providerPlan,omitempty"`
+	Plan         *DeploymentResponseDataPlan `json:"plan,omitempty"`
 }
 
 type DeploymentResponseDataPlan struct {

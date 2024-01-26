@@ -31,9 +31,9 @@ resource "dws_deployment" "hello_world" {
   image = "Ubuntu-v22.04"
   region = "USA"
   cpu = 4
-  // RAM in GB
+  // RAM in MB
   ram = 2
-  // Disk in GB
+  // Disk in MB
   disk_size = 20
   disk_type = "hdd"
   assign_public_ipv4 = true
