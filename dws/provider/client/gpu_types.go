@@ -17,9 +17,9 @@ type GPUConfigResponse struct {
 }
 
 type RentedGpuInfoResponse struct {
-	ActualStatus string `json:"actual_status,omitempty"`
-	GpuName      string `json:"gpu_name"`
-	NumGpus      int64  `json:"num_gpus"`
-	SshHost      string `json:"ssh_host"`
-	SshPort      int64  `json:"ssh_port"`
+	ActualStatus string `json:"status"`
+	GpuName      string `json:"gpuName"`
+	NumGpus      int64  `json:"numGpus"`
+	SshHost      string `json:"sshHost"`
+	SshPort      int64  `json:"sshPort"`
 }
