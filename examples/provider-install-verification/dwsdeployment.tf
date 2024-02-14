@@ -1,33 +1,33 @@
 terraform {
   required_providers {
-    dws = {
-      source = "hashicorp.com/edu/dws"
+    nodeshift = {
+      source = "hashicorp.com/edu/nodeshift"
     }
   }
 }
 
-provider "dws" {
+provider "nodeshift" {
   access_key = "ACCESS_KEY"
   secret_access_key = "SECRET_ACCESS_KEY"
 }
 
 // OR
 
-provider "dws" {
-  shared_credentials_file = "~/.dws/credentials"
+provider "nodeshift" {
+  shared_credentials_file = "~/.nodeshift/credentials"
   profile = "main-profile"
 }
 
 // OR in case you want to set params with environment variables
 
-provider "dws" {}
+provider "nodeshift" {}
 
-resource "dws_vpc" "example" {
+resource "nodeshift_vpc" "example" {
   name = "example"
   description = "just an example vpc"
 }
 
-resource "dws_deployment" "hello_world" {
+resource "nodeshift_deployment" "hello_world" {
   image = "Ubuntu-v22.04"
   region = "USA"
   cpu = 4
@@ -40,5 +40,5 @@ resource "dws_deployment" "hello_world" {
   assign_public_ipv6 = true
   assign_ygg_ip = true
   ssh-key = "ssh-rsa ..."
-  network_id = dws_network.example.id
+  network_id = nodeshift_network.example.id
 }

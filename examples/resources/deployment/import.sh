@@ -1,1 +1,1 @@
-terraform import dws_deployment.example 123
+terraform import nodeshift_deployment.example 123

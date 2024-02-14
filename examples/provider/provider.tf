@@ -1,12 +1,12 @@
 terraform {
   required_providers {
-    dws = {
-      source = "hashicorp.com/edu/dws"
+    nodeshift = {
+      source = "hashicorp.com/edu/nodeshift"
     }
   }
 }
 
-provider "dws" {
+provider "nodeshift" {
   access_key = "ACCESS_KEY"
   secret_access_key = "SECRET_ACCESS_KEY"
 }
