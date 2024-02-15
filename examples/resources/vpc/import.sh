@@ -1,1 +1,1 @@
-terraform import dws_vpc.example 123
+terraform import nodeshift_vpc.example 123

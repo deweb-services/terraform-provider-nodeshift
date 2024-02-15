@@ -1,1 +1,1 @@
-terraform import dws_gpu.example 123
+terraform import nodeshift_gpu.example 123

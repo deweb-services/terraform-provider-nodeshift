@@ -5,13 +5,13 @@ terraform {
     key        = "mys3/state.tf"
     access_key = ""
     secret_key = ""
-    endpoint   = "https://s3.dws.so"
+    endpoint   = "https://s3.nodeshift.so"
     skip_credentials_validation = true
   }
 
   required_providers {
-    dws = {
-      source = "hashicorp.com/edu/dws"
+    nodeshift = {
+      source = "hashicorp.com/edu/nodeshift"
     }
   }
 }

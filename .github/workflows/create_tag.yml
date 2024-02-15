@@ -1,0 +1,33 @@
+# Terraform Provider release workflow.
+name: CreateTag
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+    types: [ closed ]
+
+jobs:
+  create_tag:
+    environment: production
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: '0'
+      - name: Get previous tag
+        id: previoustag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        with:
+          fallback: 0.0.0
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.64.0 # Don't use @master or @v1 unless you're happy to test the latest version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHCR_PAT }} # if you don't want to set write permissions use a PAT token
+          WITH_V: true
+          DEFAULT_BUMP: patch
+          INITIAL_VERSION: ${{ steps.previoustag.outputs.tag }}

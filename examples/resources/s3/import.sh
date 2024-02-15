@@ -1,1 +1,1 @@
-terraform import dws_bucket.example 123
+terraform import nodeshift_bucket.example 123

@@ -1,4 +1,4 @@
-resource "dws_deployment" "example" {
+resource "nodeshift_deployment" "example" {
   image = "Ubuntu-v22.04"
   region = "United States"
   cpu = 1

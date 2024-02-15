@@ -3,7 +3,7 @@ vendor
 main.tf
 .vscode/
 
-terraform-provider-dws
+terraform-provider-nodeshift
 bin
 
 # Local .terraform directories

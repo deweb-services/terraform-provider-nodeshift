@@ -1,4 +1,4 @@
-# Terraform Provider for DWS
+# Terraform Provider for Nodeshift
 
 ## Build provider
 
@@ -12,7 +12,7 @@ First, build and install the provider.
 $ make install
 ```
 
-Then, navigate to the `examples` directory. 
+Then, navigate to the `examples` directory.
 
 ```shell
 $ cd examples
@@ -25,13 +25,14 @@ $ terraform init && terraform apply
 ```
 
 To make this plugin work locally, after the installation rename the binary file to
-`terraform-provider-dws` and make a file in your `$HOME` directory named `.terraformrc`
-to override the terraform repository with contents like 
+`terraform-provider-nodeshift` and make a file in your `$HOME` directory named `.terraformrc`
+to override the terraform repository with contents like
+
 ```
 provider_installation {
 
     dev_overrides {
-        "hashicorp.com/edu/dws" = "%PATH TO $GOBIN%"
+        "hashicorp.com/edu/nodeshift" = "%PATH TO $GOBIN%"
     }
 
     direct {}
