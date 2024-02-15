@@ -1,6 +1,6 @@
 module github.com/deweb-services/terraform-provider-nodeshift
 
-go 1.21
+go 1.19
 
 require (
 	github.com/aws/aws-sdk-go v1.44.284
