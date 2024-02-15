@@ -1,5 +1,5 @@
 # Terraform Provider release workflow.
-name: CreateTag
+name: PushToRegistry
 
 on:
   push:
@@ -15,7 +15,6 @@ permissions:
 jobs:
   goreleaser:
     environment: production
-    needs: [ create_tag ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
