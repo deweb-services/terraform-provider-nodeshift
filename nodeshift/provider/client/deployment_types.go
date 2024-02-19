@@ -66,8 +66,7 @@ type DeploymentResponseData struct {
 	IP           string                      `json:"ip,omitempty"`
 	IPv6         string                      `json:"ipv6,omitempty"`
 	Ygg          string                      `json:"ygg,omitempty"`
-	ProviderPlan string                      `json:"providerPlan,omitempty"`
-	Plan         *DeploymentResponseDataPlan `json:"plan,omitempty"`
+	ProviderPlan *DeploymentResponseDataPlan `json:"providerPlan,omitempty"`
 }
 
 type DeploymentResponseDataPlan struct {

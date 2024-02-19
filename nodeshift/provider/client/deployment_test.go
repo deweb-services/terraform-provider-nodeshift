@@ -19,10 +19,9 @@ func newServer(t *testing.T, requestType string) (*httptest.Server, *AsyncAPIDep
 		StartTime:   time.Now().Unix(),
 		ServiceType: "Backend Service",
 		Data: &DeploymentResponseData{
-			IP:           "190.12.32.19",
-			IPv6:         "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
-			Ygg:          "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
-			ProviderPlan: "",
+			IP:   "190.12.32.19",
+			IPv6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+			Ygg:  "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
 		},
 		IsError: false,
 	}

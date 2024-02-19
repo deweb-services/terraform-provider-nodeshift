@@ -29,7 +29,7 @@ func (m *mockedClient) PollDeploymentTask(ctx context.Context, taskID string) (*
 func (m *mockedClient) CreateDeployment(ctx context.Context, r *DeploymentConfig) (*AsyncAPIDeploymentResponse, error) {
 	return &AsyncAPIDeploymentResponse{
 		Data: &DeploymentResponseData{
-			ProviderPlan: "",
+			ProviderPlan: nil,
 		},
 	}, nil
 }
