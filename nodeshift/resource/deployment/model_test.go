@@ -43,10 +43,9 @@ func Test_vmResourceModel_FromAsyncAPIResponse(t *testing.T) {
 			args: args{
 				c: &client.AsyncAPIDeploymentResponse{
 					Data: &client.DeploymentResponseData{
-						IP:           "public_ipv4",
-						IPv6:         "",
-						Ygg:          "",
-						ProviderPlan: "",
+						IP:   "public_ipv4",
+						IPv6: "",
+						Ygg:  "",
 					},
 				},
 			},
@@ -75,10 +74,9 @@ func Test_vmResourceModel_FromAsyncAPIResponse(t *testing.T) {
 			args: args{
 				c: &client.AsyncAPIDeploymentResponse{
 					Data: &client.DeploymentResponseData{
-						IP:           "",
-						IPv6:         "",
-						Ygg:          "",
-						ProviderPlan: "",
+						IP:   "",
+						IPv6: "",
+						Ygg:  "",
 					},
 				},
 			},
