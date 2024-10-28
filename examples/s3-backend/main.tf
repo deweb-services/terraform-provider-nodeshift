@@ -5,7 +5,7 @@ terraform {
     key        = "mys3/state.tf"
     access_key = ""
     secret_key = ""
-    endpoint   = "https://eu.storage.nodeshift.co"
+    endpoint   = "https://eu.storage.nodeshift.com"
     skip_credentials_validation = true
   }
 
