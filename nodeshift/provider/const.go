@@ -16,4 +16,5 @@ const (
 	EnvKeyProfile               = "NODESHIFT_PROFILE"
 	EnvKeyS3Endpoint            = "NODESHIFT_S3_ENDPOINT"
 	EnvKeyS3Region              = "NODESHIFT_S3_REGION"
+	EnvKeyAPIURL                = "NODESHIFT_TERRAFORM_API_URL"
 )

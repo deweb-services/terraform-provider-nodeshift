@@ -211,8 +211,14 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 	var cfg client.NodeshiftProviderConfiguration
 	cfg.FromSlice(values)
 	tflog.Debug(ctx, fmt.Sprintf("%+v", values))
+
+	url := os.Getenv(EnvKeyAPIURL)
+	if url == "" {
+		url = client.APIURL
+	}
+
 	// Create a new nodeshift client using the configuration values
-	cli := client.NewClient(ctx, cfg, client.ClientOptWithURL(client.APIURL), client.ClientOptWithS3())
+	cli := client.NewClient(ctx, cfg, client.ClientOptWithURL(url), client.ClientOptWithS3())
 	// Make the nodeshift client available during DataSource and Resource
 	resp.DataSourceData = cli
 	resp.ResourceData = cli
