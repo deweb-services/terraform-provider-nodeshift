@@ -29,6 +29,10 @@ docker-build:
 	$(call in_docker,make build)
 	echo "path for local bin is $(BIN_DIR)"
 
+.PHONY: lint
+lint:
+	golangci-lint run --config configs/.golangci.yml
+
 define in_docker
 	docker run --rm \
 		-v $(PWD):/app \

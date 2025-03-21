@@ -5,22 +5,19 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/deployment"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/gpu"
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/load_balancer"
 	s3terraform "github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/s3"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/vpc"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 )
 
 func TestNewNodeshiftProvider(t *testing.T) {
@@ -251,6 +248,7 @@ func Test_nodeshiftProvider_Resources(t *testing.T) {
 				vpc.NewVPCResource,
 				gpu.NewGPUResource,
 				s3terraform.NewBucketResource,
+				load_balancer.NewLBResource,
 			},
 		},
 	}
