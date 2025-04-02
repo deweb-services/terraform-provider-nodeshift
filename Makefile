@@ -37,5 +37,5 @@ define in_docker
 	docker run --rm \
 		-v $(PWD):/app \
 		-w /app \
-		golang:1.19 $1
+		golang:1.23 $1
 endef
