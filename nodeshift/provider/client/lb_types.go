@@ -6,27 +6,27 @@ import (
 )
 
 type LoadBalancerConfig struct {
-	Name            string
-	Replicas        map[string]int
-	CPUUUIDs        []string
-	ForwardingRules []ForwardingRule
-	VPCUUID         string
+	Name            string           `json:"name"`
+	Replicas        map[string]int   `json:"replicas"`
+	CPUUUIDs        []string         `json:"cpuUuids"`
+	ForwardingRules []ForwardingRule `json:"forwardingRules"`
+	VPCUUID         string           `json:"vpcUuid"`
 }
 
 type ForwardingRule struct {
-	In  RuleEndpoint
-	Out RuleEndpoint
+	In  RuleEndpoint `json:"in"`
+	Out RuleEndpoint `json:"out"`
 }
 
 type RuleEndpoint struct {
-	Protocol string
-	Port     int
+	Protocol string `json:"protocol"`
+	Port     int    `json:"port"`
 }
 
 type LoadBalancerConfigResponse struct {
-	UUID   string
-	Status string
-	TaskID string
+	UUID   string `json:"uuid"`
+	Status string `json:"status"`
+	TaskID string `json:"taskId"`
 }
 
 type GetLBResponse struct {
@@ -43,8 +43,6 @@ type GetLBResponse struct {
 	Deployments     []Deployment        `json:"deployments"`
 	Tags            []Tag               `json:"tags"`
 }
-
-// --- Nested Types ---
 
 type LoadBalancerDetails struct {
 	DNSRecord       string             `json:"dnsRecord"`
@@ -63,7 +61,7 @@ type ReplicaInfo struct {
 type ForwardingRuleV2 struct {
 	In                RuleEndpoint               `json:"in"`
 	Out               RuleEndpoint               `json:"out"`
-	CertificateParams map[string]json.RawMessage `json:"certificateParams"` // Assuming flexible keys
+	CertificateParams map[string]json.RawMessage `json:"certificateParams"`
 }
 
 type Backend struct {
