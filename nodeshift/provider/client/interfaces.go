@@ -31,4 +31,9 @@ type INodeshiftClient interface {
 	GetBucket(ctx context.Context, key string) (*S3BucketConfig, error)
 	UpdateBucket(ctx context.Context, bucket *S3BucketConfig) error
 	DeleteBucket(ctx context.Context, key string) error
+
+	CreateLB(ctx context.Context, lb *LoadBalancerConfig) (*LoadBalancerConfigResponse, error)
+	GetLB(ctx context.Context, uuid string) (*GetLBResponse, error)
+	UpdateLB(ctx context.Context, uuid string, lb *LoadBalancerConfig) (*LoadBalancerConfigResponse, error)
+	DeleteLB(ctx context.Context, uuid string) error
 }

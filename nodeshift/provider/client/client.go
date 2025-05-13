@@ -26,6 +26,8 @@ const (
 	VPCEndpoint = "/api/terraform/vpc"
 
 	GPUEndpoint = "/api/terraform/gpu"
+
+	LBEndpoint = "/api/terraform/load-balancer"
 )
 
 type NodeshiftClient struct {
