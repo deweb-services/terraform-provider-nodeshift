@@ -3,12 +3,14 @@ package deployment
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -150,6 +152,20 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 			"Error creating Deployment",
 			fmt.Sprintf("Could not create Deployment, very unexpected error: %s", err),
 		)
+		if strings.Contains(err.Error(), "status code: 400") &&
+			strings.Contains(err.Error(), "The selected region is not supported") {
+			regions, err := r.client.ListRegions(ctx)
+			if err != nil {
+				tflog.Error(ctx, fmt.Sprintf("failed to fetch regions: %s", err.Error()))
+
+				return
+			}
+			resp.Diagnostics.AddError(
+				"Invalid region",
+				fmt.Sprintf("Supported regions: %#v", regions),
+			)
+		}
+
 		return
 	}
 

@@ -91,3 +91,7 @@ func (m *mockedClient) UpdateBucket(ctx context.Context, bucket *S3BucketConfig)
 func (m *mockedClient) DeleteBucket(ctx context.Context, key string) error {
 	return nil
 }
+
+func (m *mockedClient) ListRegions(ctx context.Context) ([]string, error) {
+	return []string{}, nil
+}

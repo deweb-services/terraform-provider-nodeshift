@@ -26,6 +26,8 @@ const (
 	VPCEndpoint = "/api/terraform/vpc"
 
 	GPUEndpoint = "/api/terraform/gpu"
+
+	RegionsEndpoint = "/api/terraform/deployment/all-countries"
 )
 
 type NodeshiftClient struct {
