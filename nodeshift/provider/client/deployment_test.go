@@ -28,6 +28,12 @@ func newServer(t *testing.T, requestType string) (*httptest.Server, *AsyncAPIDep
 
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
+		case strings.HasPrefix(r.URL.Path, "/api/terraform/deployment/all-countries"):
+			t.Logf("received %s deployment request", requestType)
+
+			b, _ := json.Marshal([]string{"Singapore", "Germany", "Sweden"})
+			//nolint:errcheck
+			w.Write(b)
 		case strings.HasPrefix(r.URL.Path, "/api/terraform/deployment"):
 			t.Logf("received %s deployment request", requestType)
 			response := AsyncAPIDeploymentTask{
@@ -198,4 +204,13 @@ func TestNodeshiftClient_PollDeploymentTask(t *testing.T) {
 	assert.Equal(t, expectedResponse.EndTime, response.EndTime)
 	assert.Equal(t, expectedResponse.Data, response.Data)
 	assert.Equal(t, expectedResponse.ServiceType, response.ServiceType)
+}
+
+func TestNodeshiftClient_ListRegions(t *testing.T) {
+	mockServer, _, client := newServer(t, "listRegions")
+	defer mockServer.Close()
+
+	response, err := client.ListRegions(context.TODO())
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"Singapore", "Germany", "Sweden"}, response)
 }

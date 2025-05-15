@@ -124,3 +124,17 @@ pollingCycle:
 
 	return deploymentResponse, nil
 }
+
+func (c *NodeshiftClient) ListRegions(ctx context.Context) ([]string, error) {
+	b, err := c.DoSignedRequest(ctx, http.MethodGet, c.url+RegionsEndpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list regions: %w", err)
+	}
+
+	regions := make([]string, 0)
+	if err := json.Unmarshal(b, &regions); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal list regions response: %w", err)
+	}
+
+	return regions, nil
+}

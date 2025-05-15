@@ -31,4 +31,6 @@ type INodeshiftClient interface {
 	GetBucket(ctx context.Context, key string) (*S3BucketConfig, error)
 	UpdateBucket(ctx context.Context, bucket *S3BucketConfig) error
 	DeleteBucket(ctx context.Context, key string) error
+
+	ListRegions(ctx context.Context) ([]string, error)
 }
