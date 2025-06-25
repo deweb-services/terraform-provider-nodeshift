@@ -15,6 +15,7 @@ import (
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/deployment"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/gpu"
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/load_balancer"
 	s3terraform "github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/s3"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/vpc"
 )
@@ -247,6 +248,7 @@ func Test_nodeshiftProvider_Resources(t *testing.T) {
 				vpc.NewVPCResource,
 				gpu.NewGPUResource,
 				s3terraform.NewBucketResource,
+				load_balancer.NewLBResource,
 			},
 		},
 	}

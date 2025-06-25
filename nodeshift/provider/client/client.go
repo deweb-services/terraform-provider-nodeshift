@@ -28,6 +28,8 @@ const (
 	GPUEndpoint = "/api/terraform/gpu"
 
 	RegionsEndpoint = "/api/terraform/deployment/all-countries"
+
+	LBEndpoint = "/api/terraform/load-balancer"
 )
 
 type NodeshiftClient struct {

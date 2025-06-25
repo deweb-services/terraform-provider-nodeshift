@@ -33,4 +33,9 @@ type INodeshiftClient interface {
 	DeleteBucket(ctx context.Context, key string) error
 
 	ListRegions(ctx context.Context) ([]string, error)
+
+	CreateLB(ctx context.Context, lb *LoadBalancerConfig) (*LoadBalancerConfigResponse, error)
+	GetLB(ctx context.Context, uuid string) (*GetLBResponse, error)
+	UpdateLB(ctx context.Context, uuid string, lb *LoadBalancerConfig) (*LoadBalancerConfigResponse, error)
+	DeleteLB(ctx context.Context, uuid string) error
 }
