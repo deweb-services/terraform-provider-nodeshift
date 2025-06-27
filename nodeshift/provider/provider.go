@@ -5,11 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/deployment"
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/gpu"
-	s3terraform "github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/s3"
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/vpc"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -17,6 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/deployment"
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/gpu"
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/load_balancer"
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/s3"
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/vpc"
 )
 
 // Ensure the implementation satisfies the expected interfaces
@@ -236,6 +238,7 @@ func (p *nodeshiftProvider) Resources(_ context.Context) []func() resource.Resou
 		deployment.NewDeploymentResource,
 		vpc.NewVPCResource,
 		gpu.NewGPUResource,
-		s3terraform.NewBucketResource,
+		s3.NewBucketResource,
+		load_balancer.NewLBResource,
 	}
 }

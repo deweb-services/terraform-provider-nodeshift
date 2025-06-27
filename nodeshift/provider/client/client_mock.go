@@ -95,3 +95,19 @@ func (m *mockedClient) DeleteBucket(ctx context.Context, key string) error {
 func (m *mockedClient) ListRegions(ctx context.Context) ([]string, error) {
 	return []string{}, nil
 }
+
+func (m *mockedClient) CreateLB(ctx context.Context, lb *LoadBalancerConfig) (*LoadBalancerConfigResponse, error) {
+	return &LoadBalancerConfigResponse{}, nil
+}
+
+func (m *mockedClient) GetLB(ctx context.Context, uuid string) (*GetLBResponse, error) {
+	return &GetLBResponse{}, nil
+}
+
+func (m *mockedClient) UpdateLB(ctx context.Context, uuid string, lb *LoadBalancerConfig) (*LoadBalancerConfigResponse, error) {
+	return &LoadBalancerConfigResponse{}, nil
+}
+
+func (m *mockedClient) DeleteLB(ctx context.Context, id string) error {
+	return nil
+}
