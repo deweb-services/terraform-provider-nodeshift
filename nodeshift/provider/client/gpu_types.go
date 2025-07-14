@@ -1,11 +1,13 @@
 package client
 
 type GPUConfig struct {
-	GPUName  string `json:"gpuName"`
-	Image    string `json:"image"`
-	SSHKey   string `json:"sshKey"`
-	GPUCount int64  `json:"gpuCount,omitempty"`
-	Region   string `json:"region"`
+	GPUName        string `json:"gpuName"`
+	Image          string `json:"image"`
+	SSHKey         string `json:"sshKey"`
+	GPUCount       int64  `json:"gpuCount,omitempty"`
+	Region         string `json:"region,omitempty"`
+	Disk           int64  `json:"disk,omitempty"`
+	MinCudaVersion string `json:"minCudaVersion,omitempty"`
 }
 
 type GPUConfigResponse struct {

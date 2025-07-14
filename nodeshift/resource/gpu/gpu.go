@@ -63,6 +63,15 @@ func (r *gpuResource) Schema(c context.Context, request resource.SchemaRequest, 
 			KeyRegion: schema.StringAttribute{
 				Description: DescriptionRegion,
 				Optional:    true,
+				Computed:    true,
+			},
+			KeyDiskSizeGB: schema.Int64Attribute{
+				Description: DescriptionDiskSizeGB,
+				Required:    true,
+			},
+			KeyMinCudaVersion: schema.StringAttribute{
+				Description: DescriptionMinCudaVersion,
+				Optional:    true,
 			},
 		},
 	}
