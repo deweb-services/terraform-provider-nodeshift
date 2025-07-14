@@ -4,10 +4,10 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestGPUResourceModel_FromClientRentedGPUResponse(t *testing.T) {
@@ -138,7 +138,7 @@ func TestGPUResourceModel_ToClientRequest(t *testing.T) {
 				UUID:     basetypes.NewStringValue("uuid"),
 			},
 			want: &client.GPUConfig{
-				GPUName:  "gpu_name",
+				GPUName:  "gpu name",
 				Image:    "image",
 				SSHKey:   "ssh key",
 				GPUCount: 2,

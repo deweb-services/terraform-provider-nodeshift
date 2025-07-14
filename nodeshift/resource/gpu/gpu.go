@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -55,6 +57,8 @@ func (r *gpuResource) Schema(c context.Context, request resource.SchemaRequest, 
 			KeyGPUCount: schema.Int64Attribute{
 				Description: DescriptionGPUCount,
 				Optional:    true,
+				Computed:    true,
+				Default:     int64default.StaticInt64(1),
 			},
 			KeyRegion: schema.StringAttribute{
 				Description: DescriptionRegion,

@@ -5,13 +5,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func TestNewGPUResource(t *testing.T) {
