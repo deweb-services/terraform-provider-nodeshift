@@ -5,13 +5,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func TestNewGPUResource(t *testing.T) {
@@ -110,12 +109,14 @@ func Test_gpuResource_Create(t *testing.T) {
 					},
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							UUID:        tftypes.NewValue(tftypes.String, UUID),
-							KeyGPUName:  tftypes.NewValue(tftypes.String, KeyGPUName),
-							KeyImage:    tftypes.NewValue(tftypes.String, KeyImage),
-							KeySSHKey:   tftypes.NewValue(tftypes.String, KeySSHKey),
-							KeyGPUCount: tftypes.NewValue(tftypes.Number, 2),
-							KeyRegion:   tftypes.NewValue(tftypes.String, KeyRegion),
+							UUID:              tftypes.NewValue(tftypes.String, UUID),
+							KeyGPUName:        tftypes.NewValue(tftypes.String, KeyGPUName),
+							KeyImage:          tftypes.NewValue(tftypes.String, KeyImage),
+							KeySSHKey:         tftypes.NewValue(tftypes.String, KeySSHKey),
+							KeyGPUCount:       tftypes.NewValue(tftypes.Number, 2),
+							KeyRegion:         tftypes.NewValue(tftypes.String, KeyRegion),
+							KeyDiskSizeGB:     tftypes.NewValue(tftypes.Number, 30),
+							KeyMinCudaVersion: tftypes.NewValue(tftypes.String, KeyMinCudaVersion),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a GPU",
@@ -142,6 +143,15 @@ func Test_gpuResource_Create(t *testing.T) {
 								},
 								KeyRegion: schema.StringAttribute{
 									Description: DescriptionRegion,
+									Optional:    true,
+									Computed:    true,
+								},
+								KeyDiskSizeGB: schema.Int64Attribute{
+									Description: DescriptionDiskSizeGB,
+									Optional:    true,
+								},
+								KeyMinCudaVersion: schema.StringAttribute{
+									Description: DescriptionMinCudaVersion,
 									Optional:    true,
 								},
 							},
@@ -190,12 +200,14 @@ func Test_gpuResource_Create(t *testing.T) {
 					},
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							UUID:        tftypes.NewValue(tftypes.String, UUID),
-							KeyGPUName:  tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
-							KeyImage:    tftypes.NewValue(tftypes.String, KeyImage),
-							KeySSHKey:   tftypes.NewValue(tftypes.String, KeySSHKey),
-							KeyGPUCount: tftypes.NewValue(tftypes.Number, 2),
-							KeyRegion:   tftypes.NewValue(tftypes.String, KeyRegion),
+							UUID:              tftypes.NewValue(tftypes.String, UUID),
+							KeyGPUName:        tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+							KeyImage:          tftypes.NewValue(tftypes.String, KeyImage),
+							KeySSHKey:         tftypes.NewValue(tftypes.String, KeySSHKey),
+							KeyGPUCount:       tftypes.NewValue(tftypes.Number, 2),
+							KeyRegion:         tftypes.NewValue(tftypes.String, KeyRegion),
+							KeyDiskSizeGB:     tftypes.NewValue(tftypes.Number, 30),
+							KeyMinCudaVersion: tftypes.NewValue(tftypes.String, KeyMinCudaVersion),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a GPU",
@@ -222,6 +234,14 @@ func Test_gpuResource_Create(t *testing.T) {
 								},
 								KeyRegion: schema.StringAttribute{
 									Description: DescriptionRegion,
+									Optional:    true,
+								},
+								KeyDiskSizeGB: schema.Int64Attribute{
+									Description: DescriptionDiskSizeGB,
+									Optional:    true,
+								},
+								KeyMinCudaVersion: schema.StringAttribute{
+									Description: DescriptionMinCudaVersion,
 									Optional:    true,
 								},
 							},
@@ -271,12 +291,14 @@ func Test_gpuResource_Delete(t *testing.T) {
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							UUID:        tftypes.NewValue(tftypes.String, UUID),
-							KeyGPUName:  tftypes.NewValue(tftypes.String, KeyGPUName),
-							KeyImage:    tftypes.NewValue(tftypes.String, KeyImage),
-							KeySSHKey:   tftypes.NewValue(tftypes.String, KeySSHKey),
-							KeyGPUCount: tftypes.NewValue(tftypes.Number, 2),
-							KeyRegion:   tftypes.NewValue(tftypes.String, KeyRegion),
+							UUID:              tftypes.NewValue(tftypes.String, UUID),
+							KeyGPUName:        tftypes.NewValue(tftypes.String, KeyGPUName),
+							KeyImage:          tftypes.NewValue(tftypes.String, KeyImage),
+							KeySSHKey:         tftypes.NewValue(tftypes.String, KeySSHKey),
+							KeyGPUCount:       tftypes.NewValue(tftypes.Number, 2),
+							KeyRegion:         tftypes.NewValue(tftypes.String, KeyRegion),
+							KeyDiskSizeGB:     tftypes.NewValue(tftypes.Number, 30),
+							KeyMinCudaVersion: tftypes.NewValue(tftypes.String, KeyMinCudaVersion),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a GPU",
@@ -303,6 +325,14 @@ func Test_gpuResource_Delete(t *testing.T) {
 								},
 								KeyRegion: schema.StringAttribute{
 									Description: DescriptionRegion,
+									Optional:    true,
+								},
+								KeyDiskSizeGB: schema.Int64Attribute{
+									Description: DescriptionDiskSizeGB,
+									Optional:    true,
+								},
+								KeyMinCudaVersion: schema.StringAttribute{
+									Description: DescriptionMinCudaVersion,
 									Optional:    true,
 								},
 							},
@@ -338,12 +368,14 @@ func Test_gpuResource_Delete(t *testing.T) {
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							UUID:        tftypes.NewValue(tftypes.String, UUID),
-							KeyGPUName:  tftypes.NewValue(tftypes.String, KeyGPUName),
-							KeyImage:    tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
-							KeySSHKey:   tftypes.NewValue(tftypes.String, KeySSHKey),
-							KeyGPUCount: tftypes.NewValue(tftypes.Number, 2),
-							KeyRegion:   tftypes.NewValue(tftypes.String, KeyRegion),
+							UUID:              tftypes.NewValue(tftypes.String, UUID),
+							KeyGPUName:        tftypes.NewValue(tftypes.String, KeyGPUName),
+							KeyImage:          tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+							KeySSHKey:         tftypes.NewValue(tftypes.String, KeySSHKey),
+							KeyGPUCount:       tftypes.NewValue(tftypes.Number, 2),
+							KeyRegion:         tftypes.NewValue(tftypes.String, KeyRegion),
+							KeyDiskSizeGB:     tftypes.NewValue(tftypes.Number, 30),
+							KeyMinCudaVersion: tftypes.NewValue(tftypes.String, KeyMinCudaVersion),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a GPU",
@@ -370,6 +402,14 @@ func Test_gpuResource_Delete(t *testing.T) {
 								},
 								KeyRegion: schema.StringAttribute{
 									Description: DescriptionRegion,
+									Optional:    true,
+								},
+								KeyDiskSizeGB: schema.Int64Attribute{
+									Description: DescriptionDiskSizeGB,
+									Optional:    true,
+								},
+								KeyMinCudaVersion: schema.StringAttribute{
+									Description: DescriptionMinCudaVersion,
 									Optional:    true,
 								},
 							},
@@ -491,12 +531,14 @@ func Test_gpuResource_Read(t *testing.T) {
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							UUID:        tftypes.NewValue(tftypes.String, UUID),
-							KeyGPUName:  tftypes.NewValue(tftypes.String, KeyGPUName),
-							KeyImage:    tftypes.NewValue(tftypes.String, KeyImage),
-							KeySSHKey:   tftypes.NewValue(tftypes.String, KeySSHKey),
-							KeyGPUCount: tftypes.NewValue(tftypes.Number, 2),
-							KeyRegion:   tftypes.NewValue(tftypes.String, KeyRegion),
+							UUID:              tftypes.NewValue(tftypes.String, UUID),
+							KeyGPUName:        tftypes.NewValue(tftypes.String, KeyGPUName),
+							KeyImage:          tftypes.NewValue(tftypes.String, KeyImage),
+							KeySSHKey:         tftypes.NewValue(tftypes.String, KeySSHKey),
+							KeyGPUCount:       tftypes.NewValue(tftypes.Number, 2),
+							KeyRegion:         tftypes.NewValue(tftypes.String, KeyRegion),
+							KeyDiskSizeGB:     tftypes.NewValue(tftypes.Number, 30),
+							KeyMinCudaVersion: tftypes.NewValue(tftypes.String, KeyMinCudaVersion),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a GPU",
@@ -523,6 +565,14 @@ func Test_gpuResource_Read(t *testing.T) {
 								},
 								KeyRegion: schema.StringAttribute{
 									Description: DescriptionRegion,
+									Optional:    true,
+								},
+								KeyDiskSizeGB: schema.Int64Attribute{
+									Description: DescriptionDiskSizeGB,
+									Optional:    true,
+								},
+								KeyMinCudaVersion: schema.StringAttribute{
+									Description: DescriptionMinCudaVersion,
 									Optional:    true,
 								},
 							},
@@ -563,12 +613,14 @@ func Test_gpuResource_Read(t *testing.T) {
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							UUID:        tftypes.NewValue(tftypes.String, UUID),
-							KeyGPUName:  tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
-							KeyImage:    tftypes.NewValue(tftypes.String, KeyImage),
-							KeySSHKey:   tftypes.NewValue(tftypes.String, KeySSHKey),
-							KeyGPUCount: tftypes.NewValue(tftypes.Number, 2),
-							KeyRegion:   tftypes.NewValue(tftypes.String, KeyRegion),
+							UUID:              tftypes.NewValue(tftypes.String, UUID),
+							KeyGPUName:        tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+							KeyImage:          tftypes.NewValue(tftypes.String, KeyImage),
+							KeySSHKey:         tftypes.NewValue(tftypes.String, KeySSHKey),
+							KeyGPUCount:       tftypes.NewValue(tftypes.Number, 2),
+							KeyRegion:         tftypes.NewValue(tftypes.String, KeyRegion),
+							KeyDiskSizeGB:     tftypes.NewValue(tftypes.Number, 30),
+							KeyMinCudaVersion: tftypes.NewValue(tftypes.String, KeyMinCudaVersion),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a GPU",
@@ -595,6 +647,14 @@ func Test_gpuResource_Read(t *testing.T) {
 								},
 								KeyRegion: schema.StringAttribute{
 									Description: DescriptionRegion,
+									Optional:    true,
+								},
+								KeyDiskSizeGB: schema.Int64Attribute{
+									Description: DescriptionDiskSizeGB,
+									Optional:    true,
+								},
+								KeyMinCudaVersion: schema.StringAttribute{
+									Description: DescriptionMinCudaVersion,
 									Optional:    true,
 								},
 							},
@@ -684,12 +744,14 @@ func Test_gpuResource_Update(t *testing.T) {
 					},
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							UUID:        tftypes.NewValue(tftypes.String, UUID),
-							KeyGPUName:  tftypes.NewValue(tftypes.String, KeyGPUName),
-							KeyImage:    tftypes.NewValue(tftypes.String, KeyImage),
-							KeySSHKey:   tftypes.NewValue(tftypes.String, KeySSHKey),
-							KeyGPUCount: tftypes.NewValue(tftypes.Number, 2),
-							KeyRegion:   tftypes.NewValue(tftypes.String, KeyRegion),
+							UUID:              tftypes.NewValue(tftypes.String, UUID),
+							KeyGPUName:        tftypes.NewValue(tftypes.String, KeyGPUName),
+							KeyImage:          tftypes.NewValue(tftypes.String, KeyImage),
+							KeySSHKey:         tftypes.NewValue(tftypes.String, KeySSHKey),
+							KeyGPUCount:       tftypes.NewValue(tftypes.Number, 2),
+							KeyRegion:         tftypes.NewValue(tftypes.String, KeyRegion),
+							KeyDiskSizeGB:     tftypes.NewValue(tftypes.Number, 30),
+							KeyMinCudaVersion: tftypes.NewValue(tftypes.String, KeyMinCudaVersion),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a GPU",
@@ -716,6 +778,14 @@ func Test_gpuResource_Update(t *testing.T) {
 								},
 								KeyRegion: schema.StringAttribute{
 									Description: DescriptionRegion,
+									Optional:    true,
+								},
+								KeyDiskSizeGB: schema.Int64Attribute{
+									Description: DescriptionDiskSizeGB,
+									Optional:    true,
+								},
+								KeyMinCudaVersion: schema.StringAttribute{
+									Description: DescriptionMinCudaVersion,
 									Optional:    true,
 								},
 							},
@@ -764,12 +834,14 @@ func Test_gpuResource_Update(t *testing.T) {
 					},
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							UUID:        tftypes.NewValue(tftypes.String, UUID),
-							KeyGPUName:  tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
-							KeyImage:    tftypes.NewValue(tftypes.String, KeyImage),
-							KeySSHKey:   tftypes.NewValue(tftypes.String, KeySSHKey),
-							KeyGPUCount: tftypes.NewValue(tftypes.Number, 2),
-							KeyRegion:   tftypes.NewValue(tftypes.String, KeyRegion),
+							UUID:              tftypes.NewValue(tftypes.String, UUID),
+							KeyGPUName:        tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+							KeyImage:          tftypes.NewValue(tftypes.String, KeyImage),
+							KeySSHKey:         tftypes.NewValue(tftypes.String, KeySSHKey),
+							KeyGPUCount:       tftypes.NewValue(tftypes.Number, 2),
+							KeyRegion:         tftypes.NewValue(tftypes.String, KeyRegion),
+							KeyDiskSizeGB:     tftypes.NewValue(tftypes.Number, 30),
+							KeyMinCudaVersion: tftypes.NewValue(tftypes.String, KeyMinCudaVersion),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a GPU",
@@ -796,6 +868,14 @@ func Test_gpuResource_Update(t *testing.T) {
 								},
 								KeyRegion: schema.StringAttribute{
 									Description: DescriptionRegion,
+									Optional:    true,
+								},
+								KeyDiskSizeGB: schema.Int64Attribute{
+									Description: DescriptionDiskSizeGB,
+									Optional:    true,
+								},
+								KeyMinCudaVersion: schema.StringAttribute{
+									Description: DescriptionMinCudaVersion,
 									Optional:    true,
 								},
 							},

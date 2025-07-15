@@ -3,11 +3,13 @@ package gpu
 const UUID = "uuid"
 
 const (
-	KeyGPUName  = "gpu_name"
-	KeyImage    = "image"
-	KeySSHKey   = "ssh_key"
-	KeyGPUCount = "gpu_count"
-	KeyRegion   = "region"
+	KeyGPUName        = "gpu_name"
+	KeyImage          = "image"
+	KeySSHKey         = "ssh_key"
+	KeyGPUCount       = "gpu_count"
+	KeyRegion         = "region"
+	KeyDiskSizeGB     = "disk_size_gb"
+	KeyMinCudaVersion = "min_cuda_version"
 )
 
 const (
@@ -18,4 +20,6 @@ const (
 	DescriptionGPUCount = "Number of GPU instances for your deployment"
 	DescriptionRegion   = `Region where you want to deploy your GPU. Available options: 
 "Northern America", "Central America", "South America", "Europe", "Asia", "Africa", "Oceania", "Caribbean"`
+	DescriptionDiskSizeGB     = "GBs amount of disk space required to be allocated for GPU"
+	DescriptionMinCudaVersion = "min required cuda version (semver)"
 )
