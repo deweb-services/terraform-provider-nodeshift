@@ -1,5 +1,9 @@
 name: Go Build and Test
 
+permissions:
+  contents: read
+  issues: write
+
 on:
   push:
     branches:
