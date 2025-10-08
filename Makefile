@@ -11,10 +11,10 @@ install:
 	go install .
 
 test:
-	go test -count=1 -parallel=4 ./...
+	go test -count=1 -race -parallel=4 ./...
 
 testacc:
-	TF_ACC=1 go test -count=1 -parallel=4 -timeout 10m -v ./...
+	TF_ACC=1 go test -count=1 -timeout 10m -v ./...
 
 gen_docs:
 	tfplugindocs generate && tfplugindocs validate
@@ -32,6 +32,10 @@ docker-build:
 .PHONY: lint
 lint:
 	golangci-lint run --config configs/.golangci.yml
+
+.PHONY: vendor
+vendor:
+	go mod tidy && go mod vendor
 
 define in_docker
 	docker run --rm \

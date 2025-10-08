@@ -1,7 +1,7 @@
 package gpu
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -20,18 +20,18 @@ type GPUResourceModel struct {
 	MinCudaVersion types.String `tfsdk:"min_cuda_version"`
 }
 
-func (m *GPUResourceModel) ToClientRequest() (*client.GPUConfig, error) {
+func (m *GPUResourceModel) ToClientRequest() (*client.CreateGPURequest, error) {
 	if m.GPUName.IsUnknown() || m.GPUName.IsNull() {
-		return nil, errors.New("gpu name property is required and cannot be empty")
+		return nil, fmt.Errorf("gpu_name is required: %w", client.ErrPropertyEmpty)
 	}
 	if m.Image.IsUnknown() || m.Image.IsNull() {
-		return nil, errors.New("image property is required and cannot be empty")
+		return nil, fmt.Errorf("image is required: %w", client.ErrPropertyEmpty)
 	}
 	if m.SSHKey.IsUnknown() || m.SSHKey.IsNull() {
-		return nil, errors.New("ssh key property is required and cannot be empty")
+		return nil, fmt.Errorf("ssh_key is required: %w", client.ErrPropertyEmpty)
 	}
 
-	return &client.GPUConfig{
+	return &client.CreateGPURequest{
 		GPUName:        strings.TrimSpace(m.GPUName.ValueString()),
 		Image:          m.Image.ValueString(),
 		SSHKey:         m.SSHKey.ValueString(),
@@ -42,16 +42,10 @@ func (m *GPUResourceModel) ToClientRequest() (*client.GPUConfig, error) {
 	}, nil
 }
 
-func (m *GPUResourceModel) FromClientResponse(c *client.GPUConfigResponse) error {
-	m.GPUName = types.StringValue(c.GPUName)
-	m.Image = types.StringValue(c.Image)
-	m.Region = types.StringValue(c.Region)
+func (m *GPUResourceModel) FromClientResponse(c *client.GetGPUResponse) error {
 	m.UUID = types.StringValue(c.UUID)
-	return nil
-}
-
-func (m *GPUResourceModel) FromClientRentedGPUResponse(c *client.RentedGpuInfoResponse) error {
 	m.GPUName = types.StringValue(c.GpuName)
 	m.GPUCount = types.Int64Value(c.NumGpus)
+
 	return nil
 }

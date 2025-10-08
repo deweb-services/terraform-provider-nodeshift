@@ -9,11 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"go.uber.org/mock/gomock"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 )
 
 func TestNewGPUResource(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		want resource.Resource
@@ -25,6 +28,8 @@ func TestNewGPUResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			if got := NewGPUResource(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewGPUResource() = %v, want %v", got, tt.want)
 			}
@@ -33,11 +38,12 @@ func TestNewGPUResource(t *testing.T) {
 }
 
 func Test_gpuResource_Configure(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		client *client.NodeshiftClient
 	}
 	type args struct {
-		in0 context.Context
 		req resource.ConfigureRequest
 		in2 *resource.ConfigureResponse
 	}
@@ -52,7 +58,6 @@ func Test_gpuResource_Configure(t *testing.T) {
 				client: &client.NodeshiftClient{},
 			},
 			args: args{
-				in0: context.TODO(),
 				req: resource.ConfigureRequest{
 					ProviderData: &client.NodeshiftClient{},
 				},
@@ -65,7 +70,6 @@ func Test_gpuResource_Configure(t *testing.T) {
 				client: &client.NodeshiftClient{},
 			},
 			args: args{
-				in0: context.TODO(),
 				req: resource.ConfigureRequest{},
 				in2: &resource.ConfigureResponse{},
 			},
@@ -73,35 +77,30 @@ func Test_gpuResource_Configure(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &gpuResource{
 				client: tt.fields.client,
 			}
-			r.Configure(tt.args.in0, tt.args.req, tt.args.in2)
+			r.Configure(context.Background(), tt.args.req, tt.args.in2)
 		})
 	}
 }
 
 func Test_gpuResource_Create(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.CreateRequest
 		resp *resource.CreateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "gpu resource create",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Config: tfsdk.Config{
 						Raw:    tftypes.Value{},
@@ -168,11 +167,7 @@ func Test_gpuResource_Create(t *testing.T) {
 		},
 		{
 			name: "gpu resource create error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Config: tfsdk.Config{
 						Raw:    tftypes.Value{},
@@ -188,11 +183,7 @@ func Test_gpuResource_Create(t *testing.T) {
 		},
 		{
 			name: "gpu resource create error convert",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Config: tfsdk.Config{
 						Raw:    tftypes.Value{},
@@ -259,35 +250,40 @@ func Test_gpuResource_Create(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			c := client.NewMockINodeshiftClient(gomock.NewController(t))
+			c.EXPECT().CreateGPU(gomock.Any(), gomock.Any()).Return(&client.GetGPUResponse{
+				UUID:    "gpu-123e4567-e89b-12d3-a456-426614174000",
+				GpuName: "NVIDIA Tesla V100",
+				NumGpus: 2,
+				SSHHost: "192.168.1.50",
+				SSHPort: 22,
+				Status:  "running",
+			}, nil).AnyTimes()
+
 			r := &gpuResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Create(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Create(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_gpuResource_Delete(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.DeleteRequest
 		resp *resource.DeleteResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "gpu resource delete",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -344,11 +340,7 @@ func Test_gpuResource_Delete(t *testing.T) {
 		},
 		{
 			name: "gpu resource delete error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Raw:    tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{}),
@@ -360,11 +352,7 @@ func Test_gpuResource_Delete(t *testing.T) {
 		},
 		{
 			name: "gpu resource delete convert error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -422,35 +410,33 @@ func Test_gpuResource_Delete(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			c := client.NewMockINodeshiftClient(gomock.NewController(t))
+			c.EXPECT().DeleteGPU(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
 			r := &gpuResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Delete(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Delete(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_gpuResource_ImportState(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.ImportStateRequest
 		resp *resource.ImportStateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "gpu resource import state",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ImportStateRequest{},
 				resp: &resource.ImportStateResponse{
 					State: tfsdk.State{
@@ -463,35 +449,30 @@ func Test_gpuResource_ImportState(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &gpuResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.ImportState(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.ImportState(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_gpuResource_Metadata(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		in0  context.Context
 		req  resource.MetadataRequest
 		resp *resource.MetadataResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "gpu resource metadata",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				in0:  context.TODO(),
 				req:  resource.MetadataRequest{},
 				resp: &resource.MetadataResponse{},
 			},
@@ -499,35 +480,30 @@ func Test_gpuResource_Metadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &gpuResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Metadata(tt.args.in0, tt.args.req, tt.args.resp)
+			r.Metadata(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_gpuResource_Read(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.ReadRequest
 		resp *resource.ReadResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "gpu resource read",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -589,11 +565,7 @@ func Test_gpuResource_Read(t *testing.T) {
 		},
 		{
 			name: "gpu resource read error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw:    tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{}),
@@ -605,11 +577,7 @@ func Test_gpuResource_Read(t *testing.T) {
 		},
 		{
 			name: "gpu resource read error convert",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -672,35 +640,40 @@ func Test_gpuResource_Read(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			c := client.NewMockINodeshiftClient(gomock.NewController(t))
+			c.EXPECT().GetGPU(gomock.Any(), gomock.Any()).Return(&client.GetGPUResponse{
+				UUID:    "gpu-123e4567-e89b-12d3-a456-426614174000",
+				GpuName: "NVIDIA Tesla V100",
+				NumGpus: 2,
+				SSHHost: "192.168.1.50",
+				SSHPort: 22,
+				Status:  "running",
+			}, nil).AnyTimes()
+
 			r := &gpuResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Read(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Read(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_gpuResource_Schema(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		c        context.Context
 		request  resource.SchemaRequest
 		response *resource.SchemaResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "gpu resource schema",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				c:        context.TODO(),
 				request:  resource.SchemaRequest{},
 				response: &resource.SchemaResponse{},
 			},
@@ -708,35 +681,30 @@ func Test_gpuResource_Schema(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &gpuResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Schema(tt.args.c, tt.args.request, tt.args.response)
+			r.Schema(context.Background(), tt.args.request, tt.args.response)
 		})
 	}
 }
 
 func Test_gpuResource_Update(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.UpdateRequest
 		resp *resource.UpdateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "gpu resource update",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Config: tfsdk.Config{
 						Raw:    tftypes.Value{},
@@ -802,11 +770,7 @@ func Test_gpuResource_Update(t *testing.T) {
 		},
 		{
 			name: "gpu resource update error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Config: tfsdk.Config{
 						Raw:    tftypes.Value{},
@@ -822,11 +786,7 @@ func Test_gpuResource_Update(t *testing.T) {
 		},
 		{
 			name: "gpu resource update error convert",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Config: tfsdk.Config{
 						Raw:    tftypes.Value{},
@@ -893,10 +853,30 @@ func Test_gpuResource_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			c := client.NewMockINodeshiftClient(gomock.NewController(t))
+			c.EXPECT().GetGPU(gomock.Any(), gomock.Any()).Return(&client.GetGPUResponse{
+				UUID:    "gpu-123e4567-e89b-12d3-a456-426614174000",
+				GpuName: "NVIDIA Tesla V100",
+				NumGpus: 2,
+				SSHHost: "192.168.1.50",
+				SSHPort: 22,
+				Status:  "running",
+			}, nil).AnyTimes()
+			c.EXPECT().UpdateGPU(gomock.Any(), gomock.Any(), gomock.Any()).Return(&client.GetGPUResponse{
+				UUID:    "gpu-123e4567-e89b-12d3-a456-426614174000",
+				GpuName: "NVIDIA Tesla V100",
+				NumGpus: 2,
+				SSHHost: "192.168.1.50",
+				SSHPort: 22,
+				Status:  "running",
+			}, nil).AnyTimes()
+
 			r := &gpuResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Update(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Update(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }

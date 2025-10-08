@@ -1,15 +1,24 @@
 package client
 
-type VPCConfig struct {
-	ID          string `json:"id,omitempty"`
+type CreateVPCRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	IPRange     string `json:"ipRange"`
 }
 
-type VPCConfigResponse struct {
-	ID          string `json:"uuid,omitempty"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	IPRange     string `json:"addressRange"`
+type createVPCResponse struct {
+	UUID string `json:"uuid"`
+}
+
+type GetVPCResponse struct {
+	UUID        string      `json:"uuid,omitempty"`
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	IPRange     string      `json:"addressRange"`
+	Resources   []Resources `json:"resources"`
+}
+
+type Resources struct {
+	IP     string `json:"ip"`
+	Status string `json:"status"`
 }

@@ -6,63 +6,64 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNodeshiftClient_CreateGPU(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config NodeshiftProviderConfiguration
 		client *http.Client
-		signer *Signer
 		url    string
 	}
 	type args struct {
-		ctx context.Context
-		gpu *GPUConfig
+		gpu *CreateGPURequest
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		args   args
-		want   *GPUConfigResponse
+		want   *GetGPUResponse
 	}{
 		{
 			name: "create gpu",
 			fields: fields{
 				Config: NodeshiftProviderConfiguration{},
 				client: &http.Client{},
-				signer: defaultSigner,
-				url:    exampleUrlString,
+				url:    exampleURLString,
 			},
 			args: args{
-				ctx: context.TODO(),
-				gpu: &GPUConfig{},
+				gpu: &CreateGPURequest{},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config: tt.fields.Config,
 				client: tt.fields.client,
-				signer: tt.fields.signer,
+				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, _ := c.CreateGPU(tt.args.ctx, tt.args.gpu)
-			assert.Equalf(t, tt.want, got, "CreateGPU(%v, %v)", tt.args.ctx, tt.args.gpu)
+			got, _ := c.CreateGPU(context.Background(), tt.args.gpu)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
 func TestNodeshiftClient_DeleteGPU(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config NodeshiftProviderConfiguration
 		client *http.Client
-		signer *Signer
 		url    string
 	}
 	type args struct {
-		ctx context.Context
-		id  string
+		id string
 	}
 	tests := []struct {
 		name   string
@@ -74,120 +75,120 @@ func TestNodeshiftClient_DeleteGPU(t *testing.T) {
 			fields: fields{
 				Config: NodeshiftProviderConfiguration{},
 				client: &http.Client{},
-				signer: defaultSigner,
-				url:    exampleUrlString,
+				url:    exampleURLString,
 			},
 			args: args{
-				ctx: context.TODO(),
-				id:  "id",
+				id: "id",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config: tt.fields.Config,
 				client: tt.fields.client,
-				signer: tt.fields.signer,
+				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			err := c.DeleteGPU(tt.args.ctx, tt.args.id)
+			err := c.DeleteGPU(context.Background(), tt.args.id)
 			assert.Errorf(t, err, "failed to delete GPU: external API returned an error code: request failed, status code: 404")
 		})
 	}
 }
 
 func TestNodeshiftClient_GetGPU(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config NodeshiftProviderConfiguration
 		client *http.Client
-		signer *Signer
 		url    string
 	}
 	type args struct {
-		ctx context.Context
-		id  string
+		id string
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		args   args
-		want   *RentedGpuInfoResponse
+		want   *GetGPUResponse
 	}{
 		{
 			name: "get gpu",
 			fields: fields{
 				Config: NodeshiftProviderConfiguration{},
 				client: &http.Client{},
-				signer: defaultSigner,
-				url:    exampleUrlString,
+				url:    exampleURLString,
 			},
 			args: args{
-				ctx: context.TODO(),
-				id:  "id",
+				id: "id",
 			},
 			want: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config: tt.fields.Config,
 				client: tt.fields.client,
-				signer: tt.fields.signer,
+				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.GetGPU(tt.args.ctx, tt.args.id)
-			assert.NotNil(t, err)
+			got, err := c.GetGPU(context.Background(), tt.args.id)
+			require.Error(t, err)
 			assert.Nil(t, got)
 		})
 	}
 }
 
 func TestNodeshiftClient_UpdateGPU(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config NodeshiftProviderConfiguration
 		client *http.Client
-		signer *Signer
 		url    string
 	}
 	type args struct {
-		ctx context.Context
 		id  string
-		gpu *GPUConfig
+		gpu *CreateGPURequest
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		args   args
-		want   *GPUConfig
+		want   *CreateGPURequest
 	}{
 		{
 			name: "update gpu",
 			fields: fields{
 				Config: NodeshiftProviderConfiguration{},
 				client: &http.Client{},
-				signer: defaultSigner,
-				url:    exampleUrlString,
+				url:    exampleURLString,
 			},
 			args: args{
-				ctx: context.TODO(),
 				id:  "id",
-				gpu: &GPUConfig{},
+				gpu: &CreateGPURequest{},
 			},
 			want: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config: tt.fields.Config,
 				client: tt.fields.client,
-				signer: tt.fields.signer,
+				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.UpdateGPU(tt.args.ctx, tt.args.id, tt.args.gpu)
-			assert.NotNil(t, err)
+			got, err := c.UpdateGPU(context.Background(), tt.args.id, tt.args.gpu)
+			require.Error(t, err)
 			assert.Nil(t, got)
 		})
 	}

@@ -5,10 +5,8 @@ const (
 )
 
 const (
-	// Required
-	VPCIPRangeKeys = "ip_range"
-	VPCNameKeys    = "name"
+	IPRangeKeys = "ip_range"
+	NameKeys    = "name"
 
-	// Optional
-	VPCDescriptionKeys = "description"
+	DescriptionKeys = "description"
 )

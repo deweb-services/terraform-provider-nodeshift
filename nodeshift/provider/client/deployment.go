@@ -4,56 +4,66 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"time"
+	"net/url"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-func (c *NodeshiftClient) CreateDeployment(ctx context.Context, r *DeploymentConfig) (*AsyncAPIDeploymentResponse, error) {
+func (c *NodeshiftClient) CreateDeployment(ctx context.Context, r *CreateDeploymentRequest) (*GetDeploymentResponse, error) {
 	b, err := json.Marshal(r)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode deployment: %w", err)
 	}
 
+	u, err := url.JoinPath(c.url, deploymentEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("failed to join create deployment endpoint: %w", err)
+	}
+
 	body := bytes.NewReader(b)
-	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, c.url+DeploymentEndpoint, body)
+	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, u, body)
 	if err != nil {
 		return nil, err
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Create deployment responseBody: %s", string(responseBody)))
+	tflog.Debug(ctx, "Create deployment responseBody: "+string(responseBody))
 
-	taskResponse := AsyncAPIDeploymentTask{}
-	err = json.Unmarshal(responseBody, &taskResponse)
+	cr := new(createDeploymentResponse)
+	err = json.Unmarshal(responseBody, cr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create deployment, unmarshal response error: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal create deployment: %w", err)
 	}
 
-	deploymentResponse, err := c.PollDeploymentTask(ctx, taskResponse.TaskID)
+	u, err = url.JoinPath(c.url, deploymentEndpoint, cr.UUID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create deployment: %w", err)
+		return nil, fmt.Errorf("failed to join get deployment endpoint: %w", err)
 	}
 
-	deploymentResponse.ID = taskResponse.ID
+	gdr, err := poll[GetDeploymentResponse](ctx, c, u, func(gdr *GetDeploymentResponse) string { return gdr.Status })
+	if err != nil {
+		return nil, fmt.Errorf("failed to poll create deployment: %w", err)
+	}
 
-	return deploymentResponse, nil
-
+	return gdr, nil
 }
 
-func (c *NodeshiftClient) GetDeployment(ctx context.Context, id string) (*CreatedDeployment, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Get deployment by id: %s", id))
+func (c *NodeshiftClient) GetDeployment(ctx context.Context, id string) (*GetDeploymentResponse, error) {
+	tflog.Debug(ctx, "Get deployment by id: %s"+id)
 
-	responseBody, err := c.DoSignedRequest(ctx, http.MethodGet, fmt.Sprintf(c.url+DeploymentEndpoint+"/%s", id), nil)
-	tflog.Debug(ctx, fmt.Sprintf("Get Deployment responseBody: %s", string(responseBody)))
+	u, err := url.JoinPath(c.url, deploymentEndpoint, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to join get deployment endpoint: %w", err)
+	}
+
+	responseBody, err := c.DoSignedRequest(ctx, http.MethodGet, u, nil)
+	tflog.Debug(ctx, "Get Deployment responseBody: %s"+string(responseBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get deployment: %w", err)
 	}
 
-	deployment := new(CreatedDeployment)
-
+	deployment := new(GetDeploymentResponse)
 	err = json.Unmarshal(responseBody, deployment)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal get deployment response: %w", err)
@@ -62,71 +72,32 @@ func (c *NodeshiftClient) GetDeployment(ctx context.Context, id string) (*Create
 	return deployment, nil
 }
 
-func (c *NodeshiftClient) UpdateDeployment(ctx context.Context, id string, r *DeploymentConfig) (*AsyncAPIDeploymentResponse, error) {
-	return nil, errors.New("update not implemented")
+func (c *NodeshiftClient) UpdateDeployment(ctx context.Context, id string, r *CreateDeploymentRequest) (*GetDeploymentResponse, error) {
+	return nil, fmt.Errorf("failed to update deployment: %w", errNotImplemented)
 }
 
 func (c *NodeshiftClient) DeleteDeployment(ctx context.Context, id string) error {
-	tflog.Debug(ctx, fmt.Sprintf("Delete deployment by id: %s", id))
+	tflog.Debug(ctx, "Delete deployment by id: %s"+id)
 
-	responseBody, err := c.DoSignedRequest(ctx, http.MethodDelete, fmt.Sprintf(c.url+DeploymentEndpoint+"/%s", id), nil)
+	u, err := url.JoinPath(c.url, deploymentEndpoint, id)
 	if err != nil {
-		return fmt.Errorf("failed to delete deployment: %w", err)
+		return fmt.Errorf("failed to join delete deployment endpoint: %w", err)
 	}
 
-	taskResponse := new(AsyncAPIDeploymentTask)
-	err = json.Unmarshal(responseBody, taskResponse)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal delete deployment response: %w", err)
-	}
-
-	_, err = c.PollDeploymentTask(ctx, taskResponse.TaskID)
-	if err != nil {
+	if _, err := c.DoSignedRequest(ctx, http.MethodDelete, u, nil); err != nil {
 		return fmt.Errorf("failed to delete deployment: %w", err)
 	}
 
 	return nil
 }
 
-func (c *NodeshiftClient) PollDeploymentTask(ctx context.Context, taskID string) (*AsyncAPIDeploymentResponse, error) {
-	deploymentResponse := new(AsyncAPIDeploymentResponse)
-	ticker := time.NewTicker(5 * time.Second)
-pollingCycle:
-	for {
-		select {
-		case <-ticker.C:
-			tflog.Debug(ctx, fmt.Sprintf("polling deployment by taskId: %s", taskID))
-			b, err := c.DoSignedRequest(ctx, http.MethodGet, c.url+fmt.Sprintf(TaskEndpoint, taskID), nil)
-			if err != nil {
-				return nil, err
-			}
-
-			err = json.Unmarshal(b, deploymentResponse)
-			if err != nil {
-				return nil, fmt.Errorf("failed to poll deployment, unmarshal response error: %w", err)
-			}
-
-			tflog.Debug(ctx, fmt.Sprintf("polling deployment by taskId: %s", taskID), map[string]interface{}{
-				"response": string(b),
-			})
-
-			if (deploymentResponse.Data != nil && deploymentResponse.EndTime != nil) || deploymentResponse.IsError {
-				break pollingCycle
-			}
-		case <-ctx.Done():
-			return nil, errors.New("failed to poll deployment: context deadline exceeded")
-		}
-	}
-
-	if deploymentResponse.IsError {
-		return nil, fmt.Errorf("failed to poll deployment: %s", deploymentResponse.FailedReason)
-	}
-
-	return deploymentResponse, nil
-}
-
 func (c *NodeshiftClient) ListRegions(ctx context.Context) ([]string, error) {
-	b, err := c.DoSignedRequest(ctx, http.MethodGet, c.url+RegionsEndpoint, nil)
+	u, err := url.JoinPath(c.url, regionsEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("failed to join list regions endpoint: %w", err)
+	}
+
+	b, err := c.DoSignedRequest(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list regions: %w", err)
 	}

@@ -16,12 +16,12 @@ import (
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/deployment"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/gpu"
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/load_balancer"
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/loadbalancer"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/s3"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/vpc"
 )
 
-// Ensure the implementation satisfies the expected interfaces
+// Ensure the implementation satisfies the expected interfaces.
 var (
 	_ provider.Provider = &nodeshiftProvider{}
 )
@@ -100,7 +100,12 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 	diags := req.Config.Get(ctx, &config)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors configuring Nodeshift client", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors configuring Nodeshift client",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
@@ -172,7 +177,7 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 		if v.Param.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root(attrName),
-				fmt.Sprintf("Unknown Nodeshift API %s", attrName),
+				"Unknown Nodeshift API"+attrName,
 				fmt.Sprintf("The provider cannot create the Nodeshift API client as there is an unknown configuration "+
 					"value for the nodeshift API %s. Either target apply the source of the value first, set the value "+
 					"statically in the configuration, or use the %s environment variable.", attrName, v.EnvName),
@@ -193,7 +198,7 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 		if val == "" && v.Required {
 			resp.Diagnostics.AddAttributeError(
 				path.Root(attrKey),
-				fmt.Sprintf("Missing Nodeshift API %s", attrKey),
+				"Missing Nodeshift API "+attrKey,
 				fmt.Sprintf("The provider cannot create the Nodeshift API client as there is "+
 					"a missing or empty value for the Nodeshift API %s. Set the host value in the configuration "+
 					"or use the %s environment variable. If either is already set, ensure the value is not empty.",
@@ -239,6 +244,6 @@ func (p *nodeshiftProvider) Resources(_ context.Context) []func() resource.Resou
 		vpc.NewVPCResource,
 		gpu.NewGPUResource,
 		s3.NewBucketResource,
-		load_balancer.NewLBResource,
+		loadbalancer.NewLBResource,
 	}
 }

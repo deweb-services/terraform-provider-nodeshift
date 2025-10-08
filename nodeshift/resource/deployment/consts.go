@@ -4,7 +4,7 @@ const (
 	ID = "id"
 )
 
-// key names for vm resource
+// key names for vm resource.
 const (
 	DeploymentKeysImage            = "image"
 	DeploymentKeysRegion           = "region"
@@ -26,7 +26,7 @@ const (
 )
 
 const (
-	ImageDescription = `OS Image used to install on the target Vitrual Machine Deployment. 
+	ImageDescription = `OS Image used to install on the target Virtual Machine Deployment. 
 Available options: Ubuntu-v22.04`
 	RegionDescription = `Region where you want to deploy your Deployment.
 Available options: USA`

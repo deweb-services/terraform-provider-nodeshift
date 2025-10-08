@@ -1,14 +1,14 @@
-package load_balancer
+package loadbalancer
 
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
@@ -35,6 +35,7 @@ func (r *lbResource) Metadata(_ context.Context, req resource.MetadataRequest, r
 	resp.TypeName = req.ProviderTypeName + "_load_balancer"
 }
 
+// nolint: dupl
 func (r *lbResource) Schema(c context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
 	response.Schema = schema.Schema{
 		Description: "Manages a load balancer",
@@ -86,10 +87,6 @@ func (r *lbResource) Schema(c context.Context, request resource.SchemaRequest, r
 				Description: DescriptionStatus,
 				Computed:    true,
 			},
-			KeyTaskId: schema.StringAttribute{
-				Description: DescriptionTaskId,
-				Computed:    true,
-			},
 		},
 	}
 }
@@ -98,7 +95,13 @@ func (r *lbResource) Configure(_ context.Context, req resource.ConfigureRequest,
 	if req.ProviderData == nil {
 		return
 	}
-	r.client = req.ProviderData.(*client.NodeshiftClient)
+
+	p, ok := req.ProviderData.(*client.NodeshiftClient)
+	if !ok {
+		return
+	}
+
+	r.client = p
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -108,14 +111,23 @@ func (r *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
 	// Create new LB
 	clientRequest, err := plan.ToClientRequest()
 	if err != nil {
-		tflog.Error(ctx, "failed to convert resource to client required type", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"failed to convert resource to client required type",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 
 	lb, err := r.client.CreateLB(ctx, clientRequest)
@@ -124,6 +136,7 @@ func (r *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 			"Error creating lb",
 			fmt.Sprintf("Could not create lb, unexpected error: %s", err),
 		)
+
 		return
 	}
 
@@ -134,6 +147,7 @@ func (r *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 			"Error creating lb",
 			fmt.Sprintf("Could not convert created LB from client response, unexpected error: %s", err),
 		)
+
 		return
 	}
 	tflog.Info(ctx, fmt.Sprintf("LB from client response: %+v", lb))
@@ -141,7 +155,11 @@ func (r *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -152,7 +170,12 @@ func (r *lbResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
@@ -163,6 +186,7 @@ func (r *lbResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 			"Error Reading lb state",
 			fmt.Sprintf("Could not read lb state UUID %s: %s", state.UUID.ValueString(), err),
 		)
+
 		return
 	}
 
@@ -173,13 +197,18 @@ func (r *lbResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 			"Error getting lb",
 			fmt.Sprintf("Could not convert read LB from client response, unexpected error: %s", err),
 		)
+
 		return
 	}
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -190,13 +219,22 @@ func (r *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
 	clientRequest, err := plan.ToClientRequest()
 	if err != nil {
-		tflog.Error(ctx, "failed to convert resource to client required type", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"failed to convert resource to client required type",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 
 	// Update existing order
@@ -206,6 +244,7 @@ func (r *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			"Error Updating lb state",
 			fmt.Sprintf("Could not update lb state: %s", err),
 		)
+
 		return
 	}
 
@@ -216,6 +255,7 @@ func (r *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			"Error Reading lb state",
 			fmt.Sprintf("Could not read lb name %s: %s", plan.UUID.ValueString(), err),
 		)
+
 		return
 	}
 
@@ -225,13 +265,18 @@ func (r *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			"Error creating lb",
 			fmt.Sprintf("Could not convert updated LB from client response, unexpected error: %s", err),
 		)
+
 		return
 	}
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -242,7 +287,12 @@ func (r *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
@@ -252,6 +302,7 @@ func (r *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 			"Error Deleting lb",
 			fmt.Sprintf("Could not delete lb, unexpected error: %s", err),
 		)
+
 		return
 	}
 }

@@ -16,20 +16,22 @@ import (
 )
 
 const (
-	APIURL                = "https://app.nodeshift.com"
+	APIURL = "https://app.nodeshift.com"
+
 	defaultTimeoutSeconds = 120
 
-	TaskEndpoint = "/api/task/terraform/%s"
-
-	DeploymentEndpoint = "/api/terraform/deployment"
+	deploymentEndpoint = "/api/terraform/deployment"
 
 	VPCEndpoint = "/api/terraform/vpc"
 
 	GPUEndpoint = "/api/terraform/gpu"
 
-	RegionsEndpoint = "/api/terraform/deployment/all-countries"
-
 	LBEndpoint = "/api/terraform/load-balancer"
+
+	regionsEndpoint = "/api/terraform/deployment/all-countries"
+
+	providerParametersCount = 6
+	providerOptionsCount    = 4
 )
 
 type NodeshiftClient struct {
@@ -62,9 +64,10 @@ type TaskResponse struct {
 type ClientOpt func(c *NodeshiftClient)
 
 func (dc *NodeshiftProviderConfiguration) FromSlice(values []string) {
-	if len(values) < 6 {
+	if len(values) < providerParametersCount {
 		return
 	}
+
 	dc.AccessKey = values[0]
 	dc.SecretAccessKey = values[1]
 	dc.SharedCredentialsFile = values[2]
@@ -78,7 +81,7 @@ func (c *NodeshiftClient) SetGlobalTransactionNote(note string) {
 }
 
 func NewClient(ctx context.Context, configuration NodeshiftProviderConfiguration, opts ...ClientOpt) *NodeshiftClient {
-	signerOpts := []CredentialsOpt{}
+	signerOpts := make([]CredentialsOpt, 0, providerOptionsCount)
 
 	if configuration.AccessKey != "" && configuration.SecretAccessKey != "" {
 		signerOpts = append(signerOpts, WithStaticCredentials(configuration.AccessKey, configuration.SecretAccessKey))
@@ -151,7 +154,7 @@ func (c *NodeshiftClient) DoSignedRequest(ctx context.Context, method string, en
 
 func checkResponse(res *http.Response) error {
 	if res.StatusCode >= 400 && res.StatusCode <= 599 {
-		return fmt.Errorf("request failed, status code: %d", res.StatusCode)
+		return fmt.Errorf("%w: status code %d", errRequestFailed, res.StatusCode)
 	}
 
 	return nil
@@ -176,7 +179,9 @@ func ClientOptWithS3() ClientOpt {
 
 func (c *NodeshiftClient) newAwsClient() error {
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{},
+		TLSClientConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
 	}
 	httpCli := &http.Client{Transport: tr}
 	cfg, err := config.LoadDefaultConfig(context.TODO())
@@ -192,5 +197,6 @@ func (c *NodeshiftClient) newAwsClient() error {
 		o.UsePathStyle = true
 	})
 	c.s3client = client
+
 	return nil
 }

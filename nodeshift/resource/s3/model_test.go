@@ -1,14 +1,18 @@
 package s3
 
 import (
-	"reflect"
 	"testing"
 
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 )
 
 func TestBucketResourceModel_FromClientResponse(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Key types.String
 	}
@@ -36,6 +40,8 @@ func TestBucketResourceModel_FromClientResponse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			m := &BucketResourceModel{
 				Key: tt.fields.Key,
 			}
@@ -47,6 +53,8 @@ func TestBucketResourceModel_FromClientResponse(t *testing.T) {
 }
 
 func TestBucketResourceModel_ToClientRequest(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Key types.String
 	}
@@ -73,17 +81,19 @@ func TestBucketResourceModel_ToClientRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			m := &BucketResourceModel{
 				Key: tt.fields.Key,
 			}
 			got, err := m.ToClientRequest()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ToClientRequest() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				require.Error(t, err)
+
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ToClientRequest() got = %v, want %v", got, tt.want)
-			}
+
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

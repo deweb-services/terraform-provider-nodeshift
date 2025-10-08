@@ -21,7 +21,7 @@ output:
 
 linters-settings:
   interfacebloat:
-    max: 20
+    max: 25
   goimports:
     local-prefixes: github.com/deweb-services
   misspell:

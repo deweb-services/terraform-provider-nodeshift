@@ -2,18 +2,21 @@ package deployment
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func TestNewDeploymentResource(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		want resource.Resource
@@ -25,34 +28,27 @@ func TestNewDeploymentResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewDeploymentResource(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewDeploymentResource() = %v, want %v", got, tt.want)
-			}
+			t.Parallel()
+
+			assert.Equal(t, tt.want, NewDeploymentResource())
 		})
 	}
 }
 
 func Test_vmResource_Configure(t *testing.T) {
-	type fields struct {
-		client *client.NodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		in0 context.Context
 		req resource.ConfigureRequest
 		in2 *resource.ConfigureResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource configure",
-			fields: fields{
-				client: &client.NodeshiftClient{},
-			},
 			args: args{
-				in0: context.TODO(),
 				req: resource.ConfigureRequest{
 					ProviderData: &client.NodeshiftClient{},
 				},
@@ -61,11 +57,7 @@ func Test_vmResource_Configure(t *testing.T) {
 		},
 		{
 			name: "vm resource configure error",
-			fields: fields{
-				client: &client.NodeshiftClient{},
-			},
 			args: args{
-				in0: context.TODO(),
 				req: resource.ConfigureRequest{},
 				in2: &resource.ConfigureResponse{},
 			},
@@ -73,35 +65,30 @@ func Test_vmResource_Configure(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Configure(tt.args.in0, tt.args.req, tt.args.in2)
+			r.Configure(context.Background(), tt.args.req, tt.args.in2)
 		})
 	}
 }
 
 func Test_vmResource_Create(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.CreateRequest
 		resp *resource.CreateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource create",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -212,11 +199,7 @@ func Test_vmResource_Create(t *testing.T) {
 		},
 		{
 			name: "vm resource create schema error",
-			fields: fields{
-				client: &client.NodeshiftClient{},
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Config: tfsdk.Config{
 						Raw:    tftypes.Value{},
@@ -232,11 +215,7 @@ func Test_vmResource_Create(t *testing.T) {
 		},
 		{
 			name: "vm resource create convert error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -343,35 +322,30 @@ func Test_vmResource_Create(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Create(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Create(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vmResource_Delete(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.DeleteRequest
 		resp *resource.DeleteResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource delete",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -477,13 +451,7 @@ func Test_vmResource_Delete(t *testing.T) {
 		},
 		{
 			name: "vm resource delete error",
-			fields: fields{
-				client: &client.NodeshiftClient{
-					Config: client.NodeshiftProviderConfiguration{},
-				},
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Schema: schema.Schema{},
@@ -495,35 +463,30 @@ func Test_vmResource_Delete(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Delete(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Delete(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vmResource_ImportState(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.ImportStateRequest
 		resp *resource.ImportStateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource import state",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ImportStateRequest{
 					ID: "test",
 				},
@@ -537,35 +500,30 @@ func Test_vmResource_ImportState(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.ImportState(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.ImportState(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vmResource_Metadata(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		in0  context.Context
 		req  resource.MetadataRequest
 		resp *resource.MetadataResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource metadata",
-			fields: fields{
-				client: &client.NodeshiftClient{},
-			},
 			args: args{
-				in0: context.TODO(),
 				req: resource.MetadataRequest{
 					ProviderTypeName: "test",
 				},
@@ -577,35 +535,30 @@ func Test_vmResource_Metadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Metadata(tt.args.in0, tt.args.req, tt.args.resp)
+			r.Metadata(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vmResource_Read(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.ReadRequest
 		resp *resource.ReadResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource read",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -716,11 +669,7 @@ func Test_vmResource_Read(t *testing.T) {
 		},
 		{
 			name: "vm resource read error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw:    tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{}),
@@ -735,35 +684,30 @@ func Test_vmResource_Read(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Read(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Read(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vmResource_Schema(t *testing.T) {
-	type fields struct {
-		client *client.NodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		in0  context.Context
 		in1  resource.SchemaRequest
 		resp *resource.SchemaResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource schema",
-			fields: fields{
-				client: &client.NodeshiftClient{},
-			},
 			args: args{
-				in0:  context.TODO(),
 				in1:  resource.SchemaRequest{},
 				resp: &resource.SchemaResponse{},
 			},
@@ -771,35 +715,30 @@ func Test_vmResource_Schema(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Schema(tt.args.in0, tt.args.in1, tt.args.resp)
+			r.Schema(context.Background(), tt.args.in1, tt.args.resp)
 		})
 	}
 }
 
 func Test_vmResource_Update(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.UpdateRequest
 		resp *resource.UpdateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource update",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Config: tfsdk.Config{},
 					Plan: tfsdk.Plan{
@@ -911,11 +850,7 @@ func Test_vmResource_Update(t *testing.T) {
 		},
 		{
 			name: "vm resource update error",
-			fields: fields{
-				client: &client.NodeshiftClient{},
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Config: tfsdk.Config{},
 					Plan: tfsdk.Plan{
@@ -932,11 +867,7 @@ func Test_vmResource_Update(t *testing.T) {
 		},
 		{
 			name: "vm resource update convert error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Config: tfsdk.Config{},
 					Plan: tfsdk.Plan{
@@ -1049,10 +980,12 @@ func Test_vmResource_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Update(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Update(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }

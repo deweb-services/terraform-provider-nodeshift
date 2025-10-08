@@ -6,71 +6,67 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestNodeshiftClient_CreateVPC(t *testing.T) {
+func Test_CreateVPC(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config NodeshiftProviderConfiguration
 		client *http.Client
-		signer *Signer
 		url    string
 	}
 	type args struct {
-		ctx context.Context
-		vpc *VPCConfig
+		vpc *CreateVPCRequest
 	}
 
 	tests := []struct {
 		name   string
 		fields fields
 		args   args
-		want   *VPCConfig
+		want   *CreateVPCRequest
 	}{
 		{
 			name: "create_vpc",
 			fields: fields{
 				Config: NodeshiftProviderConfiguration{},
 				client: &http.Client{},
-				signer: defaultSigner,
-				url:    exampleUrlString,
+				url:    exampleURLString,
 			},
 			args: args{
-				ctx: context.TODO(),
-				vpc: &VPCConfig{
-					ID:          "",
-					Name:        "",
-					Description: "",
-					IPRange:     "",
-				},
+				vpc: &CreateVPCRequest{},
 			},
 			want: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config: tt.fields.Config,
 				client: tt.fields.client,
-				signer: tt.fields.signer,
+				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.CreateVPC(tt.args.ctx, tt.args.vpc)
-			assert.NotNil(t, err)
+			got, err := c.CreateVPC(context.Background(), tt.args.vpc)
+			require.Error(t, err)
 			assert.Nil(t, got)
 		})
 	}
 }
 
-func TestNodeshiftClient_DeleteVPC(t *testing.T) {
+func Test_DeleteVPC(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config NodeshiftProviderConfiguration
 		client *http.Client
-		signer *Signer
 		url    string
 	}
 	type args struct {
-		ctx context.Context
-		id  string
+		id string
 	}
 	tests := []struct {
 		name   string
@@ -82,107 +78,104 @@ func TestNodeshiftClient_DeleteVPC(t *testing.T) {
 			fields: fields{
 				Config: NodeshiftProviderConfiguration{},
 				client: &http.Client{},
-				signer: defaultSigner,
-				url:    exampleUrlString,
+				url:    exampleURLString,
 			},
 			args: args{
-				ctx: context.TODO(),
-				id:  "id",
+				id: "id",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config: tt.fields.Config,
 				client: tt.fields.client,
-				signer: tt.fields.signer,
+				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			err := c.DeleteVPC(tt.args.ctx, tt.args.id)
-			assert.NotNil(t, err)
+			err := c.DeleteVPC(context.Background(), tt.args.id)
+			require.Error(t, err)
 		})
 	}
 }
 
-func TestNodeshiftClient_GetVPC(t *testing.T) {
+func Test_GetVPC(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config NodeshiftProviderConfiguration
 		client *http.Client
-		signer *Signer
 		url    string
 	}
 	type args struct {
-		ctx context.Context
-		id  string
+		id string
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		args   args
-		want   *VPCConfig
+		want   *CreateVPCRequest
 	}{
 		{
 			name: "get_vpc",
 			fields: fields{
 				Config: NodeshiftProviderConfiguration{},
 				client: &http.Client{},
-				signer: defaultSigner,
-				url:    exampleUrlString,
+				url:    exampleURLString,
 			},
 			args: args{
-				ctx: context.TODO(),
-				id:  "id",
+				id: "id",
 			},
-			want: &VPCConfig{},
+			want: &CreateVPCRequest{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config: tt.fields.Config,
 				client: tt.fields.client,
-				signer: tt.fields.signer,
+				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.GetVPC(tt.args.ctx, tt.args.id)
-			assert.NotNil(t, err)
+			got, err := c.GetVPC(context.Background(), tt.args.id)
+			require.Error(t, err)
 			assert.Nil(t, got)
 		})
 	}
 }
 
-func TestNodeshiftClient_UpdateVPC(t *testing.T) {
+func Test_UpdateVPC(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config NodeshiftProviderConfiguration
 		client *http.Client
-		signer *Signer
 		url    string
 	}
 	type args struct {
-		ctx context.Context
 		id  string
-		vpc *VPCConfig
+		vpc *CreateVPCRequest
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		args   args
-		want   *VPCConfig
+		want   *CreateVPCRequest
 	}{
 		{
 			name: "update_vpc",
 			fields: fields{
 				Config: NodeshiftProviderConfiguration{},
 				client: &http.Client{},
-				signer: defaultSigner,
-				url:    exampleUrlString,
+				url:    exampleURLString,
 			},
 			args: args{
-				ctx: context.TODO(),
-				id:  "id",
-				vpc: &VPCConfig{
-					ID:          "id",
+				id: "id",
+				vpc: &CreateVPCRequest{
 					Name:        "name",
 					Description: "description",
 					IPRange:     "127.0.0.1/24",
@@ -193,14 +186,16 @@ func TestNodeshiftClient_UpdateVPC(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config: tt.fields.Config,
 				client: tt.fields.client,
-				signer: tt.fields.signer,
+				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.UpdateVPC(tt.args.ctx, tt.args.id, tt.args.vpc)
-			assert.NotNil(t, err)
+			got, err := c.UpdateVPC(context.Background(), tt.args.id, tt.args.vpc)
+			require.Error(t, err)
 			assert.Nil(t, got)
 		})
 	}

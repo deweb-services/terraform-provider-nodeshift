@@ -4,147 +4,15 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func Test_vmResourceModel_FromAsyncAPIResponse(t *testing.T) {
-	type fields struct {
-		ID          types.String
-		Image       types.String
-		Region      types.String
-		CPU         types.Int64
-		RAM         types.Int64
-		Disk        types.Int64
-		DiskType    types.String
-		IPv4        types.Bool
-		IPv6        types.Bool
-		Ygg         types.Bool
-		SSHKey      types.String
-		SSHKeyName  types.String
-		HostName    types.String
-		NetworkUUID types.String
-		PublicIPv4  types.String
-		PublicIPv6  types.String
-		YggIP       types.String
-	}
-	type args struct {
-		c *client.AsyncAPIDeploymentResponse
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		{
-			name: "vm resource from async api response",
-			args: args{
-				c: &client.AsyncAPIDeploymentResponse{
-					Data: &client.DeploymentResponseData{
-						IP:   "public_ipv4",
-						IPv6: "",
-						Ygg:  "",
-					},
-				},
-			},
-			fields: fields{
-				ID:          types.StringValue(""),
-				Image:       types.StringValue("image"),
-				Region:      types.StringValue("region"),
-				CPU:         types.Int64Value(1),
-				RAM:         types.Int64Value(2),
-				Disk:        types.Int64Value(3),
-				DiskType:    types.StringValue("disk_type"),
-				IPv4:        types.BoolValue(true),
-				IPv6:        types.BoolValue(false),
-				Ygg:         types.BoolValue(false),
-				SSHKey:      types.StringValue("ssh_key"),
-				SSHKeyName:  types.StringValue("ssh_key_name"),
-				HostName:    types.StringValue("host_name"),
-				NetworkUUID: types.StringValue("network_uuid"),
-				PublicIPv4:  types.StringValue("public_ipv4"),
-				PublicIPv6:  types.StringValue(""),
-				YggIP:       types.StringValue(""),
-			},
-		},
-		{
-			name: "vm resource from async api response error",
-			args: args{
-				c: &client.AsyncAPIDeploymentResponse{
-					Data: &client.DeploymentResponseData{
-						IP:   "",
-						IPv6: "",
-						Ygg:  "",
-					},
-				},
-			},
-			fields: fields{
-				ID:          types.StringValue(""),
-				Image:       types.StringValue("image"),
-				Region:      types.StringValue("region"),
-				CPU:         types.Int64Value(1),
-				RAM:         types.Int64Value(2),
-				Disk:        types.Int64Value(3),
-				DiskType:    types.StringValue("disk_type"),
-				IPv4:        types.BoolValue(false),
-				IPv6:        types.BoolValue(false),
-				Ygg:         types.BoolValue(false),
-				SSHKey:      types.StringValue("ssh_key"),
-				SSHKeyName:  types.StringValue("ssh_key_name"),
-				HostName:    types.StringValue("host_name"),
-				NetworkUUID: types.StringValue("network_uuid"),
-				PublicIPv4:  types.StringValue(""),
-				PublicIPv6:  types.StringValue(""),
-				YggIP:       types.StringValue(""),
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			v := &vmResourceModel{
-				ID:          tt.fields.ID,
-				Image:       tt.fields.Image,
-				Region:      tt.fields.Region,
-				CPU:         tt.fields.CPU,
-				RAM:         tt.fields.RAM,
-				Disk:        tt.fields.Disk,
-				DiskType:    tt.fields.DiskType,
-				IPv4:        tt.fields.IPv4,
-				IPv6:        tt.fields.IPv6,
-				Ygg:         tt.fields.Ygg,
-				SSHKey:      tt.fields.SSHKey,
-				SSHKeyName:  tt.fields.SSHKeyName,
-				HostName:    tt.fields.HostName,
-				NetworkUUID: tt.fields.NetworkUUID,
-				PublicIPv4:  tt.fields.PublicIPv4,
-				PublicIPv6:  tt.fields.PublicIPv6,
-				YggIP:       tt.fields.YggIP,
-			}
-			v.FromAsyncAPIResponse(tt.args.c)
-			assert.Equal(t, tt.fields.ID, v.ID)
-			assert.Equal(t, tt.fields.Image, v.Image)
-			assert.Equal(t, tt.fields.Region, v.Region)
-			assert.Equal(t, tt.fields.CPU, v.CPU)
-			assert.Equal(t, tt.fields.RAM, v.RAM)
-			assert.Equal(t, tt.fields.Disk, v.Disk)
-			assert.Equal(t, tt.fields.DiskType, v.DiskType)
-			assert.Equal(t, tt.fields.IPv4, v.IPv4)
-			assert.Equal(t, tt.fields.IPv6, v.IPv6)
-			assert.Equal(t, tt.fields.Ygg, v.Ygg)
-			assert.Equal(t, tt.fields.SSHKey, v.SSHKey)
-			assert.Equal(t, tt.fields.SSHKeyName, v.SSHKeyName)
-			assert.Equal(t, tt.fields.HostName, v.HostName)
-			assert.Equal(t, tt.fields.NetworkUUID, v.NetworkUUID)
-			assert.Equal(t, tt.fields.PublicIPv4, v.PublicIPv4)
-			assert.Equal(t, tt.fields.PublicIPv6, v.PublicIPv6)
-			assert.Equal(t, tt.fields.YggIP, v.YggIP)
-		})
-	}
-}
-
 func Test_vmResourceModel_FromClientResponse(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		ID          types.String
 		Image       types.String
@@ -165,7 +33,7 @@ func Test_vmResourceModel_FromClientResponse(t *testing.T) {
 		YggIP       types.String
 	}
 	type args struct {
-		c *client.CreatedDeployment
+		c *client.GetDeploymentResponse
 	}
 	tests := []struct {
 		name   string
@@ -194,12 +62,14 @@ func Test_vmResourceModel_FromClientResponse(t *testing.T) {
 				YggIP:       types.StringValue(""),
 			},
 			args: args{
-				c: &client.CreatedDeployment{},
+				c: &client.GetDeploymentResponse{},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			v := &vmResourceModel{
 				ID:          tt.fields.ID,
 				Image:       tt.fields.Image,
@@ -217,7 +87,6 @@ func Test_vmResourceModel_FromClientResponse(t *testing.T) {
 				NetworkUUID: tt.fields.NetworkUUID,
 				PublicIPv4:  tt.fields.PublicIPv4,
 				PublicIPv6:  tt.fields.PublicIPv6,
-				YggIP:       tt.fields.YggIP,
 			}
 			v.FromClientResponse(tt.args.c)
 			assert.Equal(t, tt.fields.ID, v.ID)
@@ -236,12 +105,13 @@ func Test_vmResourceModel_FromClientResponse(t *testing.T) {
 			assert.Equal(t, tt.fields.NetworkUUID, v.NetworkUUID)
 			assert.Equal(t, tt.fields.PublicIPv4, v.PublicIPv4)
 			assert.Equal(t, tt.fields.PublicIPv6, v.PublicIPv6)
-			assert.Equal(t, tt.fields.YggIP, v.YggIP)
 		})
 	}
 }
 
 func Test_vmResourceModel_ToClientRequest(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		ID          types.String
 		Image       types.String
@@ -264,7 +134,7 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		want    *client.DeploymentConfig
+		want    *client.CreateDeploymentRequest
 		wantErr bool
 	}{
 		{
@@ -288,7 +158,7 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 				PublicIPv6:  types.StringValue(""),
 				YggIP:       types.StringValue(""),
 			},
-			want: &client.DeploymentConfig{
+			want: &client.CreateDeploymentRequest{
 				ImageVersion: "image",
 				Region:       "region",
 				CPU:          1,
@@ -501,6 +371,8 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			v := &vmResourceModel{
 				ID:          tt.fields.ID,
 				Image:       tt.fields.Image,
@@ -518,11 +390,11 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 				NetworkUUID: tt.fields.NetworkUUID,
 				PublicIPv4:  tt.fields.PublicIPv4,
 				PublicIPv6:  tt.fields.PublicIPv6,
-				YggIP:       tt.fields.YggIP,
 			}
 			got, err := v.ToClientRequest()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ToClientRequest() error = %v, wantErr %v", err, tt.wantErr)
+
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
@@ -544,7 +416,6 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 			assert.Equal(t, tt.fields.NetworkUUID, v.NetworkUUID)
 			assert.Equal(t, tt.fields.PublicIPv4, v.PublicIPv4)
 			assert.Equal(t, tt.fields.PublicIPv6, v.PublicIPv6)
-			assert.Equal(t, tt.fields.YggIP, v.YggIP)
 		})
 	}
 }

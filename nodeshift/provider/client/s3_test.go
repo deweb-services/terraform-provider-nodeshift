@@ -6,15 +6,17 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNodeshiftClient_CreateBucket(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config   NodeshiftProviderConfiguration
 		s3client *s3.Client
 	}
 	type args struct {
-		ctx    context.Context
 		bucket *S3BucketConfig
 	}
 	tests := []struct {
@@ -30,7 +32,6 @@ func TestNodeshiftClient_CreateBucket(t *testing.T) {
 				s3client: &s3.Client{},
 			},
 			args: args{
-				ctx:    context.TODO(),
 				bucket: &S3BucketConfig{},
 			},
 			want: nil,
@@ -38,24 +39,27 @@ func TestNodeshiftClient_CreateBucket(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config:   tt.fields.Config,
 				s3client: tt.fields.s3client,
 			}
-			got, err := c.CreateBucket(tt.args.ctx, tt.args.bucket)
-			assert.Nil(t, got)
-			assert.NotNil(t, err)
+			got, err := c.CreateBucket(context.Background(), tt.args.bucket)
+			require.Error(t, err)
+			require.Nil(t, got)
 		})
 	}
 }
 
 func TestNodeshiftClient_DeleteBucket(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config   NodeshiftProviderConfiguration
 		s3client *s3.Client
 	}
 	type args struct {
-		ctx context.Context
 		key string
 	}
 	tests := []struct {
@@ -70,30 +74,32 @@ func TestNodeshiftClient_DeleteBucket(t *testing.T) {
 				s3client: &s3.Client{},
 			},
 			args: args{
-				ctx: context.TODO(),
 				key: "key",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config:   tt.fields.Config,
 				s3client: tt.fields.s3client,
 			}
-			err := c.DeleteBucket(tt.args.ctx, tt.args.key)
-			assert.NotNil(t, err)
+			err := c.DeleteBucket(context.Background(), tt.args.key)
+			require.Error(t, err)
 		})
 	}
 }
 
 func TestNodeshiftClient_GetBucket(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config   NodeshiftProviderConfiguration
 		s3client *s3.Client
 	}
 	type args struct {
-		ctx context.Context
 		key string
 	}
 	tests := []struct {
@@ -109,7 +115,6 @@ func TestNodeshiftClient_GetBucket(t *testing.T) {
 				s3client: &s3.Client{},
 			},
 			args: args{
-				ctx: context.TODO(),
 				key: "key",
 			},
 			want: nil,
@@ -117,24 +122,27 @@ func TestNodeshiftClient_GetBucket(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config:   tt.fields.Config,
 				s3client: tt.fields.s3client,
 			}
-			got, err := c.GetBucket(tt.args.ctx, tt.args.key)
+			got, err := c.GetBucket(context.Background(), tt.args.key)
+			require.Error(t, err)
 			assert.Nil(t, got)
-			assert.NotNil(t, err)
 		})
 	}
 }
 
 func TestNodeshiftClient_UpdateBucket(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config   NodeshiftProviderConfiguration
 		s3client *s3.Client
 	}
 	type args struct {
-		ctx    context.Context
 		bucket *S3BucketConfig
 	}
 	tests := []struct {
@@ -149,19 +157,20 @@ func TestNodeshiftClient_UpdateBucket(t *testing.T) {
 				s3client: &s3.Client{},
 			},
 			args: args{
-				ctx:    context.TODO(),
 				bucket: &S3BucketConfig{},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config:   tt.fields.Config,
 				s3client: tt.fields.s3client,
 			}
-			err := c.UpdateBucket(tt.args.ctx, tt.args.bucket)
-			assert.NotNil(t, err)
+			err := c.UpdateBucket(context.Background(), tt.args.bucket)
+			assert.Error(t, err)
 		})
 	}
 }

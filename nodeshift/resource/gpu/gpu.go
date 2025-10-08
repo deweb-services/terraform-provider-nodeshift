@@ -81,7 +81,13 @@ func (r *gpuResource) Configure(_ context.Context, req resource.ConfigureRequest
 	if req.ProviderData == nil {
 		return
 	}
-	r.client = req.ProviderData.(*client.NodeshiftClient)
+
+	p, ok := req.ProviderData.(*client.NodeshiftClient)
+	if !ok {
+		return
+	}
+
+	r.client = p
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -91,14 +97,23 @@ func (r *gpuResource) Create(ctx context.Context, req resource.CreateRequest, re
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
 	// Create new GPU
 	clientRequest, err := plan.ToClientRequest()
 	if err != nil {
-		tflog.Error(ctx, "failed to convert resource to client required type", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"failed to convert resource to client required type",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 
 	gpu, err := r.client.CreateGPU(ctx, clientRequest)
@@ -107,6 +122,7 @@ func (r *gpuResource) Create(ctx context.Context, req resource.CreateRequest, re
 			"Error creating gpu",
 			fmt.Sprintf("Could not create gpu, unexpected error: %s", err),
 		)
+
 		return
 	}
 
@@ -117,6 +133,7 @@ func (r *gpuResource) Create(ctx context.Context, req resource.CreateRequest, re
 			"Error creating gpu",
 			fmt.Sprintf("Could not convert created GPU from client response, unexpected error: %s", err),
 		)
+
 		return
 	}
 	tflog.Info(ctx, fmt.Sprintf("GPU from client response: %+v", gpu))
@@ -124,7 +141,11 @@ func (r *gpuResource) Create(ctx context.Context, req resource.CreateRequest, re
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -135,7 +156,12 @@ func (r *gpuResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
@@ -146,23 +172,29 @@ func (r *gpuResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 			"Error Reading gpu state",
 			fmt.Sprintf("Could not read gpu state UUID %s: %s", state.UUID.ValueString(), err),
 		)
+
 		return
 	}
 
 	// Overwrite items with refreshed state
-	err = state.FromClientRentedGPUResponse(gpu)
+	err = state.FromClientResponse(gpu)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error getting gpu",
 			fmt.Sprintf("Could not convert read GPU from client response, unexpected error: %s", err),
 		)
+
 		return
 	}
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -173,13 +205,22 @@ func (r *gpuResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
 	clientRequest, err := plan.ToClientRequest()
 	if err != nil {
-		tflog.Error(ctx, "failed to convert resource to client required type", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"failed to convert resource to client required type",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 
 	// Update existing order
@@ -189,6 +230,7 @@ func (r *gpuResource) Update(ctx context.Context, req resource.UpdateRequest, re
 			"Error Updating gpu state",
 			fmt.Sprintf("Could not update gpu state %s, unexpected error: %s", plan.UUID.ValueString(), err),
 		)
+
 		return
 	}
 
@@ -199,22 +241,28 @@ func (r *gpuResource) Update(ctx context.Context, req resource.UpdateRequest, re
 			"Error Reading gpu state",
 			fmt.Sprintf("Could not read gpu name %s: %s", plan.UUID.ValueString(), err),
 		)
+
 		return
 	}
 
-	err = plan.FromClientRentedGPUResponse(gpu)
+	err = plan.FromClientResponse(gpu)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating gpu",
 			fmt.Sprintf("Could not convert updated GPU from client response, unexpected error: %s", err),
 		)
+
 		return
 	}
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -225,7 +273,12 @@ func (r *gpuResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
@@ -235,6 +288,7 @@ func (r *gpuResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 			"Error Deleting gpu",
 			fmt.Sprintf("Could not delete gpu, unexpected error: %s", err),
 		)
+
 		return
 	}
 }

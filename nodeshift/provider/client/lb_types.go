@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type LoadBalancerConfig struct {
+type CreateLBRequest struct {
 	Name            string           `json:"name"`
 	Replicas        map[string]int   `json:"replicas"`
 	CPUUUIDs        []string         `json:"cpuUuids"`
@@ -23,16 +23,13 @@ type RuleEndpoint struct {
 	Port     int    `json:"port"`
 }
 
-type LoadBalancerConfigResponse struct {
-	UUID   string `json:"uuid"`
-	Status string `json:"status"`
-	TaskID string `json:"taskId"`
+type createLBResponse struct {
+	UUID string `json:"uuid"`
 }
 
 type GetLBResponse struct {
 	UUID            string              `json:"uuid"`
 	Name            string              `json:"name"`
-	TaskID          string              `json:"taskId"`
 	Status          string              `json:"status"`
 	ReplicasAmount  int                 `json:"replicasAmount"`
 	CPUAmount       int                 `json:"cpuAmount"`

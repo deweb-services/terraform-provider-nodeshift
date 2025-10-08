@@ -1,16 +1,19 @@
-package load_balancer
+package loadbalancer
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 )
 
 func TestLBResourceModel_FromClientRentedLBResponse(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Name            types.String
 		Replicas        types.Map
@@ -122,6 +125,8 @@ func TestLBResourceModel_FromClientRentedLBResponse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			m := &LBResourceModel{
 				Name:            tt.fields.Name,
 				Replicas:        tt.fields.Replicas,
@@ -140,6 +145,8 @@ func TestLBResourceModel_FromClientRentedLBResponse(t *testing.T) {
 }
 
 func TestLBResourceModel_FromClientResponse(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Name            types.String
 		Replicas        types.Map
@@ -151,7 +158,7 @@ func TestLBResourceModel_FromClientResponse(t *testing.T) {
 		TaskID          types.String
 	}
 	type args struct {
-		c *client.LoadBalancerConfigResponse
+		c *client.GetLBResponse
 	}
 	tests := []struct {
 		name    string
@@ -244,13 +251,15 @@ func TestLBResourceModel_FromClientResponse(t *testing.T) {
 				TaskID:  types.StringValue("task-abc-123"),
 			},
 			args: args{
-				c: &client.LoadBalancerConfigResponse{},
+				c: &client.GetLBResponse{},
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			m := &LBResourceModel{
 				Name:            tt.fields.Name,
 				Replicas:        tt.fields.Replicas,
@@ -269,6 +278,8 @@ func TestLBResourceModel_FromClientResponse(t *testing.T) {
 }
 
 func TestLBResourceModel_ToClientRequest(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Name            types.String
 		Replicas        types.Map
@@ -282,7 +293,7 @@ func TestLBResourceModel_ToClientRequest(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		want    *client.LoadBalancerConfig
+		want    *client.CreateLBRequest
 		wantErr bool
 	}{
 		{
@@ -366,7 +377,7 @@ func TestLBResourceModel_ToClientRequest(t *testing.T) {
 				Status:  types.StringValue("running"),
 				TaskID:  types.StringValue("task-abc-123"),
 			},
-			want: &client.LoadBalancerConfig{
+			want: &client.CreateLBRequest{
 				Name: "my-loadbalancer",
 				Replicas: map[string]int{
 					"replica-1": 2,
@@ -395,6 +406,8 @@ func TestLBResourceModel_ToClientRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			m := &LBResourceModel{
 				Name:            tt.fields.Name,
 				Replicas:        tt.fields.Replicas,
@@ -406,13 +419,13 @@ func TestLBResourceModel_ToClientRequest(t *testing.T) {
 				TaskID:          tt.fields.TaskID,
 			}
 			got, err := m.ToClientRequest()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ToClientRequest() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				require.Error(t, err)
+
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ToClientRequest() got = %v, want %v", got, tt.want)
-			}
+
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

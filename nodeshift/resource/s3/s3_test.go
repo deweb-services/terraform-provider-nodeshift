@@ -5,16 +5,18 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"go.uber.org/mock/gomock"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func TestNewBucketResource(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		want resource.Resource
@@ -26,6 +28,8 @@ func TestNewBucketResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			if got := NewBucketResource(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewBucketResource() = %v, want %v", got, tt.want)
 			}
@@ -34,37 +38,26 @@ func TestNewBucketResource(t *testing.T) {
 }
 
 func Test_bucketResource_Configure(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		in0 context.Context
 		req resource.ConfigureRequest
 		in2 *resource.ConfigureResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "bucket resource configure",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				in0: context.TODO(),
 				req: resource.ConfigureRequest{},
 				in2: &resource.ConfigureResponse{},
 			},
 		},
 		{
 			name: "bucket resource configure",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				in0: context.TODO(),
 				req: resource.ConfigureRequest{
 					ProviderData: &client.NodeshiftClient{},
 				},
@@ -74,35 +67,38 @@ func Test_bucketResource_Configure(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().CreateBucket(gomock.Any(), gomock.Any()).Return(
+				&client.S3BucketConfig{Key: "bucket"},
+				nil,
+			).AnyTimes()
+
 			r := &bucketResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Configure(tt.args.in0, tt.args.req, tt.args.in2)
+			r.Configure(context.Background(), tt.args.req, tt.args.in2)
 		})
 	}
 }
 
 func Test_bucketResource_Create(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.CreateRequest
 		resp *resource.CreateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "bucket resource create",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -129,11 +125,7 @@ func Test_bucketResource_Create(t *testing.T) {
 		},
 		{
 			name: "bucket resource create error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Plan: tfsdk.Plan{
 						Raw:    tftypes.Value{},
@@ -147,11 +139,7 @@ func Test_bucketResource_Create(t *testing.T) {
 		},
 		{
 			name: "bucket resource create convert error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -176,35 +164,38 @@ func Test_bucketResource_Create(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().CreateBucket(gomock.Any(), gomock.Any()).Return(
+				&client.S3BucketConfig{Key: "bucket"},
+				nil,
+			).AnyTimes()
+
 			r := &bucketResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Create(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Create(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_bucketResource_Delete(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.DeleteRequest
 		resp *resource.DeleteResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "bucket resource delete",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -226,11 +217,7 @@ func Test_bucketResource_Delete(t *testing.T) {
 		},
 		{
 			name: "bucket resource delete error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Raw:    tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{}),
@@ -242,11 +229,7 @@ func Test_bucketResource_Delete(t *testing.T) {
 		},
 		{
 			name: "bucket resource delete convert error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -269,35 +252,35 @@ func Test_bucketResource_Delete(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().DeleteBucket(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
 			r := &bucketResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Delete(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Delete(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_bucketResource_ImportState(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.ImportStateRequest
 		resp *resource.ImportStateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "bucket resource import state",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ImportStateRequest{
 					ID: "id",
 				},
@@ -322,35 +305,38 @@ func Test_bucketResource_ImportState(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().CreateBucket(gomock.Any(), gomock.Any()).Return(
+				&client.S3BucketConfig{Key: "bucket"},
+				nil,
+			).AnyTimes()
+
 			r := &bucketResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.ImportState(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.ImportState(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_bucketResource_Metadata(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		in0  context.Context
 		req  resource.MetadataRequest
 		resp *resource.MetadataResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "bucket resource metadata",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				in0:  context.TODO(),
 				req:  resource.MetadataRequest{},
 				resp: &resource.MetadataResponse{},
 			},
@@ -358,35 +344,38 @@ func Test_bucketResource_Metadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().CreateBucket(gomock.Any(), gomock.Any()).Return(
+				&client.S3BucketConfig{Key: "bucket"},
+				nil,
+			).AnyTimes()
+
 			r := &bucketResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Metadata(tt.args.in0, tt.args.req, tt.args.resp)
+			r.Metadata(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_bucketResource_Read(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.ReadRequest
 		resp *resource.ReadResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "bucket resource read",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -413,11 +402,7 @@ func Test_bucketResource_Read(t *testing.T) {
 		},
 		{
 			name: "bucket resource read error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw:    tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{}),
@@ -429,11 +414,7 @@ func Test_bucketResource_Read(t *testing.T) {
 		},
 		{
 			name: "bucket resource read convert error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -461,20 +442,31 @@ func Test_bucketResource_Read(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().GetBucket(gomock.Any(), gomock.Any()).Return(
+				&client.S3BucketConfig{Key: "bucket"},
+				nil,
+			).AnyTimes()
+
 			r := &bucketResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Read(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Read(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_bucketResource_Schema(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		client client.INodeshiftClient
 	}
 	type args struct {
-		c        context.Context
 		request  resource.SchemaRequest
 		response *resource.SchemaResponse
 	}
@@ -486,10 +478,9 @@ func Test_bucketResource_Schema(t *testing.T) {
 		{
 			name: "bucket resource schema",
 			fields: fields{
-				client: client.NewMockedClient(),
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			},
 			args: args{
-				c:       nil,
 				request: resource.SchemaRequest{},
 				response: &resource.SchemaResponse{
 					Schema: schema.Schema{
@@ -507,35 +498,30 @@ func Test_bucketResource_Schema(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &bucketResource{
 				client: tt.fields.client,
 			}
-			r.Schema(tt.args.c, tt.args.request, tt.args.response)
+			r.Schema(context.Background(), tt.args.request, tt.args.response)
 		})
 	}
 }
 
 func Test_bucketResource_Update(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.UpdateRequest
 		resp *resource.UpdateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "bucket resource update",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -562,11 +548,7 @@ func Test_bucketResource_Update(t *testing.T) {
 		},
 		{
 			name: "bucket resource update error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Plan: tfsdk.Plan{
 						Raw:    tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{}),
@@ -578,11 +560,7 @@ func Test_bucketResource_Update(t *testing.T) {
 		},
 		{
 			name: "bucket resource update convert error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -610,10 +588,21 @@ func Test_bucketResource_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().GetBucket(gomock.Any(), gomock.Any()).Return(
+				&client.S3BucketConfig{Key: "bucket"},
+				nil,
+			).AnyTimes()
+			c.EXPECT().UpdateBucket(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
 			r := &bucketResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Update(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Update(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
 }

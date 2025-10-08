@@ -1,6 +1,6 @@
 package client
 
-type GPUConfig struct {
+type CreateGPURequest struct {
 	GPUName        string `json:"gpuName"`
 	Image          string `json:"image"`
 	SSHKey         string `json:"sshKey"`
@@ -10,18 +10,19 @@ type GPUConfig struct {
 	MinCudaVersion string `json:"minCudaVersion,omitempty"`
 }
 
-type GPUConfigResponse struct {
+type CreateGPUResponse struct {
+	UUID     string `json:"uuid"`
 	Region   string `json:"region,omitempty"`
 	Image    string `json:"image"`
 	GPUName  string `json:"gpuName"`
 	GPUCount int64  `json:"gpuCount"`
-	UUID     string `json:"uuid"`
 }
 
-type RentedGpuInfoResponse struct {
-	ActualStatus string `json:"status"`
-	GpuName      string `json:"gpuName"`
-	NumGpus      int64  `json:"gpusAmount"`
-	SshHost      string `json:"sshHost"`
-	SshPort      int64  `json:"sshPort"`
+type GetGPUResponse struct {
+	UUID    string `json:"uuid"`
+	GpuName string `json:"gpuName"`
+	NumGpus int64  `json:"gpusAmount"`
+	SSHHost string `json:"sshHost"`
+	SSHPort int64  `json:"sshPort"`
+	Status  string `json:"status"`
 }

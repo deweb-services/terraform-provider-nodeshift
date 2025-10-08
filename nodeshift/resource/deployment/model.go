@@ -1,10 +1,11 @@
 package deployment
 
 import (
-	"errors"
+	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 type vmResourceModel struct {
@@ -26,11 +27,10 @@ type vmResourceModel struct {
 	// Computed
 	PublicIPv4 types.String `tfsdk:"public_ipv4"`
 	PublicIPv6 types.String `tfsdk:"public_ipv6"`
-	YggIP      types.String `tfsdk:"ygg_ip"`
 }
 
-func (v *vmResourceModel) ToClientRequest() (*client.DeploymentConfig, error) {
-	r := &client.DeploymentConfig{
+func (v *vmResourceModel) ToClientRequest() (*client.CreateDeploymentRequest, error) {
+	r := &client.CreateDeploymentRequest{
 		Ipv4:        v.IPv4.ValueBool(),
 		Ipv6:        v.IPv6.ValueBool(),
 		Ygg:         v.Ygg.ValueBool(),
@@ -38,55 +38,55 @@ func (v *vmResourceModel) ToClientRequest() (*client.DeploymentConfig, error) {
 	}
 
 	if v.Image.IsUnknown() || v.Image.IsNull() {
-		return nil, errors.New("image property is required and cannot be empty")
+		return nil, fmt.Errorf("image is required: %w", client.ErrPropertyEmpty)
 	}
 
 	r.ImageVersion = v.Image.ValueString()
 
 	if v.Region.IsUnknown() || v.Region.IsNull() {
-		return nil, errors.New("region property is required and cannot be empty")
+		return nil, fmt.Errorf("region is required: %w", client.ErrPropertyEmpty)
 	}
 
 	r.Region = v.Region.ValueString()
 
 	if v.CPU.IsUnknown() || v.CPU.IsNull() {
-		return nil, errors.New("cpu property is required and cannot be empty")
+		return nil, fmt.Errorf("cpu is required: %w", client.ErrPropertyEmpty)
 	}
 
 	r.CPU = int(v.CPU.ValueInt64())
 
 	if v.RAM.IsUnknown() || v.RAM.IsNull() {
-		return nil, errors.New("ram property is required and cannot be empty")
+		return nil, fmt.Errorf("ram is required: %w", client.ErrPropertyEmpty)
 	}
 
 	r.RAM = int(v.RAM.ValueInt64())
 
 	if v.Disk.IsUnknown() || v.Disk.IsNull() {
-		return nil, errors.New("disk property is required and cannot be empty")
+		return nil, fmt.Errorf("disk is required: %w", client.ErrPropertyEmpty)
 	}
 
 	r.Hdd = int(v.Disk.ValueInt64())
 
 	if v.DiskType.IsUnknown() || v.DiskType.IsNull() {
-		return nil, errors.New("disk_type property is required and cannot be empty")
+		return nil, fmt.Errorf("disk_type is required: %w", client.ErrPropertyEmpty)
 	}
 
 	r.HddType = v.DiskType.ValueString()
 
 	if v.SSHKey.IsUnknown() || v.SSHKey.IsNull() {
-		return nil, errors.New("ssh_key property is required and cannot be empty")
+		return nil, fmt.Errorf("ssh_key is required: %w", client.ErrPropertyEmpty)
 	}
 
 	r.SSHKey = v.SSHKey.ValueString()
 
 	if v.SSHKeyName.IsUnknown() || v.SSHKeyName.IsNull() {
-		return nil, errors.New("ssh_key_name property is required and cannot be empty")
+		return nil, fmt.Errorf("ssh_key_name is required: %w", client.ErrPropertyEmpty)
 	}
 
 	r.SSHKeyName = v.SSHKeyName.ValueString()
 
 	if v.HostName.IsUnknown() || v.HostName.IsNull() {
-		return nil, errors.New("host_name property is required and cannot be empty")
+		return nil, fmt.Errorf("host_name is required: %w", client.ErrPropertyEmpty)
 	}
 
 	r.HostName = v.HostName.ValueString()
@@ -94,14 +94,7 @@ func (v *vmResourceModel) ToClientRequest() (*client.DeploymentConfig, error) {
 	return r, nil
 }
 
-func (v *vmResourceModel) FromAsyncAPIResponse(c *client.AsyncAPIDeploymentResponse) {
-	v.PublicIPv4 = types.StringValue(c.Data.IP)
-	v.PublicIPv6 = types.StringValue(c.Data.IPv6)
-	v.YggIP = types.StringValue(c.Data.Ygg)
-	v.ID = types.StringValue(c.ID)
-}
-
-func (v *vmResourceModel) FromClientResponse(c *client.CreatedDeployment) {
+func (v *vmResourceModel) FromClientResponse(c *client.GetDeploymentResponse) {
 	v.Image = types.StringValue(c.ImageVersion)
 	v.CPU = types.Int64Value(int64(c.Cru))
 	v.RAM = types.Int64Value(int64(c.Mru))

@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -40,15 +41,15 @@ func (r *vpcResource) Schema(c context.Context, request resource.SchemaRequest, 
 				Description: "String ID of the VPC, computed",
 				Computed:    true,
 			},
-			VPCIPRangeKeys: schema.StringAttribute{
+			IPRangeKeys: schema.StringAttribute{
 				Description: "IP range of the VPC",
 				Required:    true,
 			},
-			VPCNameKeys: schema.StringAttribute{
+			NameKeys: schema.StringAttribute{
 				Description: "Name of the VPC",
 				Required:    true,
 			},
-			VPCDescriptionKeys: schema.StringAttribute{
+			DescriptionKeys: schema.StringAttribute{
 				Description: "Description of the VPC",
 				Optional:    true,
 			},
@@ -60,7 +61,13 @@ func (r *vpcResource) Configure(_ context.Context, req resource.ConfigureRequest
 	if req.ProviderData == nil {
 		return
 	}
-	r.client = req.ProviderData.(*client.NodeshiftClient)
+
+	p, ok := req.ProviderData.(*client.NodeshiftClient)
+	if !ok {
+		return
+	}
+
+	r.client = p
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -70,14 +77,23 @@ func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
 	// Create new VPC
 	clientRequest, err := plan.ToClientRequest()
 	if err != nil {
-		tflog.Error(ctx, "failed to convert resource to client required type", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"failed to convert resource to client required type",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 
 	vpc, err := r.client.CreateVPC(ctx, clientRequest)
@@ -86,6 +102,7 @@ func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, re
 			"Error creating vpc",
 			fmt.Sprintf("Could not create vpc, unexpected error: %s", err),
 		)
+
 		return
 	}
 
@@ -96,6 +113,7 @@ func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, re
 			"Error creating vpc",
 			fmt.Sprintf("Could not convert created VPC from client response, unexpected error: %s", err),
 		)
+
 		return
 	}
 	tflog.Info(ctx, fmt.Sprintf("VPC from client response: %+v", vpc))
@@ -103,7 +121,11 @@ func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -114,17 +136,23 @@ func (r *vpcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
 	// Get refreshed order value from client
-	vpc, err := r.client.GetVPC(ctx, state.ID.ValueString())
+	vpc, err := r.client.GetVPC(ctx, state.UUID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading vpc state",
-			fmt.Sprintf("Could not read vpc state ID %s: %s", state.ID.ValueString(), err),
+			fmt.Sprintf("Could not read vpc state ID %s: %s", state.UUID.ValueString(), err),
 		)
+
 		return
 	}
 
@@ -135,13 +163,18 @@ func (r *vpcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 			"Error getting vpc",
 			fmt.Sprintf("Could not convert read VPC from client response, unexpected error: %s", err),
 		)
+
 		return
 	}
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -152,32 +185,43 @@ func (r *vpcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
 	clientRequest, err := plan.ToClientRequest()
 	if err != nil {
-		tflog.Error(ctx, "failed to convert resource to client required type", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"failed to convert resource to client required type",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 
 	// Update existing order
-	_, err = r.client.UpdateVPC(ctx, plan.ID.ValueString(), clientRequest)
+	_, err = r.client.UpdateVPC(ctx, plan.UUID.ValueString(), clientRequest)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating vpc state",
-			fmt.Sprintf("Could not update vpc state %s, unexpected error: %s", plan.ID.ValueString(), err),
+			fmt.Sprintf("Could not update vpc state %s, unexpected error: %s", plan.UUID.ValueString(), err),
 		)
+
 		return
 	}
 
 	// Fetch updated items from GetVPC as UpdateVPC items are not populated.
-	vpc, err := r.client.GetVPC(ctx, plan.ID.ValueString())
+	vpc, err := r.client.GetVPC(ctx, plan.UUID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading vpc state",
-			fmt.Sprintf("Could not read vpc name %s: %s", plan.ID.ValueString(), err),
+			fmt.Sprintf("Could not read vpc name %s: %s", plan.UUID.ValueString(), err),
 		)
+
 		return
 	}
 
@@ -187,13 +231,18 @@ func (r *vpcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 			"Error creating vpc",
 			fmt.Sprintf("Could not convert updated VPC from client response, unexpected error: %s", err),
 		)
+
 		return
 	}
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -204,16 +253,22 @@ func (r *vpcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
 	// Delete existing vpc
-	if err := r.client.DeleteVPC(ctx, state.ID.ValueString()); err != nil {
+	if err := r.client.DeleteVPC(ctx, state.UUID.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting vpc",
 			fmt.Sprintf("Could not delete vpc, unexpected error: %s", err),
 		)
+
 		return
 	}
 }

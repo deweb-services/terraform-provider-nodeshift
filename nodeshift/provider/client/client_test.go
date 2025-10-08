@@ -3,7 +3,6 @@ package client
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -12,17 +11,16 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
-	exampleUrlString    = "https://example.com/"
-	exampleErrUrlString = "https://example.moc/"
+	exampleURLString    = "https://example.com/"
+	exampleErrURLString = "https://example.moc/"
 )
 
-var defaultSigner = NewSigner(WithStaticCredentials("access", "secret"))
-
 func makeTwoClients() (*NodeshiftClient, *NodeshiftClient) {
-	cli1 := NewClient(context.TODO(), NodeshiftProviderConfiguration{})
+	cli1 := NewClient(context.Background(), NodeshiftProviderConfiguration{})
 	cli2 := &NodeshiftClient{
 		Config:          NodeshiftProviderConfiguration{},
 		transactionNote: cli1.transactionNote,
@@ -31,10 +29,11 @@ func makeTwoClients() (*NodeshiftClient, *NodeshiftClient) {
 		url:             cli1.url,
 		s3client:        cli1.s3client,
 	}
+
 	return cli1, cli2
 }
 
-var exampleComContent = `<!doctype html>
+const exampleComContent = `<!doctype html>
 <html>
 <head>
     <title>Example Domain</title>
@@ -83,6 +82,8 @@ var exampleComContent = `<!doctype html>
 `
 
 func TestClientOptWithS3(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		want ClientOpt
@@ -100,15 +101,19 @@ func TestClientOptWithS3(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			cli1, cli2 := makeTwoClients()
 			ClientOptWithS3()(cli1)
 			tt.want(cli2)
-			assert.Equalf(t, cli1, cli2, "ClientOptWithS3()")
+			assert.Equal(t, cli1, cli2)
 		})
 	}
 }
 
 func TestClientOptWithURL(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
 		url string
 	}
@@ -129,6 +134,8 @@ func TestClientOptWithURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			cli1, cli2 := makeTwoClients()
 			ClientOptWithURL(tt.args.url)(cli1)
 			tt.want(cli2)
@@ -138,81 +145,85 @@ func TestClientOptWithURL(t *testing.T) {
 }
 
 func TestNodeshiftClient_DoRequest(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config NodeshiftProviderConfiguration
 		client *http.Client
-		signer *Signer
 	}
 	type args struct {
 		req *http.Request
 	}
-	newUrl, _ := url.Parse(exampleUrlString)
-	newErrUrl, _ := url.Parse(exampleErrUrlString)
+	newURL, err := url.Parse(exampleURLString)
+	require.NoError(t, err)
+
+	newErrURL, err := url.Parse(exampleErrURLString)
+	require.NoError(t, err)
+
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
 		want    []byte
-		wantErr error
+		wantErr string
 	}{
 		{
 			name: "do_request",
 			fields: fields{
 				Config: NodeshiftProviderConfiguration{},
 				client: &http.Client{},
-				signer: &Signer{},
 			},
 			args: args{
 				req: &http.Request{
-					URL: newUrl,
+					URL: newURL,
 				},
 			},
-			want:    []byte(exampleComContent),
-			wantErr: nil,
+			want: []byte(exampleComContent),
 		},
 		{
 			name: "do_request_err",
 			fields: fields{
 				Config: NodeshiftProviderConfiguration{},
 				client: &http.Client{},
-				signer: &Signer{},
 			},
 			args: args{
 				req: &http.Request{
-					URL: newErrUrl,
+					URL: newErrURL,
 				},
 			},
 			want:    nil,
-			wantErr: fmt.Errorf("error making request: Get \"%s\": dial tcp: lookup example.moc: no such host", exampleErrUrlString),
+			wantErr: "error making request: Get \"https://example.moc/\": dial tcp: lookup example.moc: no such host",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config: tt.fields.Config,
 				client: tt.fields.client,
-				signer: tt.fields.signer,
+				signer: &Signer{},
 			}
 			got, err := c.DoRequest(context.TODO(), tt.args.req)
-			if tt.wantErr != nil {
-				assert.NotNil(t, err)
+			if tt.wantErr != "" {
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
-			assert.Equalf(t, tt.want, got, "DoRequest(%v)", tt.args.req)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
 func TestNodeshiftClient_DoSignedRequest(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config NodeshiftProviderConfiguration
 		client *http.Client
-		signer *Signer
 		url    string
 	}
 	type args struct {
-		ctx      context.Context
 		method   string
 		endpoint string
 		body     io.ReadSeeker
@@ -229,13 +240,11 @@ func TestNodeshiftClient_DoSignedRequest(t *testing.T) {
 			fields: fields{
 				Config: NodeshiftProviderConfiguration{},
 				client: &http.Client{},
-				signer: defaultSigner,
-				url:    exampleUrlString,
+				url:    exampleURLString,
 			},
 			args: args{
-				ctx:      context.TODO(),
 				method:   "GET",
-				endpoint: exampleUrlString,
+				endpoint: exampleURLString,
 				body:     bytes.NewReader([]byte{}),
 			},
 			want: []byte(exampleComContent),
@@ -245,33 +254,36 @@ func TestNodeshiftClient_DoSignedRequest(t *testing.T) {
 			fields: fields{
 				Config: NodeshiftProviderConfiguration{},
 				client: &http.Client{},
-				signer: defaultSigner,
 			},
 			args:    args{},
 			want:    nil,
-			wantErr: fmt.Errorf(""),
+			wantErr: assert.AnError,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config: tt.fields.Config,
 				client: tt.fields.client,
-				signer: tt.fields.signer,
+				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.DoSignedRequest(tt.args.ctx, tt.args.method, tt.args.endpoint, tt.args.body)
+			got, err := c.DoSignedRequest(context.Background(), tt.args.method, tt.args.endpoint, tt.args.body)
 			if tt.wantErr != nil {
-				assert.NotNil(t, err)
+				require.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			}
-			assert.Equalf(t, tt.want, got, "DoSignedRequest(%v, %v, %v, %v)", tt.args.ctx, tt.args.method, tt.args.endpoint, tt.args.body)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
 func TestNodeshiftClient_SetGlobalTransactionNote(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		transactionNote string
 	}
@@ -295,6 +307,8 @@ func TestNodeshiftClient_SetGlobalTransactionNote(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				transactionNote: tt.fields.transactionNote,
 			}
@@ -305,11 +319,12 @@ func TestNodeshiftClient_SetGlobalTransactionNote(t *testing.T) {
 }
 
 func TestNodeshiftClient_newAwsClient(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Config          NodeshiftProviderConfiguration
 		transactionNote string
 		client          *http.Client
-		signer          *Signer
 		url             string
 		s3client        *s3.Client
 	}
@@ -333,22 +348,26 @@ func TestNodeshiftClient_newAwsClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
 				Config:          tt.fields.Config,
 				transactionNote: tt.fields.transactionNote,
 				client:          tt.fields.client,
-				signer:          tt.fields.signer,
+				signer:          &Signer{},
 				url:             tt.fields.url,
 				s3client:        tt.fields.s3client,
 			}
 			err := c.newAwsClient()
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, c.s3client)
 		})
 	}
 }
 
 func TestNodeshiftProviderConfiguration_FromSlice(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		Timeout               time.Duration
 		AccessKey             string
@@ -397,6 +416,8 @@ func TestNodeshiftProviderConfiguration_FromSlice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			dc := &NodeshiftProviderConfiguration{}
 			dc.FromSlice(tt.args.values)
 			if len(tt.args.values) != 0 {
@@ -412,8 +433,9 @@ func TestNodeshiftProviderConfiguration_FromSlice(t *testing.T) {
 }
 
 func TestNewClient(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
-		ctx           context.Context
 		configuration NodeshiftProviderConfiguration
 		opts          []ClientOpt
 	}
@@ -425,7 +447,6 @@ func TestNewClient(t *testing.T) {
 		{
 			name: "new_client",
 			args: args{
-				ctx:           context.TODO(),
 				configuration: NodeshiftProviderConfiguration{},
 				opts:          nil,
 			},
@@ -433,7 +454,6 @@ func TestNewClient(t *testing.T) {
 		{
 			name: "new_client_with_configuration",
 			args: args{
-				ctx: context.TODO(),
 				configuration: NodeshiftProviderConfiguration{
 					SharedCredentialsFile: "s_file",
 					Profile:               "profile",
@@ -444,43 +464,55 @@ func TestNewClient(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			nodeshiftCli := NewClient(tt.args.ctx, tt.args.configuration, tt.args.opts...)
+			t.Parallel()
+
+			nodeshiftCli := NewClient(context.Background(), tt.args.configuration, tt.args.opts...)
 			assert.NotNil(t, nodeshiftCli)
 		})
 	}
 }
 
 func Test_checkResponse(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
 		res *http.Response
 	}
 	tests := []struct {
 		name    string
 		args    args
-		wantErr error
+		wantErr bool
 	}{
 		{
 			name: "check_response",
 			args: args{
 				res: &http.Response{
-					StatusCode: 200,
+					StatusCode: http.StatusOK,
 				},
 			},
-			wantErr: nil,
 		},
 		{
 			name: "check_response_fail",
 			args: args{
 				res: &http.Response{
-					StatusCode: 400,
+					StatusCode: http.StatusBadRequest,
 				},
 			},
-			wantErr: fmt.Errorf("request failed, status code: %d", 400),
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, checkResponse(tt.args.res), tt.wantErr)
+			t.Parallel()
+
+			err := checkResponse(tt.args.res)
+			if tt.wantErr {
+				require.Error(t, err)
+
+				return
+			}
+
+			require.NoError(t, err)
 		})
 	}
 }

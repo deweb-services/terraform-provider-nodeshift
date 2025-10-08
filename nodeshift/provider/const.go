@@ -1,8 +1,9 @@
 package provider
 
 const (
-	AccessKey             = "access_key"
-	SecretAccessKey       = "secret_access_key"
+	AccessKey       = "access_key"
+	SecretAccessKey = "secret_access_key"
+	// nolint: gosec
 	SharedCredentialsFile = "shared_credentials_file"
 	Profile               = "profile"
 	S3Endpoint            = "s3_endpoint"

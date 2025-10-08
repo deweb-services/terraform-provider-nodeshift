@@ -121,7 +121,13 @@ func (r *vmResource) Configure(_ context.Context, req resource.ConfigureRequest,
 	if req.ProviderData == nil {
 		return
 	}
-	r.client = req.ProviderData.(client.INodeshiftClient)
+
+	p, ok := req.ProviderData.(client.INodeshiftClient)
+	if !ok {
+		return
+	}
+
+	r.client = p
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -131,15 +137,21 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 	requestData, err := plan.ToClientRequest()
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating Deployment",
-			fmt.Sprintf("Could not create Deployment, cast to client error: %s", err.Error()),
+			"Could not create Deployment, cast to client error: "+err.Error(),
 		)
+
 		return
 	}
 
@@ -156,7 +168,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 			strings.Contains(err.Error(), "The selected region is not supported") {
 			regions, err := r.client.ListRegions(ctx)
 			if err != nil {
-				tflog.Error(ctx, fmt.Sprintf("failed to fetch regions: %s", err.Error()))
+				tflog.Error(ctx, "failed to fetch regions: "+err.Error())
 
 				return
 			}
@@ -170,12 +182,16 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 	}
 
 	// Map response body to schema and populate Computed attribute values
-	plan.FromAsyncAPIResponse(vm)
+	plan.FromClientResponse(vm)
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -186,7 +202,12 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
@@ -197,6 +218,7 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 			"Error Reading Deployment state",
 			fmt.Sprintf("Could not read Deployment state ID %s: %s", state.ID.ValueString(), err),
 		)
+
 		return
 	}
 
@@ -206,7 +228,11 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -217,7 +243,12 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
@@ -225,8 +256,9 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating Deployment",
-			fmt.Sprintf("Could not update Deployment, unexpected error: %s", err.Error()),
+			"Could not update Deployment, unexpected error: "+err.Error(),
 		)
+
 		return
 	}
 
@@ -237,6 +269,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			"Error Updating Deployment state",
 			fmt.Sprintf("Could not update Deployment state %s, unexpected error: %s", plan.ID.ValueString(), err),
 		)
+
 		return
 	}
 
@@ -247,6 +280,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 			"Error Reading Deployment state",
 			fmt.Sprintf("Could not read Deployment name %s: %s", plan.ID.ValueString(), err),
 		)
+
 		return
 	}
 
@@ -255,7 +289,11 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -266,7 +304,12 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
@@ -276,6 +319,7 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 			"Error Deleting VM",
 			fmt.Sprintf("Could not delete vm, unexpected error: %s", err),
 		)
+
 		return
 	}
 }

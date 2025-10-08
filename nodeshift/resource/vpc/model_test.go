@@ -1,16 +1,19 @@
 package vpc
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestVPCResourceModel_FromClientResponse(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		ID          types.String
 		IPRange     types.String
@@ -18,7 +21,7 @@ func TestVPCResourceModel_FromClientResponse(t *testing.T) {
 		Description types.String
 	}
 	type args struct {
-		c *client.VPCConfig
+		c *client.GetVPCResponse
 	}
 	tests := []struct {
 		name    string
@@ -35,8 +38,7 @@ func TestVPCResourceModel_FromClientResponse(t *testing.T) {
 				Description: types.String{},
 			},
 			args: args{
-				c: &client.VPCConfig{
-					ID:          "",
+				c: &client.GetVPCResponse{
 					Name:        "",
 					Description: "",
 					IPRange:     "",
@@ -47,8 +49,10 @@ func TestVPCResourceModel_FromClientResponse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			m := &VPCResourceModel{
-				ID:          tt.fields.ID,
+				UUID:        tt.fields.ID,
 				IPRange:     tt.fields.IPRange,
 				Name:        tt.fields.Name,
 				Description: tt.fields.Description,
@@ -61,6 +65,8 @@ func TestVPCResourceModel_FromClientResponse(t *testing.T) {
 }
 
 func TestVPCResourceModel_ToClientRequest(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		ID          types.String
 		IPRange     types.String
@@ -70,7 +76,7 @@ func TestVPCResourceModel_ToClientRequest(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  fields
-		want    *client.VPCConfig
+		want    *client.CreateVPCRequest
 		wantErr bool
 	}{
 		{
@@ -81,8 +87,7 @@ func TestVPCResourceModel_ToClientRequest(t *testing.T) {
 				Name:        types.String{},
 				Description: types.String{},
 			},
-			want: &client.VPCConfig{
-				ID:          "",
+			want: &client.CreateVPCRequest{
 				Name:        "",
 				Description: "",
 				IPRange:     "127.0.0.1/24",
@@ -103,20 +108,22 @@ func TestVPCResourceModel_ToClientRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			m := &VPCResourceModel{
-				ID:          tt.fields.ID,
+				UUID:        tt.fields.ID,
 				IPRange:     tt.fields.IPRange,
 				Name:        tt.fields.Name,
 				Description: tt.fields.Description,
 			}
 			got, err := m.ToClientRequest()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ToClientRequest() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				require.Error(t, err)
+
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ToClientRequest() got = %v, want %v", got, tt.want)
-			}
+
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

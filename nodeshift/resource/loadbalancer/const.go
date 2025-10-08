@@ -1,4 +1,4 @@
-package load_balancer
+package loadbalancer
 
 const UUID = "uuid"
 
@@ -9,7 +9,6 @@ const (
 	KeyForwardingRules = "forwarding_rules"
 	KeyVPCUUID         = "vpc_uuid"
 	KeyStatus          = "status"
-	KeyTaskId          = "task_id"
 )
 
 const (
@@ -21,5 +20,4 @@ const (
 
 	DescriptionUUID   = "String UUID of the LB, computed"
 	DescriptionStatus = "Status of the load balancer"
-	DescriptionTaskId = "Task ID of the load balancer"
 )
