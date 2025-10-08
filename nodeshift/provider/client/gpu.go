@@ -30,7 +30,7 @@ func (c *NodeshiftClient) CreateGPU(ctx context.Context, gpu *CreateGPURequest) 
 		return nil, fmt.Errorf(errGPUPrefix, err)
 	}
 
-	tflog.Info(ctx, "created GPU: %s"+string(responseBody))
+	tflog.Info(ctx, "created GPU: "+string(responseBody))
 
 	resp := new(CreateGPUResponse)
 	if err = json.Unmarshal(responseBody, resp); err != nil {
@@ -44,14 +44,14 @@ func (c *NodeshiftClient) CreateGPU(ctx context.Context, gpu *CreateGPURequest) 
 
 	ggr, err := poll[GetGPUResponse](ctx, c, u, func(ggr *GetGPUResponse) string { return ggr.Status })
 	if err != nil {
-		return nil, fmt.Errorf("failed to poll create deployment: %w", err)
+		return nil, fmt.Errorf("failed to poll create GPU: %w", err)
 	}
 
 	return ggr, nil
 }
 
 func (c *NodeshiftClient) GetGPU(ctx context.Context, id string) (*GetGPUResponse, error) {
-	tflog.Debug(ctx, "Get GPU by id: %s"+id)
+	tflog.Debug(ctx, "Get GPU by id: "+id)
 
 	u, err := url.JoinPath(c.url, GPUEndpoint, id)
 	if err != nil {
@@ -59,7 +59,7 @@ func (c *NodeshiftClient) GetGPU(ctx context.Context, id string) (*GetGPURespons
 	}
 
 	responseBody, err := c.DoSignedRequest(ctx, http.MethodGet, u, nil)
-	tflog.Debug(ctx, "Get GPU responseBody: %s"+string(responseBody))
+	tflog.Debug(ctx, "Get GPU responseBody: "+string(responseBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get GPU: %w", err)
 	}
@@ -78,7 +78,7 @@ func (c *NodeshiftClient) UpdateGPU(ctx context.Context, id string, gpu *CreateG
 }
 
 func (c *NodeshiftClient) DeleteGPU(ctx context.Context, id string) error {
-	tflog.Debug(ctx, "Delete GPU by id: %s"+id)
+	tflog.Debug(ctx, "Delete GPU by id: "+id)
 
 	u, err := url.JoinPath(c.url, GPUEndpoint, id)
 	if err != nil {

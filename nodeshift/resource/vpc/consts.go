@@ -1,7 +1,7 @@
 package vpc
 
 const (
-	ID = "id"
+	UUID = "uuid"
 )
 
 const (

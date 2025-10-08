@@ -30,7 +30,7 @@ func (c *NodeshiftClient) CreateLB(ctx context.Context, lb *CreateLBRequest) (*G
 		return nil, fmt.Errorf(errLBPrefix, err)
 	}
 
-	tflog.Info(ctx, "created LB: %s"+string(responseBody))
+	tflog.Info(ctx, "created LB: "+string(responseBody))
 
 	resp := new(createLBResponse)
 	if err = json.Unmarshal(responseBody, resp); err != nil {
@@ -51,7 +51,7 @@ func (c *NodeshiftClient) CreateLB(ctx context.Context, lb *CreateLBRequest) (*G
 }
 
 func (c *NodeshiftClient) GetLB(ctx context.Context, uuid string) (*GetLBResponse, error) {
-	tflog.Debug(ctx, "Get LB by id: %s"+uuid)
+	tflog.Debug(ctx, "Get LB by id: "+uuid)
 
 	u, err := url.JoinPath(c.url, LBEndpoint, uuid)
 	if err != nil {
@@ -59,7 +59,7 @@ func (c *NodeshiftClient) GetLB(ctx context.Context, uuid string) (*GetLBRespons
 	}
 
 	responseBody, err := c.DoSignedRequest(ctx, http.MethodGet, u, nil)
-	tflog.Debug(ctx, "Get LB responseBody: %s"+string(responseBody))
+	tflog.Debug(ctx, "Get LB responseBody: "+string(responseBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get LB: %w", err)
 	}
@@ -78,7 +78,7 @@ func (c *NodeshiftClient) UpdateLB(ctx context.Context, uuid string, lb *CreateL
 }
 
 func (c *NodeshiftClient) DeleteLB(ctx context.Context, uuid string) error {
-	tflog.Debug(ctx, "Delete LB by id: %s"+uuid)
+	tflog.Debug(ctx, "Delete LB by id: "+uuid)
 
 	u, err := url.JoinPath(c.url, LBEndpoint, uuid)
 	if err != nil {

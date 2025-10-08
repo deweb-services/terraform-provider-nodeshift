@@ -43,17 +43,9 @@ func (c *NodeshiftClient) CreateVPC(ctx context.Context, vpc *CreateVPCRequest) 
 		return nil, fmt.Errorf("failed to join get VPC endpoint: %w", err)
 	}
 
-	gvr, err := poll[GetVPCResponse](ctx, c, u, func(gvr *GetVPCResponse) string {
-		for _, r := range gvr.Resources {
-			if r.Status != "running" {
-				return ""
-			}
-		}
-
-		return "running"
-	})
+	gvr, err := poll[GetVPCResponse](ctx, c, u, func(gvr *GetVPCResponse) string { return gvr.State })
 	if err != nil {
-		return nil, fmt.Errorf("failed to poll create deployment: %w", err)
+		return nil, fmt.Errorf("failed to poll create VPC: %w", err)
 	}
 
 	return gvr, nil
@@ -72,7 +64,7 @@ func (c *NodeshiftClient) GetVPC(ctx context.Context, id string) (*GetVPCRespons
 		return nil, fmt.Errorf("failed to get VPC: %w", err)
 	}
 
-	tflog.Debug(ctx, "Get VPC responseBody: %s"+string(responseBody))
+	tflog.Debug(ctx, "Get VPC responseBody: "+string(responseBody))
 
 	gr := new(GetVPCResponse)
 	err = json.Unmarshal(responseBody, gr)

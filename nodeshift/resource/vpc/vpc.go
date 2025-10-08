@@ -37,8 +37,8 @@ func (r *vpcResource) Schema(c context.Context, request resource.SchemaRequest, 
 	response.Schema = schema.Schema{
 		Description: "Manages a VPC",
 		Attributes: map[string]schema.Attribute{
-			ID: schema.StringAttribute{
-				Description: "String ID of the VPC, computed",
+			UUID: schema.StringAttribute{
+				Description: "String UUID of the VPC, computed",
 				Computed:    true,
 			},
 			IPRangeKeys: schema.StringAttribute{
@@ -150,7 +150,7 @@ func (r *vpcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading vpc state",
-			fmt.Sprintf("Could not read vpc state ID %s: %s", state.UUID.ValueString(), err),
+			fmt.Sprintf("Could not read vpc state UUID %s: %s", state.UUID.ValueString(), err),
 		)
 
 		return
@@ -274,6 +274,6 @@ func (r *vpcResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 }
 
 func (r *vpcResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root(ID), req, resp)
+	// Retrieve import UUID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root(UUID), req, resp)
 }

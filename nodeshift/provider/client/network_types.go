@@ -11,8 +11,9 @@ type createVPCResponse struct {
 }
 
 type GetVPCResponse struct {
-	UUID        string      `json:"uuid,omitempty"`
+	UUID        string      `json:"uuid"`
 	Name        string      `json:"name"`
+	State       string      `json:"state"`
 	Description string      `json:"description"`
 	IPRange     string      `json:"addressRange"`
 	Resources   []Resources `json:"resources"`

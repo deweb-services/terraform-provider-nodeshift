@@ -41,6 +41,7 @@ func (c *NodeshiftClient) CreateDeployment(ctx context.Context, r *CreateDeploym
 		return nil, fmt.Errorf("failed to join get deployment endpoint: %w", err)
 	}
 
+	// TODO: add ctx timeout
 	gdr, err := poll[GetDeploymentResponse](ctx, c, u, func(gdr *GetDeploymentResponse) string { return gdr.Status })
 	if err != nil {
 		return nil, fmt.Errorf("failed to poll create deployment: %w", err)
@@ -50,7 +51,7 @@ func (c *NodeshiftClient) CreateDeployment(ctx context.Context, r *CreateDeploym
 }
 
 func (c *NodeshiftClient) GetDeployment(ctx context.Context, id string) (*GetDeploymentResponse, error) {
-	tflog.Debug(ctx, "Get deployment by id: %s"+id)
+	tflog.Debug(ctx, "Get deployment by id: "+id)
 
 	u, err := url.JoinPath(c.url, deploymentEndpoint, id)
 	if err != nil {
@@ -58,7 +59,7 @@ func (c *NodeshiftClient) GetDeployment(ctx context.Context, id string) (*GetDep
 	}
 
 	responseBody, err := c.DoSignedRequest(ctx, http.MethodGet, u, nil)
-	tflog.Debug(ctx, "Get Deployment responseBody: %s"+string(responseBody))
+	tflog.Debug(ctx, "Get Deployment responseBody: "+string(responseBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get deployment: %w", err)
 	}
@@ -77,7 +78,7 @@ func (c *NodeshiftClient) UpdateDeployment(ctx context.Context, id string, r *Cr
 }
 
 func (c *NodeshiftClient) DeleteDeployment(ctx context.Context, id string) error {
-	tflog.Debug(ctx, "Delete deployment by id: %s"+id)
+	tflog.Debug(ctx, "Delete deployment by id: "+id)
 
 	u, err := url.JoinPath(c.url, deploymentEndpoint, id)
 	if err != nil {

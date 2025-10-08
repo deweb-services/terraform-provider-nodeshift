@@ -23,6 +23,7 @@ type vmResourceModel struct {
 	SSHKeyName  types.String `tfsdk:"ssh_key_name"`
 	HostName    types.String `tfsdk:"host_name"`
 	NetworkUUID types.String `tfsdk:"network_uuid"`
+	YggIP       types.String `tfsdk:"ygg_ip"`
 
 	// Computed
 	PublicIPv4 types.String `tfsdk:"public_ipv4"`

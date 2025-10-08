@@ -3,6 +3,7 @@ package deployment
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -324,8 +325,34 @@ func Test_vmResource_Create(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().CreateDeployment(gomock.Any(), gomock.Any()).Return(
+				&client.GetDeploymentResponse{
+					UUID:         "123e4567-e89b-12d3-a456-426614174000",
+					Status:       "running",
+					IP:           "192.168.1.10",
+					Cru:          4,
+					Mru:          8192,
+					Sru:          200,
+					Hru:          100,
+					HddType:      1,
+					Provider:     42,
+					Hostname:     "test-node.local",
+					Ipv6:         1,
+					SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
+					SSHKeyName:   "test-key",
+					Image:        7,
+					ImageVersion: "v1.2.3",
+					ChosenPlanID: 101,
+					Price:        "12.34",
+					CreatedAt:    time.Date(2025, 10, 7, 12, 0, 0, 0, time.UTC),
+				}, nil,
+			).AnyTimes()
+
 			r := &vmResource{
-				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
+				client: c,
 			}
 			r.Create(context.Background(), tt.args.req, tt.args.resp)
 		})
@@ -465,8 +492,13 @@ func Test_vmResource_Delete(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().DeleteDeployment(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
 			r := &vmResource{
-				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
+				client: c,
 			}
 			r.Delete(context.Background(), tt.args.req, tt.args.resp)
 		})
@@ -686,8 +718,34 @@ func Test_vmResource_Read(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().GetDeployment(gomock.Any(), gomock.Any()).Return(
+				&client.GetDeploymentResponse{
+					UUID:         "123e4567-e89b-12d3-a456-426614174000",
+					Status:       "running",
+					IP:           "192.168.1.10",
+					Cru:          4,
+					Mru:          8192,
+					Sru:          200,
+					Hru:          100,
+					HddType:      1,
+					Provider:     42,
+					Hostname:     "test-node.local",
+					Ipv6:         1,
+					SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
+					SSHKeyName:   "test-key",
+					Image:        7,
+					ImageVersion: "v1.2.3",
+					ChosenPlanID: 101,
+					Price:        "12.34",
+					CreatedAt:    time.Date(2025, 10, 7, 12, 0, 0, 0, time.UTC),
+				}, nil,
+			).AnyTimes()
+
 			r := &vmResource{
-				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
+				client: c,
 			}
 			r.Read(context.Background(), tt.args.req, tt.args.resp)
 		})
@@ -982,8 +1040,56 @@ func Test_vmResource_Update(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().UpdateDeployment(gomock.Any(), gomock.Any(), gomock.Any()).Return(
+				&client.GetDeploymentResponse{
+					UUID:         "123e4567-e89b-12d3-a456-426614174000",
+					Status:       "running",
+					IP:           "192.168.1.10",
+					Cru:          4,
+					Mru:          8192,
+					Sru:          200,
+					Hru:          100,
+					HddType:      1,
+					Provider:     42,
+					Hostname:     "test-node.local",
+					Ipv6:         1,
+					SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
+					SSHKeyName:   "test-key",
+					Image:        7,
+					ImageVersion: "v1.2.3",
+					ChosenPlanID: 101,
+					Price:        "12.34",
+					CreatedAt:    time.Date(2025, 10, 7, 12, 0, 0, 0, time.UTC),
+				}, nil,
+			).AnyTimes()
+			c.EXPECT().GetDeployment(gomock.Any(), gomock.Any()).Return(
+				&client.GetDeploymentResponse{
+					UUID:         "123e4567-e89b-12d3-a456-426614174000",
+					Status:       "running",
+					IP:           "192.168.1.10",
+					Cru:          4,
+					Mru:          8192,
+					Sru:          200,
+					Hru:          100,
+					HddType:      1,
+					Provider:     42,
+					Hostname:     "test-node.local",
+					Ipv6:         1,
+					SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
+					SSHKeyName:   "test-key",
+					Image:        7,
+					ImageVersion: "v1.2.3",
+					ChosenPlanID: 101,
+					Price:        "12.34",
+					CreatedAt:    time.Date(2025, 10, 7, 12, 0, 0, 0, time.UTC),
+				}, nil,
+			).AnyTimes()
+
 			r := &vmResource{
-				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
+				client: c,
 			}
 			r.Update(context.Background(), tt.args.req, tt.args.resp)
 		})

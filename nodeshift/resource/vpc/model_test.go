@@ -38,11 +38,7 @@ func TestVPCResourceModel_FromClientResponse(t *testing.T) {
 				Description: types.String{},
 			},
 			args: args{
-				c: &client.GetVPCResponse{
-					Name:        "",
-					Description: "",
-					IPRange:     "",
-				},
+				c: &client.GetVPCResponse{},
 			},
 			wantErr: false,
 		},

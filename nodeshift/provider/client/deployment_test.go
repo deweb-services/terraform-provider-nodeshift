@@ -61,6 +61,7 @@ func newServer(t *testing.T) (*httptest.Server, INodeshiftClient) {
 				Name:        "test-vpc",
 				Description: "This is a test VPC",
 				IPRange:     "10.0.0.0/24",
+				State:       "running",
 				Resources: []Resources{
 					{
 						IP:     "10.0.0.2",

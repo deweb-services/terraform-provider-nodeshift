@@ -30,21 +30,21 @@ func poll[T any](ctx context.Context, r requester, url string, getStatus func(*T
 			return nil, fmt.Errorf("polling canceled or timed out: %w", ctx.Err())
 
 		case <-ticker.C:
-			tflog.Debug(ctx, "polling: %s"+url)
+			tflog.Debug(ctx, "polling: "+url)
 
 			b, err := r.DoSignedRequest(ctx, http.MethodGet, url, nil)
 			if err != nil {
 				return nil, fmt.Errorf("failed request: %w", err)
 			}
 
+			tflog.Debug(ctx, "response from "+url, map[string]interface{}{
+				"body": string(b),
+			})
+
 			var resp T
 			if err := json.Unmarshal(b, &resp); err != nil {
 				return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 			}
-
-			tflog.Debug(ctx, "response from %s"+url, map[string]interface{}{
-				"body": string(b),
-			})
 
 			switch strings.ToUpper(getStatus(&resp)) {
 			case "ERROR":
