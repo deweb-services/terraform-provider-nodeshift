@@ -13,9 +13,7 @@ func Test_CreateVPC(t *testing.T) {
 	t.Parallel()
 
 	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-		url    string
+		url string
 	}
 	type args struct {
 		vpc *CreateVPCRequest
@@ -30,9 +28,7 @@ func Test_CreateVPC(t *testing.T) {
 		{
 			name: "create_vpc",
 			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-				url:    exampleURLString,
+				url: exampleURLString,
 			},
 			args: args{
 				vpc: &CreateVPCRequest{},
@@ -45,8 +41,8 @@ func Test_CreateVPC(t *testing.T) {
 			t.Parallel()
 
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
@@ -61,9 +57,7 @@ func Test_DeleteVPC(t *testing.T) {
 	t.Parallel()
 
 	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-		url    string
+		url string
 	}
 	type args struct {
 		id string
@@ -76,9 +70,7 @@ func Test_DeleteVPC(t *testing.T) {
 		{
 			name: "delete_vpc",
 			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-				url:    exampleURLString,
+				url: exampleURLString,
 			},
 			args: args{
 				id: "id",
@@ -90,8 +82,8 @@ func Test_DeleteVPC(t *testing.T) {
 			t.Parallel()
 
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
@@ -105,9 +97,7 @@ func Test_GetVPC(t *testing.T) {
 	t.Parallel()
 
 	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-		url    string
+		url string
 	}
 	type args struct {
 		id string
@@ -121,9 +111,7 @@ func Test_GetVPC(t *testing.T) {
 		{
 			name: "get_vpc",
 			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-				url:    exampleURLString,
+				url: exampleURLString,
 			},
 			args: args{
 				id: "id",
@@ -136,8 +124,8 @@ func Test_GetVPC(t *testing.T) {
 			t.Parallel()
 
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
@@ -152,9 +140,7 @@ func Test_UpdateVPC(t *testing.T) {
 	t.Parallel()
 
 	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-		url    string
+		url string
 	}
 	type args struct {
 		id  string
@@ -169,9 +155,7 @@ func Test_UpdateVPC(t *testing.T) {
 		{
 			name: "update_vpc",
 			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-				url:    exampleURLString,
+				url: exampleURLString,
 			},
 			args: args{
 				id: "id",
@@ -189,8 +173,8 @@ func Test_UpdateVPC(t *testing.T) {
 			t.Parallel()
 
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}

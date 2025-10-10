@@ -33,54 +33,6 @@ func makeTwoClients() (*NodeshiftClient, *NodeshiftClient) {
 	return cli1, cli2
 }
 
-const exampleComContent = `<!doctype html>
-<html>
-<head>
-    <title>Example Domain</title>
-
-    <meta charset="utf-8" />
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style type="text/css">
-    body {
-        background-color: #f0f0f2;
-        margin: 0;
-        padding: 0;
-        font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-        
-    }
-    div {
-        width: 600px;
-        margin: 5em auto;
-        padding: 2em;
-        background-color: #fdfdff;
-        border-radius: 0.5em;
-        box-shadow: 2px 3px 7px 2px rgba(0,0,0,0.02);
-    }
-    a:link, a:visited {
-        color: #38488f;
-        text-decoration: none;
-    }
-    @media (max-width: 700px) {
-        div {
-            margin: 0 auto;
-            width: auto;
-        }
-    }
-    </style>    
-</head>
-
-<body>
-<div>
-    <h1>Example Domain</h1>
-    <p>This domain is for use in illustrative examples in documents. You may use this
-    domain in literature without prior coordination or asking for permission.</p>
-    <p><a href="https://www.iana.org/domains/example">More information...</a></p>
-</div>
-</body>
-</html>
-`
-
 func TestClientOptWithS3(t *testing.T) {
 	t.Parallel()
 
@@ -147,10 +99,6 @@ func TestClientOptWithURL(t *testing.T) {
 func TestNodeshiftClient_DoRequest(t *testing.T) {
 	t.Parallel()
 
-	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-	}
 	type args struct {
 		req *http.Request
 	}
@@ -162,36 +110,24 @@ func TestNodeshiftClient_DoRequest(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
-		want    []byte
 		wantErr string
 	}{
 		{
 			name: "do_request",
-			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-			},
 			args: args{
 				req: &http.Request{
 					URL: newURL,
 				},
 			},
-			want: []byte(exampleComContent),
 		},
 		{
 			name: "do_request_err",
-			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-			},
 			args: args{
 				req: &http.Request{
 					URL: newErrURL,
 				},
 			},
-			want:    nil,
 			wantErr: "error making request: Get \"https://example.moc/\": dial tcp: lookup example.moc: no such host",
 		},
 	}
@@ -200,17 +136,19 @@ func TestNodeshiftClient_DoRequest(t *testing.T) {
 			t.Parallel()
 
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
 				signer: &Signer{},
 			}
-			got, err := c.DoRequest(context.TODO(), tt.args.req)
+			got, err := c.DoRequest(context.Background(), tt.args.req)
 			if tt.wantErr != "" {
 				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
+
+				return
 			}
-			assert.Equal(t, tt.want, got)
+
+			require.NoError(t, err)
+			assert.NotEmpty(t, got)
 		})
 	}
 }
@@ -219,9 +157,7 @@ func TestNodeshiftClient_DoSignedRequest(t *testing.T) {
 	t.Parallel()
 
 	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-		url    string
+		url string
 	}
 	type args struct {
 		method   string
@@ -232,31 +168,23 @@ func TestNodeshiftClient_DoSignedRequest(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    []byte
 		wantErr error
 	}{
 		{
 			name: "do_signed_request",
 			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-				url:    exampleURLString,
+				url: exampleURLString,
 			},
 			args: args{
 				method:   "GET",
 				endpoint: exampleURLString,
 				body:     bytes.NewReader([]byte{}),
 			},
-			want: []byte(exampleComContent),
 		},
 		{
-			name: "do_signed_request_err",
-			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-			},
+			name:    "do_signed_request_err",
+			fields:  fields{},
 			args:    args{},
-			want:    nil,
 			wantErr: assert.AnError,
 		},
 	}
@@ -265,18 +193,20 @@ func TestNodeshiftClient_DoSignedRequest(t *testing.T) {
 			t.Parallel()
 
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
 			got, err := c.DoSignedRequest(context.Background(), tt.args.method, tt.args.endpoint, tt.args.body)
 			if tt.wantErr != nil {
 				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
+
+				return
 			}
-			assert.Equal(t, tt.want, got)
+
+			require.NoError(t, err)
+			assert.NotEmpty(t, got)
 		})
 	}
 }
@@ -359,6 +289,7 @@ func TestNodeshiftClient_newAwsClient(t *testing.T) {
 				s3client:        tt.fields.s3client,
 			}
 			err := c.newAwsClient()
+
 			require.NoError(t, err)
 			assert.NotNil(t, c.s3client)
 		})

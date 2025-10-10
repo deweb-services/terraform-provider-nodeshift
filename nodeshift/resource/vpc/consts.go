@@ -1,5 +1,7 @@
 package vpc
 
+import "errors"
+
 const (
 	UUID = "uuid"
 )
@@ -10,3 +12,5 @@ const (
 
 	DescriptionKeys = "description"
 )
+
+var errIncorrectOctet = errors.New("incorrect octet for IP range")

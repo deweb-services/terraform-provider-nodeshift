@@ -113,7 +113,7 @@ func TestSigner_SignRequest1(t *testing.T) {
 		Header: make(http.Header, 0),
 		URL:    newURL,
 	}
-	ctx, cls := context.WithCancel(context.TODO())
+	ctx, cls := context.WithCancel(context.Background())
 	rq = rq.WithContext(ctx)
 	cls()
 	tests := []struct {
@@ -171,7 +171,7 @@ func TestSigner_signRequest(t *testing.T) {
 		Header: make(http.Header, 0),
 		URL:    newURL,
 	}
-	ctx, cls := context.WithCancel(context.TODO())
+	ctx, cls := context.WithCancel(context.Background())
 	rq = rq.WithContext(ctx)
 	cls()
 	tests := []struct {

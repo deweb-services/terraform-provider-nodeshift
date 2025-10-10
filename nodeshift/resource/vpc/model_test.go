@@ -76,29 +76,41 @@ func TestVPCResourceModel_ToClientRequest(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "vpc resource model to client request ",
-			fields: fields{
-				ID:          types.String{},
-				IPRange:     basetypes.NewStringValue("127.0.0.1/24"),
-				Name:        types.String{},
-				Description: types.String{},
-			},
-			want: &client.CreateVPCRequest{
-				Name:        "",
-				Description: "",
-				IPRange:     "127.0.0.1/24",
-			},
-			wantErr: false,
-		},
-		{
-			name: "vpc resource model to client request error",
+			name: "empty range; vpc resource model to client request; expect ok",
 			fields: fields{
 				ID:          types.String{},
 				IPRange:     types.String{},
 				Name:        types.String{},
 				Description: types.String{},
 			},
-			want:    nil,
+			want: &client.CreateVPCRequest{
+				Name:        "",
+				Description: "",
+				IPRange:     "",
+			},
+		},
+		{
+			name: "filled range; vpc resource model to client request; expect ok",
+			fields: fields{
+				ID:          types.String{},
+				IPRange:     basetypes.NewStringValue("127.0"),
+				Name:        types.String{},
+				Description: types.String{},
+			},
+			want: &client.CreateVPCRequest{
+				Name:        "",
+				Description: "",
+				IPRange:     "127.0",
+			},
+		},
+		{
+			name: "vpc resource model to client request; expect error",
+			fields: fields{
+				ID:          types.String{},
+				IPRange:     basetypes.NewStringValue("127.0.0.1/24"),
+				Name:        types.String{},
+				Description: types.String{},
+			},
 			wantErr: true,
 		},
 	}

@@ -184,7 +184,7 @@ func (c *NodeshiftClient) newAwsClient() error {
 		},
 	}
 	httpCli := &http.Client{Transport: tr}
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		return fmt.Errorf("s3 load deafault config error: %w", err)
 	}

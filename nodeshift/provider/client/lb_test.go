@@ -13,9 +13,7 @@ func TestNodeshiftClient_CreateLB(t *testing.T) {
 	t.Parallel()
 
 	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-		url    string
+		url string
 	}
 	type args struct {
 		lb *CreateLBRequest
@@ -29,9 +27,7 @@ func TestNodeshiftClient_CreateLB(t *testing.T) {
 		{
 			name: "create lb",
 			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-				url:    exampleURLString,
+				url: exampleURLString,
 			},
 			args: args{
 				lb: &CreateLBRequest{},
@@ -43,8 +39,8 @@ func TestNodeshiftClient_CreateLB(t *testing.T) {
 			t.Parallel()
 
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
@@ -58,9 +54,7 @@ func TestNodeshiftClient_DeleteLB(t *testing.T) {
 	t.Parallel()
 
 	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-		url    string
+		url string
 	}
 	type args struct {
 		id string
@@ -73,9 +67,7 @@ func TestNodeshiftClient_DeleteLB(t *testing.T) {
 		{
 			name: "delete lb",
 			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-				url:    exampleURLString,
+				url: exampleURLString,
 			},
 			args: args{
 				id: "id",
@@ -87,8 +79,8 @@ func TestNodeshiftClient_DeleteLB(t *testing.T) {
 			t.Parallel()
 
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
@@ -102,9 +94,7 @@ func TestNodeshiftClient_GetLB(t *testing.T) {
 	t.Parallel()
 
 	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-		url    string
+		url string
 	}
 	type args struct {
 		id string
@@ -118,9 +108,7 @@ func TestNodeshiftClient_GetLB(t *testing.T) {
 		{
 			name: "get lb",
 			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-				url:    exampleURLString,
+				url: exampleURLString,
 			},
 			args: args{
 				id: "id",
@@ -133,8 +121,8 @@ func TestNodeshiftClient_GetLB(t *testing.T) {
 			t.Parallel()
 
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
@@ -149,9 +137,7 @@ func TestNodeshiftClient_UpdateLB(t *testing.T) {
 	t.Parallel()
 
 	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-		url    string
+		url string
 	}
 	type args struct {
 		id string
@@ -166,9 +152,7 @@ func TestNodeshiftClient_UpdateLB(t *testing.T) {
 		{
 			name: "update lb",
 			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-				url:    exampleURLString,
+				url: exampleURLString,
 			},
 			args: args{
 				id: "id",
@@ -182,8 +166,8 @@ func TestNodeshiftClient_UpdateLB(t *testing.T) {
 			t.Parallel()
 
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}

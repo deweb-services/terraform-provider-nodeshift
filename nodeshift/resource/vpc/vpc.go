@@ -43,7 +43,7 @@ func (r *vpcResource) Schema(c context.Context, request resource.SchemaRequest, 
 			},
 			IPRangeKeys: schema.StringAttribute{
 				Description: "IP range of the VPC",
-				Required:    true,
+				Optional:    true,
 			},
 			NameKeys: schema.StringAttribute{
 				Description: "Name of the VPC",

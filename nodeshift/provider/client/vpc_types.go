@@ -3,7 +3,7 @@ package client
 type CreateVPCRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	IPRange     string `json:"ipRange"`
+	IPRange     string `json:"ipRange,omitempty"`
 }
 
 type createVPCResponse struct {

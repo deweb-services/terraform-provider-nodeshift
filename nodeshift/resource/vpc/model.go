@@ -3,6 +3,7 @@ package vpc
 import (
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -22,7 +23,16 @@ func (m *VPCResourceModel) ToClientRequest() (*client.CreateVPCRequest, error) {
 		Description: m.Description.ValueString(),
 	}
 
-	_, _, err := net.ParseCIDR(m.IPRange.ValueString())
+	if m.IPRange.IsNull() {
+		return &vpc, nil
+	}
+
+	ipRangePrefix := m.IPRange.ValueString()
+	if strings.Count(ipRangePrefix, ".") != 1 {
+		return nil, fmt.Errorf("incorrect ip range prefix: %w", errIncorrectOctet)
+	}
+
+	_, _, err := net.ParseCIDR(ipRangePrefix + ".0.0/16")
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse ip cidr: %w", err)
 	}
