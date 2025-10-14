@@ -71,6 +71,14 @@ func (p *nodeshiftProvider) Schema(_ context.Context, _ provider.SchemaRequest, 
 				Description: "Nodeshift s3 region",
 				Optional:    true,
 			},
+			APIEndpoint: schema.StringAttribute{
+				Description: "Nodeshift API endpoint address",
+				Optional:    true,
+			},
+			WithInsecure: schema.BoolAttribute{
+				Description: "Nodeshift insecure connection",
+				Optional:    true,
+			},
 		},
 	}
 }
@@ -85,6 +93,7 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 	profile := os.Getenv(EnvKeyProfile)
 	s3Endpoint := os.Getenv(EnvKeyS3Endpoint)
 	s3Region := os.Getenv(EnvKeyS3Region)
+	ae := os.Getenv(EnvKeyAPIENDPOINT)
 
 	values := []string{
 		accessKey,
@@ -93,6 +102,7 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 		profile,
 		s3Endpoint,
 		s3Region,
+		ae,
 	}
 
 	// Retrieve provider data from configuration
@@ -133,6 +143,10 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 		values[5] = config.S3Region.ValueString()
 	}
 
+	if config.APIEndpoint.ValueString() != "" {
+		values[6] = config.APIEndpoint.ValueString()
+	}
+
 	type Attribute struct {
 		EnvName  string
 		Param    *types.String
@@ -168,6 +182,11 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 		S3Region: {
 			EnvName:  EnvKeyS3Region,
 			Param:    &config.S3Region,
+			Required: false,
+		},
+		APIEndpoint: {
+			EnvName:  EnvKeyAPIENDPOINT,
+			Param:    &config.APIEndpoint,
 			Required: false,
 		},
 	}
@@ -217,15 +236,19 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 	tflog.Debug(ctx, "Creating Nodeshift client")
 	var cfg client.NodeshiftProviderConfiguration
 	cfg.FromSlice(values)
+	cfg.Insecure = config.WithInsecure.ValueBool()
 	tflog.Debug(ctx, fmt.Sprintf("%+v", values))
 
-	url := os.Getenv(EnvKeyAPIURL)
-	if url == "" {
-		url = client.APIURL
+	opts := []client.ClientOpt{client.ClientOptWithS3()}
+	if cfg.APIEndpoint != "" {
+		opts = append(opts, client.ClientOptWithURL(cfg.APIEndpoint))
+	}
+	if cfg.Insecure {
+		opts = append(opts, client.ClientOptWithInsecure())
 	}
 
 	// Create a new nodeshift client using the configuration values
-	cli := client.NewClient(ctx, cfg, client.ClientOptWithURL(url), client.ClientOptWithS3())
+	cli := client.NewClient(ctx, cfg, opts...)
 	// Make the nodeshift client available during DataSource and Resource
 	resp.DataSourceData = cli
 	resp.ResourceData = cli

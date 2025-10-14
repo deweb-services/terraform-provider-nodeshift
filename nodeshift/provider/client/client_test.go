@@ -140,7 +140,7 @@ func TestNodeshiftClient_DoRequest(t *testing.T) {
 				client: &http.Client{},
 				signer: &Signer{},
 			}
-			got, err := c.DoRequest(context.Background(), tt.args.req)
+			got, err := c.doRequest(tt.args.req)
 			if tt.wantErr != "" {
 				require.Error(t, err)
 
@@ -307,6 +307,7 @@ func TestNodeshiftProviderConfiguration_FromSlice(t *testing.T) {
 		Profile               string
 		S3Endpoint            string
 		S3Region              string
+		APIEndpoint           string
 	}
 	type args struct {
 		values []string
@@ -325,9 +326,10 @@ func TestNodeshiftProviderConfiguration_FromSlice(t *testing.T) {
 				Profile:               "profile",
 				S3Endpoint:            "s3_endpoint",
 				S3Region:              "s3_region",
+				APIEndpoint:           "api_endpoint",
 			},
 			args: args{
-				values: []string{"a_key", "s_key", "s_file", "profile", "s3_endpoint", "s3_region"},
+				values: []string{"a_key", "s_key", "s_file", "profile", "s3_endpoint", "s3_region", "api_endpoint"},
 			},
 		},
 		{
@@ -339,6 +341,7 @@ func TestNodeshiftProviderConfiguration_FromSlice(t *testing.T) {
 				Profile:               "profile",
 				S3Endpoint:            "s3_endpoint",
 				S3Region:              "s3_region",
+				APIEndpoint:           "api_url",
 			},
 			args: args{
 				values: []string{},

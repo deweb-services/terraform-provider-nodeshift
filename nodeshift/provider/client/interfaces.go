@@ -3,13 +3,11 @@ package client
 import (
 	"context"
 	"io"
-	"net/http"
 )
 
 //go:generate mockgen -source interfaces.go -destination=./interfaces_mocks.go -package=client
 
 type INodeshiftClient interface {
-	DoRequest(ctx context.Context, req *http.Request) ([]byte, error)
 	DoSignedRequest(ctx context.Context, method string, endpoint string, body io.ReadSeeker) ([]byte, error)
 	SetGlobalTransactionNote(note string)
 
