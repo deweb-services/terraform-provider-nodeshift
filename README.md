@@ -30,7 +30,7 @@ $ terraform init && terraform apply
 make docker-build # example output:  "path for local bin is <path>/terraform-provider-nodeshift/bin/"
 nano $HOME/.terraformrc # with output path above and with config below
 terraform init
-NODESHIFT_TERRAFORM_API_URL=<desired http/https path> terraform apply -auto-approve
+NODESHIFT_TERRAFORM_API_ENDPOINT=<desired http/https path> terraform apply -auto-approve
 ```
 
 To make this plugin work locally, after the installation rename the binary file to

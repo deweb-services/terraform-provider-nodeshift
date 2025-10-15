@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	APIURL = "https://app.nodeshift.com"
+	DefaultAPIEndpoint = "https://app.nodeshift.com"
 
 	defaultTimeoutSeconds = 120
 
@@ -51,6 +51,8 @@ type NodeshiftProviderConfiguration struct {
 	Profile               string
 	S3Endpoint            string
 	S3Region              string
+	APIEndpoint           string
+	Insecure              bool
 }
 
 type TaskResponse struct {
@@ -74,6 +76,7 @@ func (dc *NodeshiftProviderConfiguration) FromSlice(values []string) {
 	dc.Profile = values[3]
 	dc.S3Endpoint = values[4]
 	dc.S3Region = values[5]
+	dc.APIEndpoint = values[6]
 }
 
 func (c *NodeshiftClient) SetGlobalTransactionNote(note string) {
@@ -99,9 +102,15 @@ func NewClient(ctx context.Context, configuration NodeshiftProviderConfiguration
 
 	c := &NodeshiftClient{
 		Config: configuration,
-		client: &http.Client{},
+		client: &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					MinVersion: tls.VersionTLS12,
+				},
+			},
+		},
 		signer: signer,
-		url:    APIURL,
+		url:    DefaultAPIEndpoint,
 	}
 
 	if configuration.Timeout == 0 {
@@ -115,7 +124,7 @@ func NewClient(ctx context.Context, configuration NodeshiftProviderConfiguration
 	return c
 }
 
-func (c *NodeshiftClient) DoRequest(ctx context.Context, req *http.Request) ([]byte, error) {
+func (c *NodeshiftClient) doRequest(req *http.Request) ([]byte, error) {
 	res, err := c.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
@@ -149,7 +158,7 @@ func (c *NodeshiftClient) DoSignedRequest(ctx context.Context, method string, en
 		return nil, err
 	}
 
-	return c.DoRequest(ctx, req)
+	return c.doRequest(req)
 }
 
 func checkResponse(res *http.Response) error {
@@ -177,20 +186,30 @@ func ClientOptWithS3() ClientOpt {
 	}
 }
 
-func (c *NodeshiftClient) newAwsClient() error {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			MinVersion: tls.VersionTLS12,
-		},
+func ClientOptWithInsecure() ClientOpt {
+	return func(c *NodeshiftClient) {
+		if c.client == nil {
+			return
+		}
+
+		c.client.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{
+				// nolint: gosec
+				InsecureSkipVerify: true,
+			},
+		}
 	}
-	httpCli := &http.Client{Transport: tr}
+}
+
+func (c *NodeshiftClient) newAwsClient() error {
 	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		return fmt.Errorf("s3 load deafault config error: %w", err)
 	}
+
 	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
 		o.Region = c.Config.S3Region
-		o.HTTPClient = httpCli
+		o.HTTPClient = c.client
 		o.Credentials = credentials.NewStaticCredentialsProvider(c.Config.AccessKey,
 			c.Config.SecretAccessKey, "")
 		o.BaseEndpoint = aws.String(c.Config.S3Endpoint)

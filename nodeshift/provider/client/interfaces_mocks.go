@@ -12,7 +12,6 @@ package client
 import (
 	context "context"
 	io "io"
-	http "net/http"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -185,21 +184,6 @@ func (m *MockINodeshiftClient) DeleteVPC(ctx context.Context, id string) error {
 func (mr *MockINodeshiftClientMockRecorder) DeleteVPC(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteVPC", reflect.TypeOf((*MockINodeshiftClient)(nil).DeleteVPC), ctx, id)
-}
-
-// DoRequest mocks base method.
-func (m *MockINodeshiftClient) DoRequest(ctx context.Context, req *http.Request) ([]byte, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DoRequest", ctx, req)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// DoRequest indicates an expected call of DoRequest.
-func (mr *MockINodeshiftClientMockRecorder) DoRequest(ctx, req any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoRequest", reflect.TypeOf((*MockINodeshiftClient)(nil).DoRequest), ctx, req)
 }
 
 // DoSignedRequest mocks base method.

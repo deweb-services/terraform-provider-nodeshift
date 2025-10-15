@@ -8,6 +8,8 @@ const (
 	Profile               = "profile"
 	S3Endpoint            = "s3_endpoint"
 	S3Region              = "s3_region"
+	APIEndpoint           = "api_endpoint"
+	WithInsecure          = "with_insecure"
 )
 
 const (
@@ -17,5 +19,5 @@ const (
 	EnvKeyProfile               = "NODESHIFT_PROFILE"
 	EnvKeyS3Endpoint            = "NODESHIFT_S3_ENDPOINT"
 	EnvKeyS3Region              = "NODESHIFT_S3_REGION"
-	EnvKeyAPIURL                = "NODESHIFT_TERRAFORM_API_URL"
+	EnvKeyAPIENDPOINT           = "NODESHIFT_TERRAFORM_API_ENDPOINT"
 )
