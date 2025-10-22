@@ -40,8 +40,8 @@ func (r *vmResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 	resp.Schema = schema.Schema{
 		Description: "Manages a deployment",
 		Attributes: map[string]schema.Attribute{
-			ID: schema.StringAttribute{
-				Description: "String ID of the deployment, computed",
+			UUID: schema.StringAttribute{
+				Description: "String UUID of the deployment, computed",
 				Computed:    true,
 			},
 			DeploymentKeysImage: schema.StringAttribute{
@@ -69,19 +69,12 @@ func (r *vmResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				Description: DiskTypeDescription,
 			},
 			DeploymentKeysAssignPublicIPv4: schema.BoolAttribute{
-				Computed:    true,
 				Optional:    true,
 				Description: AssignPublicIPv4Description,
 			},
 			DeploymentKeysAssignPublicIPv6: schema.BoolAttribute{
-				Computed:    true,
 				Optional:    true,
 				Description: AssignPublicIPv6Description,
-			},
-			DeploymentKeysAssignYggIP: schema.BoolAttribute{
-				Computed:    true,
-				Optional:    true,
-				Description: AssignYggIPDescription,
 			},
 			DeploymentKeysSSHKey: schema.StringAttribute{
 				Required:    true,
@@ -107,11 +100,8 @@ func (r *vmResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 			},
 			DeploymentKeysPublicIPv6: schema.StringAttribute{
 				Computed:    true,
+				Optional:    true,
 				Description: PublicIPv6Description,
-			},
-			DeploymentKeysYggIP: schema.StringAttribute{
-				Computed:    true,
-				Description: YggIPDescription,
 			},
 		},
 	}
@@ -212,11 +202,11 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 	}
 
 	// Get refreshed order value from client
-	vm, err := r.client.GetDeployment(ctx, state.ID.ValueString())
+	vm, err := r.client.GetDeployment(ctx, state.UUID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Deployment state",
-			fmt.Sprintf("Could not read Deployment state ID %s: %s", state.ID.ValueString(), err),
+			fmt.Sprintf("Could not read Deployment state UUID %s: %s", state.UUID.ValueString(), err),
 		)
 
 		return
@@ -263,22 +253,22 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 	}
 
 	// Update existing order
-	_, err = r.client.UpdateDeployment(ctx, plan.ID.ValueString(), requestData)
+	_, err = r.client.UpdateDeployment(ctx, plan.UUID.ValueString(), requestData)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Deployment state",
-			fmt.Sprintf("Could not update Deployment state %s, unexpected error: %s", plan.ID.ValueString(), err),
+			fmt.Sprintf("Could not update Deployment state %s, unexpected error: %s", plan.UUID.ValueString(), err),
 		)
 
 		return
 	}
 
 	// Fetch updated items from GetDeployment as UpdateDeployment items are not populated.
-	vm, err := r.client.GetDeployment(ctx, plan.ID.ValueString())
+	vm, err := r.client.GetDeployment(ctx, plan.UUID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error Reading Deployment state",
-			fmt.Sprintf("Could not read Deployment name %s: %s", plan.ID.ValueString(), err),
+			fmt.Sprintf("Could not read Deployment name %s: %s", plan.UUID.ValueString(), err),
 		)
 
 		return
@@ -314,7 +304,7 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 	}
 
 	// Delete existing Deployment
-	if err := r.client.DeleteDeployment(ctx, state.ID.ValueString()); err != nil {
+	if err := r.client.DeleteDeployment(ctx, state.UUID.ValueString()); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Deleting VM",
 			fmt.Sprintf("Could not delete vm, unexpected error: %s", err),
@@ -325,6 +315,6 @@ func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, res
 }
 
 func (r *vmResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root(ID), req, resp)
+	// Retrieve import UUID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root(UUID), req, resp)
 }

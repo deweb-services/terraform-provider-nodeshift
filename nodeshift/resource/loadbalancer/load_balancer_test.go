@@ -2,8 +2,8 @@ package loadbalancer
 
 import (
 	"context"
-	"reflect"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
@@ -32,9 +33,7 @@ func TestNewLBResource(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := NewLBResource(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewLBResource() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, NewLBResource())
 		})
 	}
 }
@@ -397,9 +396,23 @@ func Test_lbResource_Create(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			r := &lbResource{
-				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
-			}
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().CreateLB(gomock.Any(), gomock.Any()).Return(
+				&client.GetLBResponse{
+					UUID:           "lb-123e4567-e89b-12d3-a456-426614174000",
+					Name:           "test-lb",
+					Status:         "running",
+					ReplicasAmount: 2,
+					CPUAmount:      8,
+					PriceInUSD:     "123.45",
+					CreatedAt:      time.Date(2025, 10, 7, 12, 0, 0, 0, time.UTC),
+				},
+				nil,
+			).AnyTimes()
+
+			r := &lbResource{client: c}
 			r.Create(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
@@ -696,9 +709,12 @@ func Test_lbResource_Delete(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			r := &lbResource{
-				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
-			}
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().DeleteLB(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
+			r := &lbResource{client: c}
 			r.Delete(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
@@ -1077,9 +1093,23 @@ func Test_lbResource_Read(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			r := &lbResource{
-				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
-			}
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().GetLB(gomock.Any(), gomock.Any()).Return(
+				&client.GetLBResponse{
+					UUID:           "lb-123e4567-e89b-12d3-a456-426614174000",
+					Name:           "test-lb",
+					Status:         "running",
+					ReplicasAmount: 2,
+					CPUAmount:      8,
+					PriceInUSD:     "123.45",
+					CreatedAt:      time.Date(2025, 10, 7, 12, 0, 0, 0, time.UTC),
+				},
+				nil,
+			).AnyTimes()
+
+			r := &lbResource{client: c}
 			r.Read(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}
@@ -1434,9 +1464,36 @@ func Test_lbResource_Update(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			r := &lbResource{
-				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
-			}
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().UpdateLB(gomock.Any(), gomock.Any(), gomock.Any()).Return(
+				&client.GetLBResponse{
+					UUID:           "lb-123e4567-e89b-12d3-a456-426614174000",
+					Name:           "test-lb",
+					Status:         "running",
+					ReplicasAmount: 2,
+					CPUAmount:      8,
+					PriceInUSD:     "123.45",
+					CreatedAt:      time.Date(2025, 10, 7, 12, 0, 0, 0, time.UTC),
+				},
+				nil,
+			).AnyTimes()
+
+			c.EXPECT().GetLB(gomock.Any(), gomock.Any()).Return(
+				&client.GetLBResponse{
+					UUID:           "lb-123e4567-e89b-12d3-a456-426614174000",
+					Name:           "test-lb",
+					Status:         "running",
+					ReplicasAmount: 2,
+					CPUAmount:      8,
+					PriceInUSD:     "123.45",
+					CreatedAt:      time.Date(2025, 10, 7, 12, 0, 0, 0, time.UTC),
+				},
+				nil,
+			).AnyTimes()
+
+			r := &lbResource{client: c}
 			r.Update(context.Background(), tt.args.req, tt.args.resp)
 		})
 	}

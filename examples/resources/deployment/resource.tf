@@ -5,11 +5,10 @@ resource "nodeshift_deployment" "example" {
   // RAM in MB
   ram = 1024
   // Disk in MB
-  disk_size = 61440
+  disk_size = 25600
   disk_type = "hdd"
   assign_public_ipv4 = true
   assign_public_ipv6 = false
-  assign_ygg_ip = true
   ssh_key = "ssh-ed25519"
   ssh_key_name = "very-unique-name"
   host_name = "bestname"

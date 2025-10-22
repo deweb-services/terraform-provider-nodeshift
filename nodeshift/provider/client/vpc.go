@@ -7,16 +7,17 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-const errVPCPrefix = "failed to create vpc: %w"
+const fiveMinuteTimeout = 5 * time.Minute
 
 func (c *NodeshiftClient) CreateVPC(ctx context.Context, vpc *CreateVPCRequest) (*GetVPCResponse, error) {
 	b, err := json.Marshal(vpc)
 	if err != nil {
-		return nil, fmt.Errorf(errVPCPrefix, err)
+		return nil, fmt.Errorf("failed to encode create vpc request: %w", err)
 	}
 
 	tflog.Info(ctx, "VPC to create: "+string(b))
@@ -28,14 +29,14 @@ func (c *NodeshiftClient) CreateVPC(ctx context.Context, vpc *CreateVPCRequest) 
 
 	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, u, bytes.NewReader(b))
 	if err != nil {
-		return nil, fmt.Errorf(errVPCPrefix, err)
+		return nil, fmt.Errorf("failed to do signed request for vpc create: %w", err)
 	}
 
 	tflog.Info(ctx, "created VPC: "+string(responseBody))
 
 	cr := new(createVPCResponse)
 	if err = json.Unmarshal(responseBody, cr); err != nil {
-		return nil, fmt.Errorf(errVPCPrefix, err)
+		return nil, fmt.Errorf("failed to decode vpc create response: %w", err)
 	}
 
 	u, err = url.JoinPath(c.url, VPCEndpoint, cr.UUID)
@@ -43,7 +44,10 @@ func (c *NodeshiftClient) CreateVPC(ctx context.Context, vpc *CreateVPCRequest) 
 		return nil, fmt.Errorf("failed to join get VPC endpoint: %w", err)
 	}
 
-	gvr, err := poll[GetVPCResponse](ctx, c, u, func(gvr *GetVPCResponse) string { return gvr.State })
+	tctx, cancel := context.WithTimeout(ctx, fiveMinuteTimeout)
+	defer cancel()
+
+	gvr, err := poll[GetVPCResponse](tctx, c, u, func(gvr *GetVPCResponse) string { return gvr.Status })
 	if err != nil {
 		return nil, fmt.Errorf("failed to poll create VPC: %w", err)
 	}
@@ -61,7 +65,7 @@ func (c *NodeshiftClient) GetVPC(ctx context.Context, id string) (*GetVPCRespons
 
 	responseBody, err := c.DoSignedRequest(ctx, http.MethodGet, u, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get VPC: %w", err)
+		return nil, fmt.Errorf("failed to do signed request for vpc get: %w", err)
 	}
 
 	tflog.Debug(ctx, "Get VPC responseBody: "+string(responseBody))
@@ -69,7 +73,7 @@ func (c *NodeshiftClient) GetVPC(ctx context.Context, id string) (*GetVPCRespons
 	gr := new(GetVPCResponse)
 	err = json.Unmarshal(responseBody, gr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal get deployment response body: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal get vpc response: %w", err)
 	}
 
 	return gr, nil

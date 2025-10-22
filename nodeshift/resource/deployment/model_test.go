@@ -23,14 +23,12 @@ func Test_vmResourceModel_FromClientResponse(t *testing.T) {
 		DiskType    types.String
 		IPv4        types.Bool
 		IPv6        types.Bool
-		Ygg         types.Bool
 		SSHKey      types.String
 		SSHKeyName  types.String
 		HostName    types.String
 		NetworkUUID types.String
 		PublicIPv4  types.String
 		PublicIPv6  types.String
-		YggIP       types.String
 	}
 	type args struct {
 		c *client.GetDeploymentResponse
@@ -52,14 +50,12 @@ func Test_vmResourceModel_FromClientResponse(t *testing.T) {
 				DiskType:    types.StringValue("disk_type"),
 				IPv4:        types.BoolValue(true),
 				IPv6:        types.BoolValue(false),
-				Ygg:         types.BoolValue(false),
 				SSHKey:      types.StringValue("ssh_key"),
 				SSHKeyName:  types.StringValue("ssh_key_name"),
 				HostName:    types.StringValue(""),
 				NetworkUUID: types.StringValue("network_uuid"),
 				PublicIPv4:  types.StringValue(""),
-				PublicIPv6:  types.StringValue(""),
-				YggIP:       types.StringValue(""),
+				PublicIPv6:  types.StringNull(),
 			},
 			args: args{
 				c: &client.GetDeploymentResponse{},
@@ -71,7 +67,7 @@ func Test_vmResourceModel_FromClientResponse(t *testing.T) {
 			t.Parallel()
 
 			v := &vmResourceModel{
-				ID:          tt.fields.ID,
+				UUID:        tt.fields.ID,
 				Image:       tt.fields.Image,
 				Region:      tt.fields.Region,
 				CPU:         tt.fields.CPU,
@@ -80,7 +76,6 @@ func Test_vmResourceModel_FromClientResponse(t *testing.T) {
 				DiskType:    tt.fields.DiskType,
 				IPv4:        tt.fields.IPv4,
 				IPv6:        tt.fields.IPv6,
-				Ygg:         tt.fields.Ygg,
 				SSHKey:      tt.fields.SSHKey,
 				SSHKeyName:  tt.fields.SSHKeyName,
 				HostName:    tt.fields.HostName,
@@ -89,7 +84,7 @@ func Test_vmResourceModel_FromClientResponse(t *testing.T) {
 				PublicIPv6:  tt.fields.PublicIPv6,
 			}
 			v.FromClientResponse(tt.args.c)
-			assert.Equal(t, tt.fields.ID, v.ID)
+			assert.Equal(t, tt.fields.ID, v.UUID)
 			assert.Equal(t, tt.fields.Image, v.Image)
 			assert.Equal(t, tt.fields.Region, v.Region)
 			assert.Equal(t, tt.fields.CPU, v.CPU)
@@ -98,7 +93,6 @@ func Test_vmResourceModel_FromClientResponse(t *testing.T) {
 			assert.Equal(t, tt.fields.DiskType, v.DiskType)
 			assert.Equal(t, tt.fields.IPv4, v.IPv4)
 			assert.Equal(t, tt.fields.IPv6, v.IPv6)
-			assert.Equal(t, tt.fields.Ygg, v.Ygg)
 			assert.Equal(t, tt.fields.SSHKey, v.SSHKey)
 			assert.Equal(t, tt.fields.SSHKeyName, v.SSHKeyName)
 			assert.Equal(t, tt.fields.HostName, v.HostName)
@@ -122,14 +116,12 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 		DiskType    types.String
 		IPv4        types.Bool
 		IPv6        types.Bool
-		Ygg         types.Bool
 		SSHKey      types.String
 		SSHKeyName  types.String
 		HostName    types.String
 		NetworkUUID types.String
 		PublicIPv4  types.String
 		PublicIPv6  types.String
-		YggIP       types.String
 	}
 	tests := []struct {
 		name    string
@@ -149,14 +141,12 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 				DiskType:    types.StringValue("disk_type"),
 				IPv4:        types.BoolValue(true),
 				IPv6:        types.BoolValue(false),
-				Ygg:         types.BoolValue(false),
 				SSHKey:      types.StringValue("ssh_key"),
 				SSHKeyName:  types.StringValue("ssh_key_name"),
 				HostName:    types.StringValue("host_name"),
 				NetworkUUID: types.StringValue("network_uuid"),
 				PublicIPv4:  types.StringValue("public_ipv4"),
 				PublicIPv6:  types.StringValue(""),
-				YggIP:       types.StringValue(""),
 			},
 			want: &client.CreateDeploymentRequest{
 				ImageVersion: "image",
@@ -167,7 +157,6 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 				HddType:      "disk_type",
 				Ipv4:         true,
 				Ipv6:         false,
-				Ygg:          false,
 				SSHKey:       "ssh_key",
 				SSHKeyName:   "ssh_key_name",
 				HostName:     "host_name",
@@ -186,14 +175,12 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 				DiskType:    types.StringValue("disk_type"),
 				IPv4:        types.BoolValue(true),
 				IPv6:        types.BoolValue(false),
-				Ygg:         types.BoolValue(false),
 				SSHKey:      types.StringValue("ssh_key"),
 				SSHKeyName:  types.StringValue("ssh_key_name"),
 				HostName:    types.StringValue("host_name"),
 				NetworkUUID: types.StringValue("network_uuid"),
 				PublicIPv4:  types.StringValue("public_ipv4"),
 				PublicIPv6:  types.StringValue(""),
-				YggIP:       types.StringValue(""),
 			},
 			want:    nil,
 			wantErr: true,
@@ -210,14 +197,12 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 				DiskType:    types.StringValue("disk_type"),
 				IPv4:        types.BoolValue(true),
 				IPv6:        types.BoolValue(false),
-				Ygg:         types.BoolValue(false),
 				SSHKey:      types.StringValue("ssh_key"),
 				SSHKeyName:  types.StringValue("ssh_key_name"),
 				HostName:    types.StringValue("host_name"),
 				NetworkUUID: types.StringValue("network_uuid"),
 				PublicIPv4:  types.StringValue("public_ipv4"),
 				PublicIPv6:  types.StringValue(""),
-				YggIP:       types.StringValue(""),
 			},
 			want:    nil,
 			wantErr: true,
@@ -235,14 +220,12 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 				DiskType:    types.StringValue("disk_type"),
 				IPv4:        types.BoolValue(true),
 				IPv6:        types.BoolValue(false),
-				Ygg:         types.BoolValue(false),
 				SSHKey:      types.StringValue("ssh_key"),
 				SSHKeyName:  types.StringValue("ssh_key_name"),
 				HostName:    types.StringValue("host_name"),
 				NetworkUUID: types.StringValue("network_uuid"),
 				PublicIPv4:  types.StringValue("public_ipv4"),
 				PublicIPv6:  types.StringValue(""),
-				YggIP:       types.StringValue(""),
 			},
 			want:    nil,
 			wantErr: true,
@@ -260,14 +243,12 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 				DiskType:    types.StringValue("disk_type"),
 				IPv4:        types.BoolValue(true),
 				IPv6:        types.BoolValue(false),
-				Ygg:         types.BoolValue(false),
 				SSHKey:      types.StringValue("ssh_key"),
 				SSHKeyName:  types.StringValue("ssh_key_name"),
 				HostName:    types.StringValue("host_name"),
 				NetworkUUID: types.StringValue("network_uuid"),
 				PublicIPv4:  types.StringValue("public_ipv4"),
 				PublicIPv6:  types.StringValue(""),
-				YggIP:       types.StringValue(""),
 			},
 			want:    nil,
 			wantErr: true,
@@ -284,14 +265,12 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 				DiskType:    types.StringValue("disk_type"),
 				IPv4:        types.BoolValue(true),
 				IPv6:        types.BoolValue(false),
-				Ygg:         types.BoolValue(false),
 				SSHKey:      types.StringValue("ssh_key"),
 				SSHKeyName:  types.StringValue("ssh_key_name"),
 				HostName:    types.StringValue("host_name"),
 				NetworkUUID: types.StringValue("network_uuid"),
 				PublicIPv4:  types.StringValue("public_ipv4"),
 				PublicIPv6:  types.StringValue(""),
-				YggIP:       types.StringValue(""),
 			},
 			want:    nil,
 			wantErr: true,
@@ -308,14 +287,12 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 				DiskType:    types.StringNull(),
 				IPv4:        types.BoolValue(true),
 				IPv6:        types.BoolValue(false),
-				Ygg:         types.BoolValue(false),
 				SSHKey:      types.StringValue("ssh_key"),
 				SSHKeyName:  types.StringValue("ssh_key_name"),
 				HostName:    types.StringValue("host_name"),
 				NetworkUUID: types.StringValue("network_uuid"),
 				PublicIPv4:  types.StringValue("public_ipv4"),
 				PublicIPv6:  types.StringValue(""),
-				YggIP:       types.StringValue(""),
 			},
 			want:    nil,
 			wantErr: true,
@@ -332,14 +309,12 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 				DiskType:    types.StringValue("disk_type"),
 				IPv4:        types.BoolValue(true),
 				IPv6:        types.BoolValue(false),
-				Ygg:         types.BoolValue(false),
 				SSHKey:      types.StringNull(),
 				SSHKeyName:  types.StringValue("ssh_key_name"),
 				HostName:    types.StringValue("host_name"),
 				NetworkUUID: types.StringValue("network_uuid"),
 				PublicIPv4:  types.StringValue("public_ipv4"),
 				PublicIPv6:  types.StringValue(""),
-				YggIP:       types.StringValue(""),
 			},
 			want:    nil,
 			wantErr: true,
@@ -356,14 +331,12 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 				DiskType:    types.StringValue("disk_type"),
 				IPv4:        types.BoolValue(true),
 				IPv6:        types.BoolValue(false),
-				Ygg:         types.BoolValue(false),
 				SSHKey:      types.StringValue("ssh_key"),
 				SSHKeyName:  types.StringValue("ssh_key_name"),
 				HostName:    types.StringNull(),
 				NetworkUUID: types.StringValue("network_uuid"),
 				PublicIPv4:  types.StringValue("public_ipv4"),
 				PublicIPv6:  types.StringValue(""),
-				YggIP:       types.StringValue(""),
 			},
 			want:    nil,
 			wantErr: true,
@@ -374,7 +347,7 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 			t.Parallel()
 
 			v := &vmResourceModel{
-				ID:          tt.fields.ID,
+				UUID:        tt.fields.ID,
 				Image:       tt.fields.Image,
 				Region:      tt.fields.Region,
 				CPU:         tt.fields.CPU,
@@ -383,7 +356,6 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 				DiskType:    tt.fields.DiskType,
 				IPv4:        tt.fields.IPv4,
 				IPv6:        tt.fields.IPv6,
-				Ygg:         tt.fields.Ygg,
 				SSHKey:      tt.fields.SSHKey,
 				SSHKeyName:  types.StringValue("ssh_key_name"),
 				HostName:    tt.fields.HostName,
@@ -400,7 +372,7 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ToClientRequest() got = %v, want %v", got, tt.want)
 			}
-			assert.Equal(t, tt.fields.ID, v.ID)
+			assert.Equal(t, tt.fields.ID, v.UUID)
 			assert.Equal(t, tt.fields.Image, v.Image)
 			assert.Equal(t, tt.fields.Region, v.Region)
 			assert.Equal(t, tt.fields.CPU, v.CPU)
@@ -409,7 +381,6 @@ func Test_vmResourceModel_ToClientRequest(t *testing.T) {
 			assert.Equal(t, tt.fields.DiskType, v.DiskType)
 			assert.Equal(t, tt.fields.IPv4, v.IPv4)
 			assert.Equal(t, tt.fields.IPv6, v.IPv6)
-			assert.Equal(t, tt.fields.Ygg, v.Ygg)
 			assert.Equal(t, tt.fields.SSHKey, v.SSHKey)
 			assert.Equal(t, tt.fields.SSHKeyName, v.SSHKeyName)
 			assert.Equal(t, tt.fields.HostName, v.HostName)

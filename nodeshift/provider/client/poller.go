@@ -34,7 +34,7 @@ func poll[T any](ctx context.Context, r requester, url string, getStatus func(*T
 
 			b, err := r.DoSignedRequest(ctx, http.MethodGet, url, nil)
 			if err != nil {
-				return nil, fmt.Errorf("failed request: %w", err)
+				return nil, fmt.Errorf("failed to do signed request: %w", err)
 			}
 
 			tflog.Debug(ctx, "response from "+url, map[string]interface{}{
@@ -46,10 +46,10 @@ func poll[T any](ctx context.Context, r requester, url string, getStatus func(*T
 				return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 			}
 
-			switch strings.ToUpper(getStatus(&resp)) {
-			case "ERROR":
+			switch strings.ToLower(getStatus(&resp)) {
+			case "error":
 				return nil, fmt.Errorf("failed to poll entity: %w", errStatusFailed)
-			case "RUNNING":
+			case "running":
 				return &resp, nil
 			default:
 				continue

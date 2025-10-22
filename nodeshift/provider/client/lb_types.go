@@ -98,7 +98,6 @@ type VPCResource struct {
 	CRU       int       `json:"cru"`
 	MRU       int       `json:"mru"`
 	SRU       int       `json:"sru"`
-	TaskID    string    `json:"taskId"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

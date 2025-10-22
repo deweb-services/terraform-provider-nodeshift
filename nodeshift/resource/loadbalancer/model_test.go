@@ -22,7 +22,6 @@ func TestLBResourceModel_FromClientRentedLBResponse(t *testing.T) {
 		VPCUUID         types.String
 		UUID            types.String
 		Status          types.String
-		TaskID          types.String
 	}
 	type args struct {
 		c *client.GetLBResponse
@@ -115,7 +114,6 @@ func TestLBResourceModel_FromClientRentedLBResponse(t *testing.T) {
 				VPCUUID: types.StringValue("vpc-1234-uuid"),
 				UUID:    types.StringValue("lb-uuid-5678"),
 				Status:  types.StringValue("running"),
-				TaskID:  types.StringValue("task-abc-123"),
 			},
 			args: args{
 				c: &client.GetLBResponse{},
@@ -135,7 +133,6 @@ func TestLBResourceModel_FromClientRentedLBResponse(t *testing.T) {
 				VPCUUID:         tt.fields.VPCUUID,
 				UUID:            tt.fields.UUID,
 				Status:          tt.fields.Status,
-				TaskID:          tt.fields.TaskID,
 			}
 			if err := m.FromClientRentedLBResponse(tt.args.c); (err != nil) != tt.wantErr {
 				t.Errorf("FromClientRentedLBResponse() error = %v, wantErr %v", err, tt.wantErr)
@@ -155,7 +152,6 @@ func TestLBResourceModel_FromClientResponse(t *testing.T) {
 		VPCUUID         types.String
 		UUID            types.String
 		Status          types.String
-		TaskID          types.String
 	}
 	type args struct {
 		c *client.GetLBResponse
@@ -248,7 +244,6 @@ func TestLBResourceModel_FromClientResponse(t *testing.T) {
 				VPCUUID: types.StringValue("vpc-1234-uuid"),
 				UUID:    types.StringValue("lb-uuid-5678"),
 				Status:  types.StringValue("running"),
-				TaskID:  types.StringValue("task-abc-123"),
 			},
 			args: args{
 				c: &client.GetLBResponse{},
@@ -268,7 +263,6 @@ func TestLBResourceModel_FromClientResponse(t *testing.T) {
 				VPCUUID:         tt.fields.VPCUUID,
 				UUID:            tt.fields.UUID,
 				Status:          tt.fields.Status,
-				TaskID:          tt.fields.TaskID,
 			}
 			if err := m.FromClientResponse(tt.args.c); (err != nil) != tt.wantErr {
 				t.Errorf("FromClientResponse() error = %v, wantErr %v", err, tt.wantErr)
@@ -288,7 +282,6 @@ func TestLBResourceModel_ToClientRequest(t *testing.T) {
 		VPCUUID         types.String
 		UUID            types.String
 		Status          types.String
-		TaskID          types.String
 	}
 	tests := []struct {
 		name    string
@@ -375,7 +368,6 @@ func TestLBResourceModel_ToClientRequest(t *testing.T) {
 				VPCUUID: types.StringValue("vpc-1234-uuid"),
 				UUID:    types.StringValue("lb-uuid-5678"),
 				Status:  types.StringValue("running"),
-				TaskID:  types.StringValue("task-abc-123"),
 			},
 			want: &client.CreateLBRequest{
 				Name: "my-loadbalancer",
@@ -416,7 +408,6 @@ func TestLBResourceModel_ToClientRequest(t *testing.T) {
 				VPCUUID:         tt.fields.VPCUUID,
 				UUID:            tt.fields.UUID,
 				Status:          tt.fields.Status,
-				TaskID:          tt.fields.TaskID,
 			}
 			got, err := m.ToClientRequest()
 			if tt.wantErr {
