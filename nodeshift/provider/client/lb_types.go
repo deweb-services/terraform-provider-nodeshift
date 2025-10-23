@@ -10,7 +10,7 @@ type CreateLBRequest struct {
 	Replicas        map[string]int   `json:"replicas"`
 	CPUUUIDs        []string         `json:"cpuUuids"`
 	ForwardingRules []ForwardingRule `json:"forwardingRules"`
-	VPCUUID         string           `json:"vpcUuid"`
+	VPCUUID         string           `json:"vpcUuid,omitempty"`
 }
 
 type ForwardingRule struct {
