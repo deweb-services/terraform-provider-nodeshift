@@ -39,7 +39,6 @@ func newServer(t *testing.T) (*httptest.Server, INodeshiftClient) {
 				HddType:      1,
 				Provider:     42,
 				Hostname:     "test-node.local",
-				Ipv6:         1,
 				SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
 				SSHKeyName:   "test-key",
 				Image:        7,
@@ -61,7 +60,7 @@ func newServer(t *testing.T) (*httptest.Server, INodeshiftClient) {
 				Name:        "test-vpc",
 				Description: "This is a test VPC",
 				IPRange:     "10.0.0.0/24",
-				State:       "running",
+				Status:      "running",
 				Resources: []Resources{
 					{
 						IP:     "10.0.0.2",
@@ -147,7 +146,6 @@ func newServer(t *testing.T) (*httptest.Server, INodeshiftClient) {
 							CRU:       4,
 							MRU:       8192,
 							SRU:       200,
-							TaskID:    "task-abc",
 							CreatedAt: time.Date(2025, 10, 7, 10, 0, 0, 0, time.UTC),
 						},
 					},
@@ -159,7 +157,7 @@ func newServer(t *testing.T) (*httptest.Server, INodeshiftClient) {
 				Deployments: []Deployment{
 					{
 						UUID:         "dep-1",
-						Status:       1,
+						Status:       "running",
 						IP:           "10.0.0.2",
 						CRU:          4,
 						MRU:          8192,
@@ -219,7 +217,6 @@ func Test_DeploymentCreate(t *testing.T) {
 		HddType:      "1",
 		Ipv4:         true,
 		Ipv6:         true,
-		Ygg:          false,
 		SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
 		SSHKeyName:   "test-key",
 		HostName:     "test-node.local",

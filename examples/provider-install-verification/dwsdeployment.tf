@@ -38,7 +38,6 @@ resource "nodeshift_deployment" "hello_world" {
   disk_type = "hdd"
   assign_public_ipv4 = true
   assign_public_ipv6 = true
-  assign_ygg_ip = true
   ssh-key = "ssh-rsa ..."
   network_id = nodeshift_network.example.id
 }

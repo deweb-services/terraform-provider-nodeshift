@@ -93,7 +93,7 @@ func Test_vmResource_Create(t *testing.T) {
 				req: resource.CreateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                             tftypes.NewValue(tftypes.String, ""),
+							UUID:                           tftypes.NewValue(tftypes.String, ""),
 							DeploymentKeysImage:            tftypes.NewValue(tftypes.String, DeploymentKeysImage),
 							DeploymentKeysRegion:           tftypes.NewValue(tftypes.String, DeploymentKeysRegion),
 							DeploymentKeysCPU:              tftypes.NewValue(tftypes.Number, 1),
@@ -102,20 +102,18 @@ func Test_vmResource_Create(t *testing.T) {
 							DeploymentKeysDiskType:         tftypes.NewValue(tftypes.String, DeploymentKeysDiskType),
 							DeploymentKeysAssignPublicIPv4: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
-							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
 							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
 							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
-							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a deployment",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the deployment, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
 									Computed:    true,
 								},
 								DeploymentKeysImage: schema.StringAttribute{
@@ -152,11 +150,6 @@ func Test_vmResource_Create(t *testing.T) {
 									Optional:    true,
 									Description: AssignPublicIPv6Description,
 								},
-								DeploymentKeysAssignYggIP: schema.BoolAttribute{
-									Computed:    true,
-									Optional:    true,
-									Description: AssignYggIPDescription,
-								},
 								DeploymentKeysSSHKey: schema.StringAttribute{
 									Required:    true,
 									Description: SSHKeyDescription,
@@ -181,10 +174,6 @@ func Test_vmResource_Create(t *testing.T) {
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
 									Description: PublicIPv6Description,
-								},
-								DeploymentKeysYggIP: schema.StringAttribute{
-									Computed:    true,
-									Description: YggIPDescription,
 								},
 							},
 						},
@@ -220,7 +209,7 @@ func Test_vmResource_Create(t *testing.T) {
 				req: resource.CreateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                             tftypes.NewValue(tftypes.String, ""),
+							UUID:                           tftypes.NewValue(tftypes.String, ""),
 							DeploymentKeysImage:            tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
 							DeploymentKeysRegion:           tftypes.NewValue(tftypes.String, DeploymentKeysRegion),
 							DeploymentKeysCPU:              tftypes.NewValue(tftypes.Number, 1),
@@ -229,20 +218,18 @@ func Test_vmResource_Create(t *testing.T) {
 							DeploymentKeysDiskType:         tftypes.NewValue(tftypes.String, DeploymentKeysDiskType),
 							DeploymentKeysAssignPublicIPv4: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
-							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
 							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
 							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
-							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a deployment",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the deployment, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
 									Computed:    true,
 								},
 								DeploymentKeysImage: schema.StringAttribute{
@@ -279,11 +266,6 @@ func Test_vmResource_Create(t *testing.T) {
 									Optional:    true,
 									Description: AssignPublicIPv6Description,
 								},
-								DeploymentKeysAssignYggIP: schema.BoolAttribute{
-									Computed:    true,
-									Optional:    true,
-									Description: AssignYggIPDescription,
-								},
 								DeploymentKeysSSHKey: schema.StringAttribute{
 									Required:    true,
 									Description: SSHKeyDescription,
@@ -308,10 +290,6 @@ func Test_vmResource_Create(t *testing.T) {
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
 									Description: PublicIPv6Description,
-								},
-								DeploymentKeysYggIP: schema.StringAttribute{
-									Computed:    true,
-									Description: YggIPDescription,
 								},
 							},
 						},
@@ -340,7 +318,6 @@ func Test_vmResource_Create(t *testing.T) {
 					HddType:      1,
 					Provider:     42,
 					Hostname:     "test-node.local",
-					Ipv6:         1,
 					SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
 					SSHKeyName:   "test-key",
 					Image:        7,
@@ -376,7 +353,7 @@ func Test_vmResource_Delete(t *testing.T) {
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                             tftypes.NewValue(tftypes.String, ""),
+							UUID:                           tftypes.NewValue(tftypes.String, ""),
 							DeploymentKeysImage:            tftypes.NewValue(tftypes.String, DeploymentKeysImage),
 							DeploymentKeysRegion:           tftypes.NewValue(tftypes.String, DeploymentKeysRegion),
 							DeploymentKeysCPU:              tftypes.NewValue(tftypes.Number, 1),
@@ -385,20 +362,18 @@ func Test_vmResource_Delete(t *testing.T) {
 							DeploymentKeysDiskType:         tftypes.NewValue(tftypes.String, DeploymentKeysDiskType),
 							DeploymentKeysAssignPublicIPv4: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
-							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
 							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
 							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
-							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a deployment",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the deployment, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
 									Computed:    true,
 								},
 								DeploymentKeysImage: schema.StringAttribute{
@@ -435,11 +410,6 @@ func Test_vmResource_Delete(t *testing.T) {
 									Optional:    true,
 									Description: AssignPublicIPv6Description,
 								},
-								DeploymentKeysAssignYggIP: schema.BoolAttribute{
-									Computed:    true,
-									Optional:    true,
-									Description: AssignYggIPDescription,
-								},
 								DeploymentKeysSSHKey: schema.StringAttribute{
 									Required:    true,
 									Description: SSHKeyDescription,
@@ -464,10 +434,6 @@ func Test_vmResource_Delete(t *testing.T) {
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
 									Description: PublicIPv6Description,
-								},
-								DeploymentKeysYggIP: schema.StringAttribute{
-									Computed:    true,
-									Description: YggIPDescription,
 								},
 							},
 						},
@@ -594,7 +560,7 @@ func Test_vmResource_Read(t *testing.T) {
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                             tftypes.NewValue(tftypes.String, "id"),
+							UUID:                           tftypes.NewValue(tftypes.String, "id"),
 							DeploymentKeysImage:            tftypes.NewValue(tftypes.String, DeploymentKeysImage),
 							DeploymentKeysRegion:           tftypes.NewValue(tftypes.String, DeploymentKeysRegion),
 							DeploymentKeysCPU:              tftypes.NewValue(tftypes.Number, 1),
@@ -603,20 +569,18 @@ func Test_vmResource_Read(t *testing.T) {
 							DeploymentKeysDiskType:         tftypes.NewValue(tftypes.String, DeploymentKeysDiskType),
 							DeploymentKeysAssignPublicIPv4: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
-							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
 							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
 							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
-							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a deployment",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the deployment, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
 									Computed:    true,
 								},
 								DeploymentKeysImage: schema.StringAttribute{
@@ -653,11 +617,6 @@ func Test_vmResource_Read(t *testing.T) {
 									Optional:    true,
 									Description: AssignPublicIPv6Description,
 								},
-								DeploymentKeysAssignYggIP: schema.BoolAttribute{
-									Computed:    true,
-									Optional:    true,
-									Description: AssignYggIPDescription,
-								},
 								DeploymentKeysSSHKey: schema.StringAttribute{
 									Required:    true,
 									Description: SSHKeyDescription,
@@ -682,10 +641,6 @@ func Test_vmResource_Read(t *testing.T) {
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
 									Description: PublicIPv6Description,
-								},
-								DeploymentKeysYggIP: schema.StringAttribute{
-									Computed:    true,
-									Description: YggIPDescription,
 								},
 							},
 						},
@@ -733,7 +688,6 @@ func Test_vmResource_Read(t *testing.T) {
 					HddType:      1,
 					Provider:     42,
 					Hostname:     "test-node.local",
-					Ipv6:         1,
 					SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
 					SSHKeyName:   "test-key",
 					Image:        7,
@@ -801,7 +755,7 @@ func Test_vmResource_Update(t *testing.T) {
 					Config: tfsdk.Config{},
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                             tftypes.NewValue(tftypes.String, "id"),
+							UUID:                           tftypes.NewValue(tftypes.String, "id"),
 							DeploymentKeysImage:            tftypes.NewValue(tftypes.String, DeploymentKeysImage),
 							DeploymentKeysRegion:           tftypes.NewValue(tftypes.String, DeploymentKeysRegion),
 							DeploymentKeysCPU:              tftypes.NewValue(tftypes.Number, 1),
@@ -810,20 +764,18 @@ func Test_vmResource_Update(t *testing.T) {
 							DeploymentKeysDiskType:         tftypes.NewValue(tftypes.String, DeploymentKeysDiskType),
 							DeploymentKeysAssignPublicIPv4: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
-							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
 							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
 							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
-							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a deployment",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the deployment, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
 									Computed:    true,
 								},
 								DeploymentKeysImage: schema.StringAttribute{
@@ -860,11 +812,6 @@ func Test_vmResource_Update(t *testing.T) {
 									Optional:    true,
 									Description: AssignPublicIPv6Description,
 								},
-								DeploymentKeysAssignYggIP: schema.BoolAttribute{
-									Computed:    true,
-									Optional:    true,
-									Description: AssignYggIPDescription,
-								},
 								DeploymentKeysSSHKey: schema.StringAttribute{
 									Required:    true,
 									Description: SSHKeyDescription,
@@ -889,10 +836,6 @@ func Test_vmResource_Update(t *testing.T) {
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
 									Description: PublicIPv6Description,
-								},
-								DeploymentKeysYggIP: schema.StringAttribute{
-									Computed:    true,
-									Description: YggIPDescription,
 								},
 							},
 						},
@@ -930,7 +873,7 @@ func Test_vmResource_Update(t *testing.T) {
 					Config: tfsdk.Config{},
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                             tftypes.NewValue(tftypes.String, "id"),
+							UUID:                           tftypes.NewValue(tftypes.String, "id"),
 							DeploymentKeysImage:            tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
 							DeploymentKeysRegion:           tftypes.NewValue(tftypes.String, DeploymentKeysRegion),
 							DeploymentKeysCPU:              tftypes.NewValue(tftypes.Number, 1),
@@ -939,20 +882,18 @@ func Test_vmResource_Update(t *testing.T) {
 							DeploymentKeysDiskType:         tftypes.NewValue(tftypes.String, DeploymentKeysDiskType),
 							DeploymentKeysAssignPublicIPv4: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
-							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
 							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
 							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
-							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a deployment",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the deployment, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
 									Computed:    true,
 								},
 								DeploymentKeysImage: schema.StringAttribute{
@@ -989,11 +930,6 @@ func Test_vmResource_Update(t *testing.T) {
 									Optional:    true,
 									Description: AssignPublicIPv6Description,
 								},
-								DeploymentKeysAssignYggIP: schema.BoolAttribute{
-									Computed:    true,
-									Optional:    true,
-									Description: AssignYggIPDescription,
-								},
 								DeploymentKeysSSHKey: schema.StringAttribute{
 									Required:    true,
 									Description: SSHKeyDescription,
@@ -1018,10 +954,6 @@ func Test_vmResource_Update(t *testing.T) {
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
 									Description: PublicIPv6Description,
-								},
-								DeploymentKeysYggIP: schema.StringAttribute{
-									Computed:    true,
-									Description: YggIPDescription,
 								},
 							},
 						},
@@ -1055,7 +987,6 @@ func Test_vmResource_Update(t *testing.T) {
 					HddType:      1,
 					Provider:     42,
 					Hostname:     "test-node.local",
-					Ipv6:         1,
 					SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
 					SSHKeyName:   "test-key",
 					Image:        7,
@@ -1077,7 +1008,6 @@ func Test_vmResource_Update(t *testing.T) {
 					HddType:      1,
 					Provider:     42,
 					Hostname:     "test-node.local",
-					Ipv6:         1,
 					SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
 					SSHKeyName:   "test-key",
 					Image:        7,

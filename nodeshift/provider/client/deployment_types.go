@@ -15,7 +15,6 @@ type CreateDeploymentRequest struct {
 	HddType      string `json:"hddType"`
 	Ipv4         bool   `json:"ipv4,omitempty"`
 	Ipv6         bool   `json:"ipv6,omitempty"`
-	Ygg          bool   `json:"ygg,omitempty"`
 	SSHKey       string `json:"sshKey"`
 	SSHKeyName   string `json:"sshKeyName"`
 	HostName     string `json:"hostName"`
@@ -38,7 +37,6 @@ type GetDeploymentResponse struct {
 	HddType      int       `json:"hddType"`
 	Provider     int       `json:"provider"`
 	Hostname     string    `json:"hostname"`
-	Ipv6         int       `json:"ipv6"`
 	SSHKey       string    `json:"sshKey"`
 	SSHKeyName   string    `json:"sshKeyName"`
 	Image        int       `json:"image"`

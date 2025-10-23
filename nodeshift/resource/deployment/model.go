@@ -9,7 +9,7 @@ import (
 )
 
 type vmResourceModel struct {
-	ID          types.String `tfsdk:"id"`
+	UUID        types.String `tfsdk:"uuid"`
 	Image       types.String `tfsdk:"image"`
 	Region      types.String `tfsdk:"region"`
 	CPU         types.Int64  `tfsdk:"cpu"`
@@ -18,12 +18,10 @@ type vmResourceModel struct {
 	DiskType    types.String `tfsdk:"disk_type"`
 	IPv4        types.Bool   `tfsdk:"assign_public_ipv4"`
 	IPv6        types.Bool   `tfsdk:"assign_public_ipv6"`
-	Ygg         types.Bool   `tfsdk:"assign_ygg_ip"`
 	SSHKey      types.String `tfsdk:"ssh_key"`
 	SSHKeyName  types.String `tfsdk:"ssh_key_name"`
 	HostName    types.String `tfsdk:"host_name"`
 	NetworkUUID types.String `tfsdk:"network_uuid"`
-	YggIP       types.String `tfsdk:"ygg_ip"`
 
 	// Computed
 	PublicIPv4 types.String `tfsdk:"public_ipv4"`
@@ -34,7 +32,6 @@ func (v *vmResourceModel) ToClientRequest() (*client.CreateDeploymentRequest, er
 	r := &client.CreateDeploymentRequest{
 		Ipv4:        v.IPv4.ValueBool(),
 		Ipv6:        v.IPv6.ValueBool(),
-		Ygg:         v.Ygg.ValueBool(),
 		NetworkUUID: v.NetworkUUID.ValueString(),
 	}
 
@@ -96,10 +93,12 @@ func (v *vmResourceModel) ToClientRequest() (*client.CreateDeploymentRequest, er
 }
 
 func (v *vmResourceModel) FromClientResponse(c *client.GetDeploymentResponse) {
+	v.UUID = types.StringValue(c.UUID)
 	v.Image = types.StringValue(c.ImageVersion)
 	v.CPU = types.Int64Value(int64(c.Cru))
 	v.RAM = types.Int64Value(int64(c.Mru))
 	v.Disk = types.Int64Value(int64(c.Sru))
 	v.PublicIPv4 = types.StringValue(c.IP)
+	v.PublicIPv6 = types.StringNull()
 	v.HostName = types.StringValue(c.Hostname)
 }

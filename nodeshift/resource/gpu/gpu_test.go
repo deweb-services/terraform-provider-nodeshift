@@ -2,13 +2,13 @@ package gpu
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
@@ -30,9 +30,7 @@ func TestNewGPUResource(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := NewGPUResource(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewGPUResource() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, NewGPUResource())
 		})
 	}
 }

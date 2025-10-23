@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-const pollerSecondsCount = 5
+const pollerSecondsTick = 10 * time.Second
 
 //go:generate mockgen -source poller.go -destination=./poller_mocks.go -package=client
 
@@ -21,7 +21,7 @@ type requester interface {
 }
 
 func poll[T any](ctx context.Context, r requester, url string, getStatus func(*T) string) (*T, error) {
-	ticker := time.NewTicker(pollerSecondsCount * time.Second)
+	ticker := time.NewTicker(pollerSecondsTick)
 	defer ticker.Stop()
 
 	for {
@@ -34,7 +34,7 @@ func poll[T any](ctx context.Context, r requester, url string, getStatus func(*T
 
 			b, err := r.DoSignedRequest(ctx, http.MethodGet, url, nil)
 			if err != nil {
-				return nil, fmt.Errorf("failed request: %w", err)
+				return nil, fmt.Errorf("failed to do signed request: %w", err)
 			}
 
 			tflog.Debug(ctx, "response from "+url, map[string]interface{}{
@@ -46,10 +46,10 @@ func poll[T any](ctx context.Context, r requester, url string, getStatus func(*T
 				return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 			}
 
-			switch strings.ToUpper(getStatus(&resp)) {
-			case "ERROR":
+			switch strings.ToLower(getStatus(&resp)) {
+			case "error":
 				return nil, fmt.Errorf("failed to poll entity: %w", errStatusFailed)
-			case "RUNNING":
+			case "running":
 				return &resp, nil
 			default:
 				continue

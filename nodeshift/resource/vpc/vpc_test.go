@@ -196,7 +196,7 @@ func Test_vpcResource_Create(t *testing.T) {
 					Name:        "test-vpc",
 					Description: "This is a test VPC",
 					IPRange:     "10.0.0.0/24",
-					State:       "running",
+					Status:      "running",
 					Resources: []client.Resources{
 						{
 							IP:     "10.0.0.2",
@@ -519,7 +519,7 @@ func Test_vpcResource_Read(t *testing.T) {
 					Name:        "test-vpc",
 					Description: "This is a test VPC",
 					IPRange:     "10.0.0.0/24",
-					State:       "running",
+					Status:      "running",
 					Resources: []client.Resources{
 						{
 							IP:     "10.0.0.2",
@@ -719,7 +719,7 @@ func Test_vpcResource_Update(t *testing.T) {
 					Name:        "test-vpc",
 					Description: "This is a test VPC",
 					IPRange:     "10.0.0.0/24",
-					State:       "running",
+					Status:      "running",
 					Resources: []client.Resources{
 						{
 							IP:     "10.0.0.2",
@@ -742,7 +742,7 @@ func Test_vpcResource_Update(t *testing.T) {
 					Name:        "test-vpc",
 					Description: "This is a test VPC",
 					IPRange:     "10.0.0.0/24",
-					State:       "running",
+					Status:      "running",
 					Resources: []client.Resources{
 						{
 							IP:     "10.0.0.2",

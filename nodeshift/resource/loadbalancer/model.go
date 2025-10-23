@@ -28,7 +28,6 @@ type LBResourceModel struct {
 
 	UUID   types.String `tfsdk:"uuid"`
 	Status types.String `tfsdk:"status"`
-	TaskID types.String `tfsdk:"task_id"`
 }
 
 func (m *LBResourceModel) ToClientRequest() (*client.CreateLBRequest, error) {

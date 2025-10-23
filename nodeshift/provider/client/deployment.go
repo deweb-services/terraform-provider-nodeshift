@@ -28,12 +28,12 @@ func (c *NodeshiftClient) CreateDeployment(ctx context.Context, r *CreateDeploym
 		return nil, err
 	}
 
-	tflog.Debug(ctx, "Create deployment responseBody: "+string(responseBody))
+	tflog.Debug(ctx, "created Deployment: "+string(responseBody))
 
 	cr := new(createDeploymentResponse)
 	err = json.Unmarshal(responseBody, cr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal create deployment: %w", err)
+		return nil, fmt.Errorf("failed to decosde create deployment: %w", err)
 	}
 
 	u, err = url.JoinPath(c.url, deploymentEndpoint, cr.UUID)
@@ -41,8 +41,10 @@ func (c *NodeshiftClient) CreateDeployment(ctx context.Context, r *CreateDeploym
 		return nil, fmt.Errorf("failed to join get deployment endpoint: %w", err)
 	}
 
-	// TODO: add ctx timeout
-	gdr, err := poll[GetDeploymentResponse](ctx, c, u, func(gdr *GetDeploymentResponse) string { return gdr.Status })
+	tctx, cancel := context.WithTimeout(ctx, fiveMinuteTimeout)
+	defer cancel()
+
+	gdr, err := poll[GetDeploymentResponse](tctx, c, u, func(gdr *GetDeploymentResponse) string { return gdr.Status })
 	if err != nil {
 		return nil, fmt.Errorf("failed to poll create deployment: %w", err)
 	}

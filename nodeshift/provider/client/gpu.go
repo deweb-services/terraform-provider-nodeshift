@@ -11,13 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-const errGPUPrefix = "failed to create gpu: %w"
-
 // nolint: dupl
 func (c *NodeshiftClient) CreateGPU(ctx context.Context, gpu *CreateGPURequest) (*GetGPUResponse, error) {
 	b, err := json.Marshal(gpu)
 	if err != nil {
-		return nil, fmt.Errorf(errGPUPrefix, err)
+		return nil, fmt.Errorf("failed to encode create gpu request: %w", err)
 	}
 
 	u, err := url.JoinPath(c.url, GPUEndpoint)
@@ -27,14 +25,14 @@ func (c *NodeshiftClient) CreateGPU(ctx context.Context, gpu *CreateGPURequest) 
 
 	responseBody, err := c.DoSignedRequest(ctx, http.MethodPost, u, bytes.NewReader(b))
 	if err != nil {
-		return nil, fmt.Errorf(errGPUPrefix, err)
+		return nil, fmt.Errorf("failed to do signed request for create gpu: %w", err)
 	}
 
 	tflog.Info(ctx, "created GPU: "+string(responseBody))
 
 	resp := new(CreateGPUResponse)
 	if err = json.Unmarshal(responseBody, resp); err != nil {
-		return nil, fmt.Errorf(errGPUPrefix, err)
+		return nil, fmt.Errorf("failed to decode create gpu response: %w", err)
 	}
 
 	u, err = url.JoinPath(c.url, GPUEndpoint, resp.UUID)
@@ -42,7 +40,10 @@ func (c *NodeshiftClient) CreateGPU(ctx context.Context, gpu *CreateGPURequest) 
 		return nil, fmt.Errorf("failed to join get GPU endpoint: %w", err)
 	}
 
-	ggr, err := poll[GetGPUResponse](ctx, c, u, func(ggr *GetGPUResponse) string { return ggr.Status })
+	tctx, cancel := context.WithTimeout(ctx, fiveMinuteTimeout)
+	defer cancel()
+
+	ggr, err := poll[GetGPUResponse](tctx, c, u, func(ggr *GetGPUResponse) string { return ggr.Status })
 	if err != nil {
 		return nil, fmt.Errorf("failed to poll create GPU: %w", err)
 	}

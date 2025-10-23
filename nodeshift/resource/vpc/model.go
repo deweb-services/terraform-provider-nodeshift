@@ -23,7 +23,7 @@ func (m *VPCResourceModel) ToClientRequest() (*client.CreateVPCRequest, error) {
 		Description: m.Description.ValueString(),
 	}
 
-	if m.IPRange.IsNull() {
+	if m.IPRange.IsNull() || m.IPRange.IsUnknown() {
 		return &vpc, nil
 	}
 

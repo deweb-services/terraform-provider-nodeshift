@@ -10,7 +10,7 @@ type CreateLBRequest struct {
 	Replicas        map[string]int   `json:"replicas"`
 	CPUUUIDs        []string         `json:"cpuUuids"`
 	ForwardingRules []ForwardingRule `json:"forwardingRules"`
-	VPCUUID         string           `json:"vpcUuid"`
+	VPCUUID         string           `json:"vpcUuid,omitempty"`
 }
 
 type ForwardingRule struct {
@@ -98,13 +98,12 @@ type VPCResource struct {
 	CRU       int       `json:"cru"`
 	MRU       int       `json:"mru"`
 	SRU       int       `json:"sru"`
-	TaskID    string    `json:"taskId"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 type Deployment struct {
 	UUID         string    `json:"uuid"`
-	Status       int       `json:"status"`
+	Status       string    `json:"status"`
 	IP           string    `json:"ip"`
 	CRU          int       `json:"cru"`
 	MRU          int       `json:"mru"`

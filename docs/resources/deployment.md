@@ -34,7 +34,6 @@ Manages a deployment
 
 - `assign_public_ipv4` (Boolean) If true assigns a public ipv4 address for your Deployment
 - `assign_public_ipv6` (Boolean) If true assigns a public ipv6 address for your Deployment
-- `assign_ygg_ip` (Boolean) If true assigns a yggdrasil address for your Deployment
 - `network_uuid` (String) ID of the network to deploy your VM into
 
 ### Read-Only
@@ -42,4 +41,3 @@ Manages a deployment
 - `id` (String) String ID of the deployment, computed
 - `public_ipv4` (String) Public IPv4 of your VM
 - `public_ipv6` (String) Public IPv6 of your VM
-- `ygg_ip` (String) Yggdrasil IP of your VM

@@ -7,13 +7,13 @@ type CreateVPCRequest struct {
 }
 
 type createVPCResponse struct {
-	UUID string `json:"uuid"`
+	UUID string `json:"id"`
 }
 
 type GetVPCResponse struct {
 	UUID        string      `json:"uuid"`
 	Name        string      `json:"name"`
-	State       string      `json:"state"`
+	Status      string      `json:"status"`
 	Description string      `json:"description"`
 	IPRange     string      `json:"addressRange"`
 	Resources   []Resources `json:"resources"`
