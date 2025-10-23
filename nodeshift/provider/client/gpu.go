@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// nolint: dupl
 func (c *NodeshiftClient) CreateGPU(ctx context.Context, gpu *CreateGPURequest) (*GetGPUResponse, error) {
 	b, err := json.Marshal(gpu)
 	if err != nil {

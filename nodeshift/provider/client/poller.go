@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-const pollerSecondsCount = 5
+const pollerSecondsTick = 10 * time.Second
 
 //go:generate mockgen -source poller.go -destination=./poller_mocks.go -package=client
 
@@ -21,7 +21,7 @@ type requester interface {
 }
 
 func poll[T any](ctx context.Context, r requester, url string, getStatus func(*T) string) (*T, error) {
-	ticker := time.NewTicker(pollerSecondsCount * time.Second)
+	ticker := time.NewTicker(pollerSecondsTick)
 	defer ticker.Stop()
 
 	for {

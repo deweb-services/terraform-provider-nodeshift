@@ -157,7 +157,7 @@ func newServer(t *testing.T) (*httptest.Server, INodeshiftClient) {
 				Deployments: []Deployment{
 					{
 						UUID:         "dep-1",
-						Status:       1,
+						Status:       "running",
 						IP:           "10.0.0.2",
 						CRU:          4,
 						MRU:          8192,

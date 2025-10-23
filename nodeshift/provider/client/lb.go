@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// nolint: dupl
 func (c *NodeshiftClient) CreateLB(ctx context.Context, lb *CreateLBRequest) (*GetLBResponse, error) {
 	b, err := json.Marshal(lb)
 	if err != nil {
@@ -27,7 +28,7 @@ func (c *NodeshiftClient) CreateLB(ctx context.Context, lb *CreateLBRequest) (*G
 		return nil, fmt.Errorf("failed to do signed request for create load balancer: %w", err)
 	}
 
-	tflog.Info(ctx, "created LB: "+string(responseBody))
+	tflog.Info(ctx, "created load balancer: "+string(responseBody))
 
 	resp := new(createLBResponse)
 	if err = json.Unmarshal(responseBody, resp); err != nil {
@@ -39,7 +40,10 @@ func (c *NodeshiftClient) CreateLB(ctx context.Context, lb *CreateLBRequest) (*G
 		return nil, fmt.Errorf("failed to join gets load balancer endpoint: %w", err)
 	}
 
-	glr, err := poll[GetLBResponse](ctx, c, u, func(glr *GetLBResponse) string { return glr.Status })
+	tctx, cancel := context.WithTimeout(ctx, fiveMinuteTimeout)
+	defer cancel()
+
+	glr, err := poll[GetLBResponse](tctx, c, u, func(glr *GetLBResponse) string { return glr.Status })
 	if err != nil {
 		return nil, fmt.Errorf("failed to poll create load balancer: %w", err)
 	}
@@ -48,7 +52,7 @@ func (c *NodeshiftClient) CreateLB(ctx context.Context, lb *CreateLBRequest) (*G
 }
 
 func (c *NodeshiftClient) GetLB(ctx context.Context, uuid string) (*GetLBResponse, error) {
-	tflog.Debug(ctx, "Get LB by id: "+uuid)
+	tflog.Debug(ctx, "Get load balancer by id: "+uuid)
 
 	u, err := url.JoinPath(c.url, LBEndpoint, uuid)
 	if err != nil {
@@ -56,7 +60,7 @@ func (c *NodeshiftClient) GetLB(ctx context.Context, uuid string) (*GetLBRespons
 	}
 
 	responseBody, err := c.DoSignedRequest(ctx, http.MethodGet, u, nil)
-	tflog.Debug(ctx, "Get LB responseBody: "+string(responseBody))
+	tflog.Debug(ctx, "Get load balancer responseBody: "+string(responseBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to do signed request for get load balancer: %w", err)
 	}

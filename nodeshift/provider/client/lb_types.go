@@ -103,7 +103,7 @@ type VPCResource struct {
 
 type Deployment struct {
 	UUID         string    `json:"uuid"`
-	Status       int       `json:"status"`
+	Status       string    `json:"status"`
 	IP           string    `json:"ip"`
 	CRU          int       `json:"cru"`
 	MRU          int       `json:"mru"`
