@@ -1,7 +1,6 @@
 package client
 
 import (
-	"context"
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -45,7 +44,7 @@ func TestNodeshiftClient_CreateBucket(t *testing.T) {
 				Config:   tt.fields.Config,
 				s3client: tt.fields.s3client,
 			}
-			got, err := c.CreateBucket(context.Background(), tt.args.bucket)
+			got, err := c.CreateBucket(t.Context(), tt.args.bucket)
 			require.Error(t, err)
 			require.Nil(t, got)
 		})
@@ -86,7 +85,7 @@ func TestNodeshiftClient_DeleteBucket(t *testing.T) {
 				Config:   tt.fields.Config,
 				s3client: tt.fields.s3client,
 			}
-			err := c.DeleteBucket(context.Background(), tt.args.key)
+			err := c.DeleteBucket(t.Context(), tt.args.key)
 			require.Error(t, err)
 		})
 	}
@@ -128,7 +127,7 @@ func TestNodeshiftClient_GetBucket(t *testing.T) {
 				Config:   tt.fields.Config,
 				s3client: tt.fields.s3client,
 			}
-			got, err := c.GetBucket(context.Background(), tt.args.key)
+			got, err := c.GetBucket(t.Context(), tt.args.key)
 			require.Error(t, err)
 			assert.Nil(t, got)
 		})
@@ -169,7 +168,7 @@ func TestNodeshiftClient_UpdateBucket(t *testing.T) {
 				Config:   tt.fields.Config,
 				s3client: tt.fields.s3client,
 			}
-			err := c.UpdateBucket(context.Background(), tt.args.bucket)
+			err := c.UpdateBucket(t.Context(), tt.args.bucket)
 			assert.Error(t, err)
 		})
 	}

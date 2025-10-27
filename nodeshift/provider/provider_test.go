@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -171,7 +170,7 @@ func Test_nodeshiftProvider_Configure(t *testing.T) {
 
 			p := &nodeshiftProvider{}
 
-			p.Configure(context.Background(), tt.args.req, tt.args.resp)
+			p.Configure(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -193,7 +192,7 @@ func Test_nodeshiftProvider_DataSources(t *testing.T) {
 			t.Parallel()
 
 			p := &nodeshiftProvider{}
-			assert.Equal(t, tt.want, p.DataSources(context.Background()))
+			assert.Equal(t, tt.want, p.DataSources(t.Context()))
 		})
 	}
 }
@@ -222,7 +221,7 @@ func Test_nodeshiftProvider_Metadata(t *testing.T) {
 			t.Parallel()
 
 			p := &nodeshiftProvider{}
-			p.Metadata(context.Background(), tt.args.in1, tt.args.resp)
+			p.Metadata(t.Context(), tt.args.in1, tt.args.resp)
 		})
 	}
 }
@@ -250,7 +249,7 @@ func Test_nodeshiftProvider_Resources(t *testing.T) {
 			t.Parallel()
 
 			p := &nodeshiftProvider{}
-			assert.Equal(t, len(tt.want), len(p.Resources(context.Background())))
+			assert.Equal(t, len(tt.want), len(p.Resources(t.Context())))
 		})
 	}
 }
@@ -279,7 +278,7 @@ func Test_nodeshiftProvider_Schema(t *testing.T) {
 			t.Parallel()
 
 			p := &nodeshiftProvider{}
-			p.Schema(context.Background(), tt.args.in1, tt.args.resp)
+			p.Schema(t.Context(), tt.args.in1, tt.args.resp)
 		})
 	}
 }

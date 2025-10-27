@@ -2,7 +2,6 @@ package client
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"net/http"
 	"net/url"
@@ -19,8 +18,10 @@ const (
 	exampleErrURLString = "https://example.moc/"
 )
 
-func makeTwoClients() (*NodeshiftClient, *NodeshiftClient) {
-	cli1 := NewClient(context.Background(), NodeshiftProviderConfiguration{})
+func makeTwoClients(t *testing.T) (*NodeshiftClient, *NodeshiftClient) {
+	t.Helper()
+
+	cli1 := NewClient(t.Context(), NodeshiftProviderConfiguration{})
 	cli2 := &NodeshiftClient{
 		Config:          NodeshiftProviderConfiguration{},
 		transactionNote: cli1.transactionNote,
@@ -55,7 +56,7 @@ func TestClientOptWithS3(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			cli1, cli2 := makeTwoClients()
+			cli1, cli2 := makeTwoClients(t)
 			ClientOptWithS3()(cli1)
 			tt.want(cli2)
 			assert.Equal(t, cli1, cli2)
@@ -88,7 +89,7 @@ func TestClientOptWithURL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			cli1, cli2 := makeTwoClients()
+			cli1, cli2 := makeTwoClients(t)
 			ClientOptWithURL(tt.args.url)(cli1)
 			tt.want(cli2)
 			assert.Equalf(t, cli1, cli2, tt.args.url)
@@ -198,7 +199,7 @@ func TestNodeshiftClient_DoSignedRequest(t *testing.T) {
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.DoSignedRequest(context.Background(), tt.args.method, tt.args.endpoint, tt.args.body)
+			got, err := c.DoSignedRequest(t.Context(), tt.args.method, tt.args.endpoint, tt.args.body)
 			if tt.wantErr != nil {
 				require.Error(t, err)
 
@@ -400,7 +401,7 @@ func TestNewClient(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			nodeshiftCli := NewClient(context.Background(), tt.args.configuration, tt.args.opts...)
+			nodeshiftCli := NewClient(t.Context(), tt.args.configuration, tt.args.opts...)
 			assert.NotNil(t, nodeshiftCli)
 		})
 	}

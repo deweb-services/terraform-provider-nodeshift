@@ -41,3 +41,6 @@ Available options: USA`
 	PublicIPv4Description       = `Public IPv4 of your VM`
 	PublicIPv6Description       = `Public IPv6 of your VM`
 )
+
+// nolint: gochecknoglobals
+var availableDiskTypes = []string{"hdd", "ssd"}

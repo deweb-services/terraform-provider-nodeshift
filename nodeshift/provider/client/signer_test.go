@@ -54,7 +54,7 @@ func TestSigner_SignRequest(t *testing.T) {
 	signer := NewSigner(WithStaticCredentials(accessKey, secretKey), WithDebugLogger(t))
 
 	// Create a sample HTTP request
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "https://localhost:6005", nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://localhost:6005", nil)
 	require.NoError(t, err)
 
 	err = signer.SignRequest(req, nil)
@@ -91,7 +91,7 @@ func TestDebugLogger_Log(t *testing.T) {
 			t.Parallel()
 
 			l := &DebugLogger{
-				Context: context.Background(),
+				Context: t.Context(),
 			}
 			l.Log(tt.args.values...)
 		})
@@ -113,7 +113,7 @@ func TestSigner_SignRequest1(t *testing.T) {
 		Header: make(http.Header, 0),
 		URL:    newURL,
 	}
-	ctx, cls := context.WithCancel(context.Background())
+	ctx, cls := context.WithCancel(t.Context())
 	rq = rq.WithContext(ctx)
 	cls()
 	tests := []struct {
@@ -171,7 +171,7 @@ func TestSigner_signRequest(t *testing.T) {
 		Header: make(http.Header, 0),
 		URL:    newURL,
 	}
-	ctx, cls := context.WithCancel(context.Background())
+	ctx, cls := context.WithCancel(t.Context())
 	rq = rq.WithContext(ctx)
 	cls()
 	tests := []struct {

@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
@@ -39,39 +42,58 @@ func (r *gpuResource) Schema(c context.Context, request resource.SchemaRequest, 
 		Description: "Manages a GPU",
 		Attributes: map[string]schema.Attribute{
 			UUID: schema.StringAttribute{
-				Description: DescriptionUUID,
 				Computed:    true,
+				Description: DescriptionUUID,
 			},
 			KeyGPUName: schema.StringAttribute{
-				Description: DescriptionGPUName,
 				Required:    true,
+				Description: DescriptionGPUName,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			KeyImage: schema.StringAttribute{
-				Description: DescriptionImage,
 				Required:    true,
+				Description: DescriptionImage,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			KeySSHKey: schema.StringAttribute{
-				Description: DescriptionSSHKey,
 				Required:    true,
+				Description: DescriptionSSHKey,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			KeyGPUCount: schema.Int64Attribute{
-				Description: DescriptionGPUCount,
 				Optional:    true,
 				Computed:    true,
+				Description: DescriptionGPUCount,
 				Default:     int64default.StaticInt64(1),
 			},
 			KeyRegion: schema.StringAttribute{
-				Description: DescriptionRegion,
 				Optional:    true,
 				Computed:    true,
+				Description: DescriptionRegion,
 			},
 			KeyDiskSizeGB: schema.Int64Attribute{
-				Description: DescriptionDiskSizeGB,
 				Required:    true,
+				Description: DescriptionDiskSizeGB,
+				Validators: []validator.Int64{
+					int64validator.AtLeast(1),
+				},
 			},
 			KeyMinCudaVersion: schema.StringAttribute{
-				Description: DescriptionMinCudaVersion,
 				Optional:    true,
+				Description: DescriptionMinCudaVersion,
+			},
+			KeyMachineTypeVersion: schema.StringAttribute{
+				Optional:    true,
+				Description: DescriptionMachineTypeVersion,
+				Validators: []validator.String{
+					stringvalidator.OneOf(availableMachineTypes...),
+				},
 			},
 		},
 	}
@@ -93,7 +115,7 @@ func (r *gpuResource) Configure(_ context.Context, req resource.ConfigureRequest
 // Create creates the resource and sets the initial Terraform state.
 func (r *gpuResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan GPUResourceModel
+	var plan ResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -106,17 +128,7 @@ func (r *gpuResource) Create(ctx context.Context, req resource.CreateRequest, re
 		return
 	}
 
-	// Create new GPU
-	clientRequest, err := plan.ToClientRequest()
-	if err != nil {
-		tflog.Error(
-			ctx,
-			"failed to convert resource to client required type",
-			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
-		)
-	}
-
-	gpu, err := r.client.CreateGPU(ctx, clientRequest)
+	gpu, err := r.client.CreateGPU(ctx, plan.ToClientRequest())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating gpu",
@@ -127,15 +139,7 @@ func (r *gpuResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	// Map response body to schema and populate Computed attribute values
-	err = plan.FromClientResponse(gpu)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating gpu",
-			fmt.Sprintf("Could not convert created GPU from client response, unexpected error: %s", err),
-		)
-
-		return
-	}
+	plan.FromClientResponse(gpu)
 	tflog.Info(ctx, fmt.Sprintf("GPU from client response: %+v", gpu))
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -152,7 +156,7 @@ func (r *gpuResource) Create(ctx context.Context, req resource.CreateRequest, re
 // Read refreshes the Terraform state with the latest data.
 func (r *gpuResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state GPUResourceModel
+	var state ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -177,15 +181,7 @@ func (r *gpuResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	// Overwrite items with refreshed state
-	err = state.FromClientResponse(gpu)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error getting gpu",
-			fmt.Sprintf("Could not convert read GPU from client response, unexpected error: %s", err),
-		)
-
-		return
-	}
+	state.FromClientResponse(gpu)
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -201,7 +197,7 @@ func (r *gpuResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *gpuResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan GPUResourceModel
+	var plan ResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -214,18 +210,8 @@ func (r *gpuResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	clientRequest, err := plan.ToClientRequest()
-	if err != nil {
-		tflog.Error(
-			ctx,
-			"failed to convert resource to client required type",
-			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
-		)
-	}
-
 	// Update existing order
-	_, err = r.client.UpdateGPU(ctx, plan.UUID.ValueString(), clientRequest)
-	if err != nil {
+	if _, err := r.client.UpdateGPU(ctx, plan.UUID.ValueString(), plan.ToClientRequest()); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating gpu state",
 			fmt.Sprintf("Could not update gpu state %s, unexpected error: %s", plan.UUID.ValueString(), err),
@@ -245,16 +231,7 @@ func (r *gpuResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	err = plan.FromClientResponse(gpu)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating gpu",
-			fmt.Sprintf("Could not convert updated GPU from client response, unexpected error: %s", err),
-		)
-
-		return
-	}
-
+	plan.FromClientResponse(gpu)
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -269,7 +246,7 @@ func (r *gpuResource) Update(ctx context.Context, req resource.UpdateRequest, re
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *gpuResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state GPUResourceModel
+	var state ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

@@ -19,7 +19,7 @@ type ForwardingRuleModel struct {
 	Out RuleEndpointModel `tfsdk:"out"`
 }
 
-type LBResourceModel struct {
+type ResourceModel struct {
 	Name            types.String `tfsdk:"name"`
 	Replicas        types.Map    `tfsdk:"replicas"`
 	CPUUUIDs        types.List   `tfsdk:"cpu_uuids"`
@@ -30,7 +30,7 @@ type LBResourceModel struct {
 	Status types.String `tfsdk:"status"`
 }
 
-func (m *LBResourceModel) ToClientRequest() (*client.CreateLBRequest, error) {
+func (m *ResourceModel) ToClientRequest() (*client.CreateLBRequest, error) {
 	replicas := make(map[string]int)
 	for k, v := range m.Replicas.Elements() {
 		if intVal, ok := v.(types.Int64); ok && !intVal.IsNull() {
@@ -49,7 +49,7 @@ func (m *LBResourceModel) ToClientRequest() (*client.CreateLBRequest, error) {
 	for _, ruleAttr := range m.ForwardingRules.Elements() {
 		rule, err := convertToForwardingRule(ruleAttr)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert resource to client required type: %w", err)
+			return nil, fmt.Errorf("failed to convert forwarding rule to client required type: %w", err)
 		}
 
 		forwardingRules = append(forwardingRules, *rule)
@@ -160,14 +160,12 @@ func getPort(attr types.Object) (int, error) {
 	return int(pt.ValueInt64()), nil
 }
 
-func (m *LBResourceModel) FromClientResponse(c *client.GetLBResponse) error {
+func (m *ResourceModel) FromClientResponse(c *client.GetLBResponse) {
 	m.UUID = types.StringValue(c.UUID)
 	m.Status = types.StringValue(c.Status)
-
-	return nil
 }
 
-func (m *LBResourceModel) FromClientRentedLBResponse(c *client.GetLBResponse) error {
+func (m *ResourceModel) FromClientRentedLBResponse(c *client.GetLBResponse) error {
 	m.UUID = types.StringValue(c.UUID)
 	m.Status = types.StringValue(c.Status)
 

@@ -74,7 +74,7 @@ func (r *vpcResource) Configure(_ context.Context, req resource.ConfigureRequest
 // Create creates the resource and sets the initial Terraform state.
 func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan VPCResourceModel
+	var plan ResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -108,15 +108,7 @@ func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, re
 	}
 
 	// Map response body to schema and populate Computed attribute values
-	err = plan.FromClientResponse(vpc)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating vpc",
-			fmt.Sprintf("Could not convert created VPC from client response, unexpected error: %s", err),
-		)
-
-		return
-	}
+	plan.FromClientResponse(vpc)
 	tflog.Info(ctx, fmt.Sprintf("VPC from client response: %+v", vpc))
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -133,7 +125,7 @@ func (r *vpcResource) Create(ctx context.Context, req resource.CreateRequest, re
 // Read refreshes the Terraform state with the latest data.
 func (r *vpcResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state VPCResourceModel
+	var state ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -158,15 +150,7 @@ func (r *vpcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	}
 
 	// Overwrite items with refreshed state
-	err = state.FromClientResponse(vpc)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error getting vpc",
-			fmt.Sprintf("Could not convert read VPC from client response, unexpected error: %s", err),
-		)
-
-		return
-	}
+	state.FromClientResponse(vpc)
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
@@ -182,7 +166,7 @@ func (r *vpcResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vpcResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan VPCResourceModel
+	var plan ResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -226,16 +210,7 @@ func (r *vpcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 		return
 	}
 
-	err = plan.FromClientResponse(vpc)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating vpc",
-			fmt.Sprintf("Could not convert updated VPC from client response, unexpected error: %s", err),
-		)
-
-		return
-	}
-
+	plan.FromClientResponse(vpc)
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -250,7 +225,7 @@ func (r *vpcResource) Update(ctx context.Context, req resource.UpdateRequest, re
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *vpcResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state VPCResourceModel
+	var state ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

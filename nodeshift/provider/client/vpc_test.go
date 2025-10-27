@@ -1,7 +1,6 @@
 package client
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -46,7 +45,7 @@ func Test_CreateVPC(t *testing.T) {
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.CreateVPC(context.Background(), tt.args.vpc)
+			got, err := c.CreateVPC(t.Context(), tt.args.vpc)
 			require.Error(t, err)
 			assert.Nil(t, got)
 		})
@@ -87,7 +86,7 @@ func Test_DeleteVPC(t *testing.T) {
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			err := c.DeleteVPC(context.Background(), tt.args.id)
+			err := c.DeleteVPC(t.Context(), tt.args.id)
 			require.Error(t, err)
 		})
 	}
@@ -129,7 +128,7 @@ func Test_GetVPC(t *testing.T) {
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.GetVPC(context.Background(), tt.args.id)
+			got, err := c.GetVPC(t.Context(), tt.args.id)
 			require.Error(t, err)
 			assert.Nil(t, got)
 		})
@@ -178,7 +177,7 @@ func Test_UpdateVPC(t *testing.T) {
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.UpdateVPC(context.Background(), tt.args.id, tt.args.vpc)
+			got, err := c.UpdateVPC(t.Context(), tt.args.id, tt.args.vpc)
 			require.Error(t, err)
 			assert.Nil(t, got)
 		})

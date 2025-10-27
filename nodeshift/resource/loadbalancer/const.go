@@ -21,3 +21,5 @@ const (
 	DescriptionUUID   = "String UUID of the LB, computed"
 	DescriptionStatus = "Status of the load balancer"
 )
+
+const minCPUsCount = 2

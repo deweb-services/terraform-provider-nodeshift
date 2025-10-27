@@ -1,7 +1,6 @@
 package deployment
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -71,7 +70,7 @@ func Test_vmResource_Configure(t *testing.T) {
 			r := &vmResource{
 				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Configure(context.Background(), tt.args.req, tt.args.in2)
+			r.Configure(t.Context(), tt.args.req, tt.args.in2)
 		})
 	}
 }
@@ -192,8 +191,75 @@ func Test_vmResource_Create(t *testing.T) {
 			args: args{
 				req: resource.CreateRequest{
 					Config: tfsdk.Config{
-						Raw:    tftypes.Value{},
-						Schema: schema.Schema{},
+						Raw: tftypes.Value{},
+						Schema: schema.Schema{
+							Description: "Manages a deployment",
+							Attributes: map[string]schema.Attribute{
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
+									Computed:    true,
+								},
+								DeploymentKeysImage: schema.StringAttribute{
+									Required:    true,
+									Description: ImageDescription,
+								},
+								DeploymentKeysRegion: schema.StringAttribute{
+									Required:    true,
+									Description: RegionDescription,
+								},
+								DeploymentKeysCPU: schema.Int64Attribute{
+									Required:    true,
+									Description: CPUDescription,
+								},
+								DeploymentKeysRAM: schema.Int64Attribute{
+									Required:    true,
+									Description: RAMDescription,
+								},
+								DeploymentKeysDiskSize: schema.Int64Attribute{
+									Required:    true,
+									Description: DiskSizeDescription,
+								},
+								DeploymentKeysDiskType: schema.StringAttribute{
+									Required:    true,
+									Description: DiskTypeDescription,
+								},
+								DeploymentKeysAssignPublicIPv4: schema.BoolAttribute{
+									Computed:    true,
+									Optional:    true,
+									Description: AssignPublicIPv4Description,
+								},
+								DeploymentKeysAssignPublicIPv6: schema.BoolAttribute{
+									Computed:    true,
+									Optional:    true,
+									Description: AssignPublicIPv6Description,
+								},
+								DeploymentKeysSSHKey: schema.StringAttribute{
+									Required:    true,
+									Description: SSHKeyDescription,
+									Sensitive:   true,
+								},
+								DeploymentKeysSSHKeyName: schema.StringAttribute{
+									Required:    true,
+									Description: SSHKeyNameDescription,
+								},
+								DeploymentKeysHostName: schema.StringAttribute{
+									Required:    true,
+									Description: HostNameDescription,
+								},
+								DeploymentKeysNetworkUUID: schema.StringAttribute{
+									Optional:    true,
+									Description: NetworkUUIDDescription,
+								},
+								DeploymentKeysPublicIPv4: schema.StringAttribute{
+									Computed:    true,
+									Description: PublicIPv4Description,
+								},
+								DeploymentKeysPublicIPv6: schema.StringAttribute{
+									Computed:    true,
+									Description: PublicIPv6Description,
+								},
+							},
+						},
 					},
 					Plan: tfsdk.Plan{
 						Raw:    tftypes.Value{},
@@ -210,7 +276,6 @@ func Test_vmResource_Create(t *testing.T) {
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
 							UUID:                           tftypes.NewValue(tftypes.String, ""),
-							DeploymentKeysImage:            tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
 							DeploymentKeysRegion:           tftypes.NewValue(tftypes.String, DeploymentKeysRegion),
 							DeploymentKeysCPU:              tftypes.NewValue(tftypes.Number, 1),
 							DeploymentKeysRAM:              tftypes.NewValue(tftypes.Number, 2),
@@ -331,7 +396,7 @@ func Test_vmResource_Create(t *testing.T) {
 			r := &vmResource{
 				client: c,
 			}
-			r.Create(context.Background(), tt.args.req, tt.args.resp)
+			r.Create(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -466,7 +531,7 @@ func Test_vmResource_Delete(t *testing.T) {
 			r := &vmResource{
 				client: c,
 			}
-			r.Delete(context.Background(), tt.args.req, tt.args.resp)
+			r.Delete(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -503,7 +568,7 @@ func Test_vmResource_ImportState(t *testing.T) {
 			r := &vmResource{
 				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.ImportState(context.Background(), tt.args.req, tt.args.resp)
+			r.ImportState(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -538,7 +603,7 @@ func Test_vmResource_Metadata(t *testing.T) {
 			r := &vmResource{
 				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Metadata(context.Background(), tt.args.req, tt.args.resp)
+			r.Metadata(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -701,7 +766,7 @@ func Test_vmResource_Read(t *testing.T) {
 			r := &vmResource{
 				client: c,
 			}
-			r.Read(context.Background(), tt.args.req, tt.args.resp)
+			r.Read(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -732,7 +797,7 @@ func Test_vmResource_Schema(t *testing.T) {
 			r := &vmResource{
 				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Schema(context.Background(), tt.args.in1, tt.args.resp)
+			r.Schema(t.Context(), tt.args.in1, tt.args.resp)
 		})
 	}
 }
@@ -1021,7 +1086,7 @@ func Test_vmResource_Update(t *testing.T) {
 			r := &vmResource{
 				client: c,
 			}
-			r.Update(context.Background(), tt.args.req, tt.args.resp)
+			r.Update(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }

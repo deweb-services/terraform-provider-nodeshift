@@ -193,7 +193,7 @@ func newServer(t *testing.T) (*httptest.Server, INodeshiftClient) {
 		}
 	}))
 
-	return mockServer, NewClient(context.Background(), NodeshiftProviderConfiguration{
+	return mockServer, NewClient(t.Context(), NodeshiftProviderConfiguration{
 		AccessKey:       "access_key",
 		SecretAccessKey: "secret_access_key",
 	}, ClientOptWithURL(mockServer.URL))
@@ -205,7 +205,7 @@ func Test_DeploymentCreate(t *testing.T) {
 	mockServer, client := newServer(t)
 	defer mockServer.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
 
 	actual, err := client.CreateDeployment(ctx, &CreateDeploymentRequest{
@@ -233,7 +233,7 @@ func Test_VPCCreate(t *testing.T) {
 	mockServer, client := newServer(t)
 	defer mockServer.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
 
 	response, err := client.CreateVPC(ctx, &CreateVPCRequest{
@@ -251,7 +251,7 @@ func Test_GPUCreate(t *testing.T) {
 	mockServer, client := newServer(t)
 	defer mockServer.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
 
 	response, err := client.CreateGPU(ctx, &CreateGPURequest{
@@ -271,7 +271,7 @@ func Test_DeleteDeployment(t *testing.T) {
 	mockServer, client := newServer(t)
 	defer mockServer.Close()
 
-	err := client.DeleteDeployment(context.Background(), "id")
+	err := client.DeleteDeployment(t.Context(), "id")
 	require.NoError(t, err)
 }
 
@@ -281,7 +281,7 @@ func Test_GetDeployment(t *testing.T) {
 	mockServer, client := newServer(t)
 	defer mockServer.Close()
 
-	resp, err := client.GetDeployment(context.Background(), "id")
+	resp, err := client.GetDeployment(t.Context(), "id")
 	require.NoError(t, err)
 	require.NotEmpty(t, resp)
 }
@@ -292,7 +292,7 @@ func Test_UpdateDeployment(t *testing.T) {
 	mockServer, client := newServer(t)
 	defer mockServer.Close()
 
-	resp, err := client.UpdateDeployment(context.Background(), "id", &CreateDeploymentRequest{})
+	resp, err := client.UpdateDeployment(t.Context(), "id", &CreateDeploymentRequest{})
 	require.Empty(t, resp)
 	require.Error(t, err)
 
@@ -305,7 +305,7 @@ func Test_ListRegions(t *testing.T) {
 	mockServer, client := newServer(t)
 	defer mockServer.Close()
 
-	response, err := client.ListRegions(context.Background())
+	response, err := client.ListRegions(t.Context())
 	require.NotEmpty(t, response)
 	require.NoError(t, err)
 

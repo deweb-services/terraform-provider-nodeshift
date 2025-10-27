@@ -9,9 +9,9 @@ import "time"
 type CreateDeploymentRequest struct {
 	ImageVersion string `json:"imageVersion"`
 	Region       string `json:"region"`
-	CPU          int    `json:"cpu"`
-	RAM          int    `json:"ram"`
-	Hdd          int    `json:"hdd"`
+	CPU          int64  `json:"cpu"`
+	RAM          int64  `json:"ram"`
+	Hdd          int64  `json:"hdd"`
 	HddType      string `json:"hddType"`
 	Ipv4         bool   `json:"ipv4,omitempty"`
 	Ipv6         bool   `json:"ipv6,omitempty"`

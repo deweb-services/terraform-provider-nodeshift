@@ -1,7 +1,6 @@
 package vpc
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -70,7 +69,7 @@ func Test_vpcResource_Configure(t *testing.T) {
 			r := &vpcResource{
 				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Configure(context.Background(), tt.args.req, tt.args.in2)
+			r.Configure(t.Context(), tt.args.req, tt.args.in2)
 		})
 	}
 }
@@ -217,7 +216,7 @@ func Test_vpcResource_Create(t *testing.T) {
 			r := &vpcResource{
 				client: c,
 			}
-			r.Create(context.Background(), tt.args.req, tt.args.resp)
+			r.Create(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -295,7 +294,7 @@ func Test_vpcResource_Delete(t *testing.T) {
 			r := &vpcResource{
 				client: c,
 			}
-			r.Delete(context.Background(), tt.args.req, tt.args.resp)
+			r.Delete(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -358,7 +357,7 @@ func Test_vpcResource_ImportState(t *testing.T) {
 			r := &vpcResource{
 				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.ImportState(context.Background(), tt.args.req, tt.args.resp)
+			r.ImportState(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -393,7 +392,7 @@ func Test_vpcResource_Metadata(t *testing.T) {
 			r := &vpcResource{
 				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Metadata(context.Background(), tt.args.req, tt.args.resp)
+			r.Metadata(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -540,7 +539,7 @@ func Test_vpcResource_Read(t *testing.T) {
 			r := &vpcResource{
 				client: c,
 			}
-			r.Read(context.Background(), tt.args.req, tt.args.resp)
+			r.Read(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -593,7 +592,7 @@ func Test_vpcResource_Schema(t *testing.T) {
 			r := &vpcResource{
 				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Schema(context.Background(), tt.args.request, tt.args.response)
+			r.Schema(t.Context(), tt.args.request, tt.args.response)
 		})
 	}
 }
@@ -763,7 +762,7 @@ func Test_vpcResource_Update(t *testing.T) {
 			r := &vpcResource{
 				client: c,
 			}
-			r.Update(context.Background(), tt.args.req, tt.args.resp)
+			r.Update(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }

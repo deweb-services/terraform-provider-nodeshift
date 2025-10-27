@@ -7,3 +7,5 @@ const (
 const (
 	DescriptionBucketName = "Name of the s3 bucket to be used"
 )
+
+const minBucketNameLength = 3

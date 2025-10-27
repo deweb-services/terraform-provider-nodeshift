@@ -1,7 +1,6 @@
 package client
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -44,7 +43,7 @@ func TestNodeshiftClient_CreateGPU(t *testing.T) {
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, _ := c.CreateGPU(context.Background(), tt.args.gpu)
+			got, _ := c.CreateGPU(t.Context(), tt.args.gpu)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -84,7 +83,7 @@ func TestNodeshiftClient_DeleteGPU(t *testing.T) {
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			err := c.DeleteGPU(context.Background(), tt.args.id)
+			err := c.DeleteGPU(t.Context(), tt.args.id)
 			assert.Errorf(t, err, "failed to delete GPU: external API returned an error code: request failed, status code: 404")
 		})
 	}
@@ -126,7 +125,7 @@ func TestNodeshiftClient_GetGPU(t *testing.T) {
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.GetGPU(context.Background(), tt.args.id)
+			got, err := c.GetGPU(t.Context(), tt.args.id)
 			require.Error(t, err)
 			assert.Nil(t, got)
 		})
@@ -171,7 +170,7 @@ func TestNodeshiftClient_UpdateGPU(t *testing.T) {
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.UpdateGPU(context.Background(), tt.args.id, tt.args.gpu)
+			got, err := c.UpdateGPU(t.Context(), tt.args.id, tt.args.gpu)
 			require.Error(t, err)
 			assert.Nil(t, got)
 		})

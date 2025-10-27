@@ -1,7 +1,6 @@
 package gpu
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -9,7 +8,7 @@ import (
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 )
 
-type GPUResourceModel struct {
+type ResourceModel struct {
 	GPUName        types.String `tfsdk:"gpu_name"`
 	Image          types.String `tfsdk:"image"`
 	SSHKey         types.String `tfsdk:"ssh_key"`
@@ -18,19 +17,10 @@ type GPUResourceModel struct {
 	UUID           types.String `tfsdk:"uuid"`
 	DiskSize       types.Int64  `tfsdk:"disk_size_gb"`
 	MinCudaVersion types.String `tfsdk:"min_cuda_version"`
+	MachineType    types.String `tfsdk:"machine_type"`
 }
 
-func (m *GPUResourceModel) ToClientRequest() (*client.CreateGPURequest, error) {
-	if m.GPUName.IsUnknown() || m.GPUName.IsNull() {
-		return nil, fmt.Errorf("gpu_name is required: %w", client.ErrPropertyEmpty)
-	}
-	if m.Image.IsUnknown() || m.Image.IsNull() {
-		return nil, fmt.Errorf("image is required: %w", client.ErrPropertyEmpty)
-	}
-	if m.SSHKey.IsUnknown() || m.SSHKey.IsNull() {
-		return nil, fmt.Errorf("ssh_key is required: %w", client.ErrPropertyEmpty)
-	}
-
+func (m *ResourceModel) ToClientRequest() *client.CreateGPURequest {
 	return &client.CreateGPURequest{
 		GPUName:        strings.TrimSpace(m.GPUName.ValueString()),
 		Image:          m.Image.ValueString(),
@@ -39,13 +29,12 @@ func (m *GPUResourceModel) ToClientRequest() (*client.CreateGPURequest, error) {
 		Region:         m.Region.ValueString(),
 		Disk:           m.DiskSize.ValueInt64(),
 		MinCudaVersion: m.MinCudaVersion.ValueString(),
-	}, nil
+		MachineType:    m.MachineType.ValueString(),
+	}
 }
 
-func (m *GPUResourceModel) FromClientResponse(c *client.GetGPUResponse) error {
+func (m *ResourceModel) FromClientResponse(c *client.GetGPUResponse) {
 	m.UUID = types.StringValue(c.UUID)
 	m.GPUName = types.StringValue(c.GpuName)
 	m.GPUCount = types.Int64Value(c.NumGpus)
-
-	return nil
 }

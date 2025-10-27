@@ -39,7 +39,6 @@ linters:
     - testpackage
     - tagliatelle
     - varnamelen
-    - gomnd
     - nolintlint
     - exhaustruct
     - tagalign
@@ -55,10 +54,9 @@ linters:
     - revive
     - godox
     # deprecated
-    - execinquery
-    - exportloopref
     - copyloopvar
     - intrange
+    - tenv
 
 issues:
   exclude-rules:

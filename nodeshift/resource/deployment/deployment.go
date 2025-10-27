@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
@@ -47,26 +50,44 @@ func (r *vmResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 			DeploymentKeysImage: schema.StringAttribute{
 				Required:    true,
 				Description: ImageDescription,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			DeploymentKeysRegion: schema.StringAttribute{
 				Required:    true,
 				Description: RegionDescription,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			DeploymentKeysCPU: schema.Int64Attribute{
 				Required:    true,
 				Description: CPUDescription,
+				Validators: []validator.Int64{
+					int64validator.AtLeast(1),
+				},
 			},
 			DeploymentKeysRAM: schema.Int64Attribute{
 				Required:    true,
 				Description: RAMDescription,
+				Validators: []validator.Int64{
+					int64validator.AtLeast(1),
+				},
 			},
 			DeploymentKeysDiskSize: schema.Int64Attribute{
 				Required:    true,
 				Description: DiskSizeDescription,
+				Validators: []validator.Int64{
+					int64validator.AtLeast(1),
+				},
 			},
 			DeploymentKeysDiskType: schema.StringAttribute{
 				Required:    true,
 				Description: DiskTypeDescription,
+				Validators: []validator.String{
+					stringvalidator.OneOf(availableDiskTypes...),
+				},
 			},
 			DeploymentKeysAssignPublicIPv4: schema.BoolAttribute{
 				Optional:    true,
@@ -78,17 +99,26 @@ func (r *vmResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 			},
 			DeploymentKeysSSHKey: schema.StringAttribute{
 				Required:    true,
-				Description: SSHKeyDescription,
 				Sensitive:   true,
+				Description: SSHKeyDescription,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			DeploymentKeysSSHKeyName: schema.StringAttribute{
 				Required:    true,
-				Description: SSHKeyNameDescription,
 				Sensitive:   false,
+				Description: SSHKeyNameDescription,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			DeploymentKeysHostName: schema.StringAttribute{
 				Required:    true,
 				Description: HostNameDescription,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			DeploymentKeysNetworkUUID: schema.StringAttribute{
 				Optional:    true,
@@ -123,7 +153,7 @@ func (r *vmResource) Configure(_ context.Context, req resource.ConfigureRequest,
 // Create creates the resource and sets the initial Terraform state.
 func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan vmResourceModel
+	var plan ResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -135,20 +165,9 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 
 		return
 	}
-	requestData, err := plan.ToClientRequest()
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating Deployment",
-			"Could not create Deployment, cast to client error: "+err.Error(),
-		)
-
-		return
-	}
-
-	tflog.Info(ctx, fmt.Sprintf("Deployment to create: %+v", requestData))
 
 	// Create new Deployment
-	vm, err := r.client.CreateDeployment(ctx, requestData)
+	vm, err := r.client.CreateDeployment(ctx, plan.ToClientRequest())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating Deployment",
@@ -188,7 +207,7 @@ func (r *vmResource) Create(ctx context.Context, req resource.CreateRequest, res
 // Read refreshes the Terraform state with the latest data.
 func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state vmResourceModel
+	var state ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -229,7 +248,7 @@ func (r *vmResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan vmResourceModel
+	var plan ResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -242,19 +261,8 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 		return
 	}
 
-	requestData, err := plan.ToClientRequest()
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating Deployment",
-			"Could not update Deployment, unexpected error: "+err.Error(),
-		)
-
-		return
-	}
-
 	// Update existing order
-	_, err = r.client.UpdateDeployment(ctx, plan.UUID.ValueString(), requestData)
-	if err != nil {
+	if _, err := r.client.UpdateDeployment(ctx, plan.UUID.ValueString(), plan.ToClientRequest()); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating Deployment state",
 			fmt.Sprintf("Could not update Deployment state %s, unexpected error: %s", plan.UUID.ValueString(), err),
@@ -290,7 +298,7 @@ func (r *vmResource) Update(ctx context.Context, req resource.UpdateRequest, res
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *vmResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state vmResourceModel
+	var state ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {

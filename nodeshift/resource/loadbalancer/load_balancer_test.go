@@ -1,7 +1,6 @@
 package loadbalancer
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -73,7 +72,7 @@ func Test_lbResource_Configure(t *testing.T) {
 			r := &lbResource{
 				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Configure(context.Background(), tt.args.req, tt.args.in2)
+			r.Configure(t.Context(), tt.args.req, tt.args.in2)
 		})
 	}
 }
@@ -413,7 +412,7 @@ func Test_lbResource_Create(t *testing.T) {
 			).AnyTimes()
 
 			r := &lbResource{client: c}
-			r.Create(context.Background(), tt.args.req, tt.args.resp)
+			r.Create(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -715,7 +714,7 @@ func Test_lbResource_Delete(t *testing.T) {
 			c.EXPECT().DeleteLB(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
 			r := &lbResource{client: c}
-			r.Delete(context.Background(), tt.args.req, tt.args.resp)
+			r.Delete(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -751,7 +750,7 @@ func Test_lbResource_ImportState(t *testing.T) {
 			r := &lbResource{
 				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.ImportState(context.Background(), tt.args.req, tt.args.resp)
+			r.ImportState(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -782,7 +781,7 @@ func Test_lbResource_Metadata(t *testing.T) {
 			r := &lbResource{
 				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Metadata(context.Background(), tt.args.req, tt.args.resp)
+			r.Metadata(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -1110,7 +1109,7 @@ func Test_lbResource_Read(t *testing.T) {
 			).AnyTimes()
 
 			r := &lbResource{client: c}
-			r.Read(context.Background(), tt.args.req, tt.args.resp)
+			r.Read(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -1141,7 +1140,7 @@ func Test_lbResource_Schema(t *testing.T) {
 			r := &lbResource{
 				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Schema(context.Background(), tt.args.request, tt.args.response)
+			r.Schema(t.Context(), tt.args.request, tt.args.response)
 		})
 	}
 }
@@ -1494,7 +1493,7 @@ func Test_lbResource_Update(t *testing.T) {
 			).AnyTimes()
 
 			r := &lbResource{client: c}
-			r.Update(context.Background(), tt.args.req, tt.args.resp)
+			r.Update(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }

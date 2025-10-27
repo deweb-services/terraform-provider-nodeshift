@@ -10,14 +10,14 @@ import (
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 )
 
-type VPCResourceModel struct {
+type ResourceModel struct {
 	UUID        types.String `tfsdk:"uuid"`
 	IPRange     types.String `tfsdk:"ip_range"`
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
 }
 
-func (m *VPCResourceModel) ToClientRequest() (*client.CreateVPCRequest, error) {
+func (m *ResourceModel) ToClientRequest() (*client.CreateVPCRequest, error) {
 	vpc := client.CreateVPCRequest{
 		Name:        m.Name.ValueString(),
 		Description: m.Description.ValueString(),
@@ -42,11 +42,9 @@ func (m *VPCResourceModel) ToClientRequest() (*client.CreateVPCRequest, error) {
 	return &vpc, nil
 }
 
-func (m *VPCResourceModel) FromClientResponse(c *client.GetVPCResponse) error {
+func (m *ResourceModel) FromClientResponse(c *client.GetVPCResponse) {
 	m.UUID = types.StringValue(c.UUID)
 	m.Name = types.StringValue(c.Name)
 	m.Description = types.StringValue(c.Description)
 	m.IPRange = types.StringValue(c.IPRange)
-
-	return nil
 }

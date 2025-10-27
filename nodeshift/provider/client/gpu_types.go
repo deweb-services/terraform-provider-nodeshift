@@ -8,6 +8,7 @@ type CreateGPURequest struct {
 	Region         string `json:"region,omitempty"`
 	Disk           int64  `json:"disk,omitempty"`
 	MinCudaVersion string `json:"minCudaVersion,omitempty"`
+	MachineType    string `json:"machineType,omitempty"`
 }
 
 type CreateGPUResponse struct {

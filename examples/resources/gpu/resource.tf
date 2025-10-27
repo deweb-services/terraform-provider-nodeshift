@@ -6,4 +6,5 @@ resource "nodeshift_gpu" "example" {
   gpu_count = 1
   disk_size_gb = 30
   min_cuda_version = "12.6"
+  machine_type = "vm"
 }

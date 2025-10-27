@@ -1,7 +1,6 @@
 package client
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -44,7 +43,7 @@ func TestNodeshiftClient_CreateLB(t *testing.T) {
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, _ := c.CreateLB(context.Background(), tt.args.lb)
+			got, _ := c.CreateLB(t.Context(), tt.args.lb)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -84,7 +83,7 @@ func TestNodeshiftClient_DeleteLB(t *testing.T) {
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			err := c.DeleteLB(context.Background(), tt.args.id)
+			err := c.DeleteLB(t.Context(), tt.args.id)
 			assert.Errorf(t, err, "failed to delete LB: external API returned an error code: request failed, status code: 404")
 		})
 	}
@@ -126,7 +125,7 @@ func TestNodeshiftClient_GetLB(t *testing.T) {
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.GetLB(context.Background(), tt.args.id)
+			got, err := c.GetLB(t.Context(), tt.args.id)
 			require.Error(t, err)
 			assert.Nil(t, got)
 		})
@@ -171,7 +170,7 @@ func TestNodeshiftClient_UpdateLB(t *testing.T) {
 				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.UpdateLB(context.Background(), tt.args.id, tt.args.lb)
+			got, err := c.UpdateLB(t.Context(), tt.args.id, tt.args.lb)
 			require.Error(t, err)
 			assert.Nil(t, got)
 		})

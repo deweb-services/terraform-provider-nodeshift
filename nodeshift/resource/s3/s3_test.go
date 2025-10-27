@@ -1,12 +1,13 @@
 package s3
 
 import (
-	"context"
 	"reflect"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"go.uber.org/mock/gomock"
@@ -80,7 +81,7 @@ func Test_bucketResource_Configure(t *testing.T) {
 			r := &bucketResource{
 				client: c,
 			}
-			r.Configure(context.Background(), tt.args.req, tt.args.in2)
+			r.Configure(t.Context(), tt.args.req, tt.args.in2)
 		})
 	}
 }
@@ -110,6 +111,9 @@ func Test_bucketResource_Create(t *testing.T) {
 								KeyBucketName: schema.StringAttribute{
 									Description: DescriptionBucketName,
 									Required:    true,
+									Validators: []validator.String{
+										stringvalidator.LengthAtLeast(1),
+									},
 								},
 							},
 						},
@@ -128,29 +132,16 @@ func Test_bucketResource_Create(t *testing.T) {
 			args: args{
 				req: resource.CreateRequest{
 					Plan: tfsdk.Plan{
-						Raw:    tftypes.Value{},
-						Schema: schema.Schema{},
-					},
-				},
-				resp: &resource.CreateResponse{
-					State: tfsdk.State{},
-				},
-			},
-		},
-		{
-			name: "bucket resource create convert error",
-			args: args{
-				req: resource.CreateRequest{
-					Plan: tfsdk.Plan{
-						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							KeyBucketName: tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-						}),
+						Raw: tftypes.Value{},
 						Schema: schema.Schema{
 							Description: "Manages a s3 Bucket",
 							Attributes: map[string]schema.Attribute{
 								KeyBucketName: schema.StringAttribute{
 									Description: DescriptionBucketName,
 									Required:    true,
+									Validators: []validator.String{
+										stringvalidator.LengthAtLeast(1),
+									},
 								},
 							},
 						},
@@ -177,7 +168,7 @@ func Test_bucketResource_Create(t *testing.T) {
 			r := &bucketResource{
 				client: c,
 			}
-			r.Create(context.Background(), tt.args.req, tt.args.resp)
+			r.Create(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -262,7 +253,7 @@ func Test_bucketResource_Delete(t *testing.T) {
 			r := &bucketResource{
 				client: c,
 			}
-			r.Delete(context.Background(), tt.args.req, tt.args.resp)
+			r.Delete(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -318,7 +309,7 @@ func Test_bucketResource_ImportState(t *testing.T) {
 			r := &bucketResource{
 				client: c,
 			}
-			r.ImportState(context.Background(), tt.args.req, tt.args.resp)
+			r.ImportState(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -357,7 +348,7 @@ func Test_bucketResource_Metadata(t *testing.T) {
 			r := &bucketResource{
 				client: c,
 			}
-			r.Metadata(context.Background(), tt.args.req, tt.args.resp)
+			r.Metadata(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -455,7 +446,7 @@ func Test_bucketResource_Read(t *testing.T) {
 			r := &bucketResource{
 				client: c,
 			}
-			r.Read(context.Background(), tt.args.req, tt.args.resp)
+			r.Read(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
@@ -503,7 +494,7 @@ func Test_bucketResource_Schema(t *testing.T) {
 			r := &bucketResource{
 				client: tt.fields.client,
 			}
-			r.Schema(context.Background(), tt.args.request, tt.args.response)
+			r.Schema(t.Context(), tt.args.request, tt.args.response)
 		})
 	}
 }
@@ -602,7 +593,7 @@ func Test_bucketResource_Update(t *testing.T) {
 			r := &bucketResource{
 				client: c,
 			}
-			r.Update(context.Background(), tt.args.req, tt.args.resp)
+			r.Update(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }

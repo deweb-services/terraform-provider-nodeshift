@@ -4,10 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -42,20 +46,31 @@ func (r *lbResource) Schema(c context.Context, request resource.SchemaRequest, r
 			KeyName: schema.StringAttribute{
 				Required:    true,
 				Description: DescriptionName,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			KeyReplicas: schema.MapAttribute{
 				Required:    true,
-				ElementType: types.Int64Type,
 				Description: DescriptionReplicas,
+				ElementType: types.Int64Type,
+				Validators: []validator.Map{
+					mapvalidator.SizeAtLeast(1),
+					mapvalidator.NoNullValues(),
+				},
 			},
 			KeyCPUUUIDs: schema.ListAttribute{
 				Required:    true,
-				ElementType: types.StringType,
 				Description: DescriptionCPUUUIDs,
+				ElementType: types.StringType,
+				Validators: []validator.List{
+					listvalidator.SizeAtLeast(minCPUsCount),
+					listvalidator.NoNullValues(),
+				},
 			},
 			KeyForwardingRules: schema.ListAttribute{
-				Description: DescriptionForwardingRules,
 				Required:    true,
+				Description: DescriptionForwardingRules,
 				ElementType: types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"in": types.ObjectType{
@@ -106,7 +121,7 @@ func (r *lbResource) Configure(_ context.Context, req resource.ConfigureRequest,
 // Create creates the resource and sets the initial Terraform state.
 func (r *lbResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	// Retrieve values from plan
-	var plan LBResourceModel
+	var plan ResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -140,15 +155,7 @@ func (r *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 	}
 
 	// Map response body to schema and populate Computed attribute values
-	err = plan.FromClientResponse(lb)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating load balancer",
-			fmt.Sprintf("Could not convert created load balancer from client response, unexpected error: %s", err),
-		)
-
-		return
-	}
+	plan.FromClientResponse(lb)
 	tflog.Info(ctx, fmt.Sprintf("load balancer from client response: %+v", lb))
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
@@ -165,7 +172,7 @@ func (r *lbResource) Create(ctx context.Context, req resource.CreateRequest, res
 // Read refreshes the Terraform state with the latest data.
 func (r *lbResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// Get current state
-	var state LBResourceModel
+	var state ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -214,7 +221,7 @@ func (r *lbResource) Read(ctx context.Context, req resource.ReadRequest, resp *r
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *lbResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// Retrieve values from plan
-	var plan LBResourceModel
+	var plan ResourceModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -282,7 +289,7 @@ func (r *lbResource) Update(ctx context.Context, req resource.UpdateRequest, res
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *lbResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	// Retrieve values from state
-	var state LBResourceModel
+	var state ResourceModel
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
