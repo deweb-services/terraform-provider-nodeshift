@@ -1,8 +1,6 @@
 package provider
 
 import (
-	"context"
-	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -15,12 +13,14 @@ import (
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/deployment"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/gpu"
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/load_balancer"
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/loadbalancer"
 	s3terraform "github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/s3"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/vpc"
 )
 
 func TestNewNodeshiftProvider(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		want provider.Provider
@@ -32,16 +32,17 @@ func TestNewNodeshiftProvider(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewNodeshiftProvider(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewNodeshiftProvider() = %v, want %v", got, tt.want)
-			}
+			t.Parallel()
+
+			assert.Equal(t, tt.want, NewNodeshiftProvider())
 		})
 	}
 }
 
 func Test_nodeshiftProvider_Configure(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  provider.ConfigureRequest
 		resp *provider.ConfigureResponse
 	}
@@ -52,7 +53,6 @@ func Test_nodeshiftProvider_Configure(t *testing.T) {
 		{
 			name: "nodeshift provider configure",
 			args: args{
-				ctx: context.TODO(),
 				req: provider.ConfigureRequest{
 					TerraformVersion: "",
 					Config: tfsdk.Config{
@@ -104,7 +104,6 @@ func Test_nodeshiftProvider_Configure(t *testing.T) {
 		{
 			name: "nodeshift provider configure error",
 			args: args{
-				ctx: context.TODO(),
 				req: provider.ConfigureRequest{
 					TerraformVersion: "14.1",
 					Config: tfsdk.Config{
@@ -118,7 +117,6 @@ func Test_nodeshiftProvider_Configure(t *testing.T) {
 		{
 			name: "nodeshift provider configure unknown param",
 			args: args{
-				ctx: context.TODO(),
 				req: provider.ConfigureRequest{
 					Config: tfsdk.Config{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
@@ -168,43 +166,41 @@ func Test_nodeshiftProvider_Configure(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &nodeshiftProvider{}
 
-			p.Configure(tt.args.ctx, tt.args.req, tt.args.resp)
+			p.Configure(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_nodeshiftProvider_DataSources(t *testing.T) {
-	type args struct {
-		in0 context.Context
-	}
+	t.Parallel()
+
 	tests := []struct {
 		name string
-		args args
 		want []func() datasource.DataSource
 	}{
 		{
 			name: "nodeshift provider data sources",
-			args: args{
-				in0: context.TODO(),
-			},
 			want: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &nodeshiftProvider{}
-			if got := p.DataSources(tt.args.in0); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DataSources() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, p.DataSources(t.Context()))
 		})
 	}
 }
 
 func Test_nodeshiftProvider_Metadata(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
-		in0  context.Context
 		in1  provider.MetadataRequest
 		resp *provider.MetadataResponse
 	}
@@ -215,7 +211,6 @@ func Test_nodeshiftProvider_Metadata(t *testing.T) {
 		{
 			name: "nodeshift provider metadata",
 			args: args{
-				in0:  context.TODO(),
 				in1:  provider.MetadataRequest{},
 				resp: &provider.MetadataResponse{},
 			},
@@ -223,46 +218,46 @@ func Test_nodeshiftProvider_Metadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &nodeshiftProvider{}
-			p.Metadata(tt.args.in0, tt.args.in1, tt.args.resp)
+			p.Metadata(t.Context(), tt.args.in1, tt.args.resp)
 		})
 	}
 }
 
 func Test_nodeshiftProvider_Resources(t *testing.T) {
-	type args struct {
-		in0 context.Context
-	}
+	t.Parallel()
+
 	tests := []struct {
 		name string
-		args args
 		want []func() resource.Resource
 	}{
 		{
 			name: "nodeshift provider resources",
-			args: args{
-				in0: context.TODO(),
-			},
 			want: []func() resource.Resource{
 				deployment.NewDeploymentResource,
 				vpc.NewVPCResource,
 				gpu.NewGPUResource,
 				s3terraform.NewBucketResource,
-				load_balancer.NewLBResource,
+				loadbalancer.NewLBResource,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &nodeshiftProvider{}
-			assert.Equal(t, len(tt.want), len(p.Resources(tt.args.in0)))
+			assert.Equal(t, len(tt.want), len(p.Resources(t.Context())))
 		})
 	}
 }
 
 func Test_nodeshiftProvider_Schema(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
-		in0  context.Context
 		in1  provider.SchemaRequest
 		resp *provider.SchemaResponse
 	}
@@ -273,7 +268,6 @@ func Test_nodeshiftProvider_Schema(t *testing.T) {
 		{
 			name: "nodeshift provider schema",
 			args: args{
-				in0:  context.TODO(),
 				in1:  provider.SchemaRequest{},
 				resp: &provider.SchemaResponse{},
 			},
@@ -281,8 +275,10 @@ func Test_nodeshiftProvider_Schema(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			p := &nodeshiftProvider{}
-			p.Schema(tt.args.in0, tt.args.in1, tt.args.resp)
+			p.Schema(t.Context(), tt.args.in1, tt.args.resp)
 		})
 	}
 }

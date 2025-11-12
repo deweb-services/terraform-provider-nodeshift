@@ -1,68 +1,62 @@
 package client
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNodeshiftClient_CreateLB(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-		signer *Signer
-		url    string
+		url string
 	}
 	type args struct {
-		ctx context.Context
-		lb  *LoadBalancerConfig
+		lb *CreateLBRequest
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		args   args
-		want   *LoadBalancerConfigResponse
+		want   *GetLBResponse
 	}{
 		{
 			name: "create lb",
 			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-				signer: defaultSigner,
-				url:    exampleUrlString,
+				url: exampleURLString,
 			},
 			args: args{
-				ctx: context.TODO(),
-				lb:  &LoadBalancerConfig{},
+				lb: &CreateLBRequest{},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
-				signer: tt.fields.signer,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
+				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, _ := c.CreateLB(tt.args.ctx, tt.args.lb)
-			assert.Equalf(t, tt.want, got, "CreateLB(%v, %v)", tt.args.ctx, tt.args.lb)
+			got, _ := c.CreateLB(t.Context(), tt.args.lb)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
 
 func TestNodeshiftClient_DeleteLB(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-		signer *Signer
-		url    string
+		url string
 	}
 	type args struct {
-		ctx context.Context
-		id  string
+		id string
 	}
 	tests := []struct {
 		name   string
@@ -72,122 +66,112 @@ func TestNodeshiftClient_DeleteLB(t *testing.T) {
 		{
 			name: "delete lb",
 			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-				signer: defaultSigner,
-				url:    exampleUrlString,
+				url: exampleURLString,
 			},
 			args: args{
-				ctx: context.TODO(),
-				id:  "id",
+				id: "id",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
-				signer: tt.fields.signer,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
+				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			err := c.DeleteLB(tt.args.ctx, tt.args.id)
+			err := c.DeleteLB(t.Context(), tt.args.id)
 			assert.Errorf(t, err, "failed to delete LB: external API returned an error code: request failed, status code: 404")
 		})
 	}
 }
 
 func TestNodeshiftClient_GetLB(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-		signer *Signer
-		url    string
+		url string
 	}
 	type args struct {
-		ctx context.Context
-		id  string
+		id string
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		args   args
-		want   *RentedGpuInfoResponse
+		want   *GetGPUResponse
 	}{
 		{
 			name: "get lb",
 			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-				signer: defaultSigner,
-				url:    exampleUrlString,
+				url: exampleURLString,
 			},
 			args: args{
-				ctx: context.TODO(),
-				id:  "id",
+				id: "id",
 			},
 			want: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
-				signer: tt.fields.signer,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
+				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.GetLB(tt.args.ctx, tt.args.id)
-			assert.NotNil(t, err)
+			got, err := c.GetLB(t.Context(), tt.args.id)
+			require.Error(t, err)
 			assert.Nil(t, got)
 		})
 	}
 }
 
 func TestNodeshiftClient_UpdateLB(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
-		Config NodeshiftProviderConfiguration
-		client *http.Client
-		signer *Signer
-		url    string
+		url string
 	}
 	type args struct {
-		ctx context.Context
-		id  string
-		lb  *LoadBalancerConfig
+		id string
+		lb *CreateLBRequest
 	}
 	tests := []struct {
 		name   string
 		fields fields
 		args   args
-		want   *LoadBalancerConfigResponse
+		want   *GetLBResponse
 	}{
 		{
 			name: "update lb",
 			fields: fields{
-				Config: NodeshiftProviderConfiguration{},
-				client: &http.Client{},
-				signer: defaultSigner,
-				url:    exampleUrlString,
+				url: exampleURLString,
 			},
 			args: args{
-				ctx: context.TODO(),
-				id:  "id",
-				lb:  &LoadBalancerConfig{},
+				id: "id",
+				lb: &CreateLBRequest{},
 			},
 			want: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := &NodeshiftClient{
-				Config: tt.fields.Config,
-				client: tt.fields.client,
-				signer: tt.fields.signer,
+				Config: NodeshiftProviderConfiguration{},
+				client: &http.Client{},
+				signer: NewSigner(WithStaticCredentials("access", "secret")),
 				url:    tt.fields.url,
 			}
-			got, err := c.UpdateLB(tt.args.ctx, tt.args.id, tt.args.lb)
-			assert.NotNil(t, err)
+			got, err := c.UpdateLB(t.Context(), tt.args.id, tt.args.lb)
+			require.Error(t, err)
 			assert.Nil(t, got)
 		})
 	}

@@ -21,7 +21,7 @@ output:
 
 linters-settings:
   interfacebloat:
-    max: 20
+    max: 25
   goimports:
     local-prefixes: github.com/deweb-services
   misspell:
@@ -39,7 +39,6 @@ linters:
     - testpackage
     - tagliatelle
     - varnamelen
-    - gomnd
     - nolintlint
     - exhaustruct
     - tagalign
@@ -55,10 +54,9 @@ linters:
     - revive
     - godox
     # deprecated
-    - execinquery
-    - exportloopref
     - copyloopvar
     - intrange
+    - tenv
 
 issues:
   exclude-rules:

@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -39,6 +42,9 @@ func (r *bucketResource) Schema(c context.Context, request resource.SchemaReques
 			KeyBucketName: schema.StringAttribute{
 				Description: DescriptionBucketName,
 				Required:    true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(minBucketNameLength),
+				},
 			},
 		},
 	}
@@ -48,7 +54,13 @@ func (r *bucketResource) Configure(_ context.Context, req resource.ConfigureRequ
 	if req.ProviderData == nil {
 		return
 	}
-	r.client = req.ProviderData.(*client.NodeshiftClient)
+
+	p, ok := req.ProviderData.(*client.NodeshiftClient)
+	if !ok {
+		return
+	}
+
+	r.client = p
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -58,41 +70,37 @@ func (r *bucketResource) Create(ctx context.Context, req resource.CreateRequest,
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
 	// Create new Bucket
-	clientRequest, err := plan.ToClientRequest()
-	if err != nil {
-		tflog.Error(ctx, "failed to convert resource to client required type", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
-		return
-	}
-
-	bucket, err := r.client.CreateBucket(ctx, clientRequest)
+	bucket, err := r.client.CreateBucket(ctx, plan.ToClientRequest())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error creating bucket",
 			fmt.Sprintf("Could not create bucket, unexpected error: %s", err),
 		)
+
 		return
 	}
 
-	err = plan.FromClientResponse(bucket)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating bucket",
-			fmt.Sprintf("Could not convert created bucket from client response, unexpected error: %s", err),
-		)
-		return
-	}
-
-	tflog.Info(ctx, fmt.Sprintf("Bucket from client response: %+v", clientRequest))
+	plan.FromClientResponse(bucket)
+	tflog.Info(ctx, fmt.Sprintf("Bucket from client response: %+v", bucket))
 	// Set state to fully populated data
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -103,7 +111,12 @@ func (r *bucketResource) Read(ctx context.Context, req resource.ReadRequest, res
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
@@ -114,24 +127,21 @@ func (r *bucketResource) Read(ctx context.Context, req resource.ReadRequest, res
 			"Error Reading bucket state",
 			fmt.Sprintf("Could not read bucket state key %s: %s", state.Key.ValueString(), err),
 		)
+
 		return
 	}
 
 	// Overwrite items with refreshed state
-	err = state.FromClientResponse(bucket)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error getting bucket",
-			fmt.Sprintf("Could not convert read bucket from client response, unexpected error: %s", err),
-		)
-		return
-	}
-
+	state.FromClientResponse(bucket)
 	// Set refreshed state
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -142,21 +152,22 @@ func (r *bucketResource) Update(ctx context.Context, req resource.UpdateRequest,
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
-	clientRequest, err := plan.ToClientRequest()
-	if err != nil {
-		tflog.Error(ctx, "failed to convert resource to client required type", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
-	}
-
 	// Update existing order
-	if err := r.client.UpdateBucket(ctx, clientRequest); err != nil {
+	if err := r.client.UpdateBucket(ctx, plan.ToClientRequest()); err != nil {
 		resp.Diagnostics.AddError(
 			"Error Updating bucket state",
 			fmt.Sprintf("Could not update bucket state %s, unexpected error: %s", plan.Key.ValueString(), err),
 		)
+
 		return
 	}
 
@@ -167,22 +178,19 @@ func (r *bucketResource) Update(ctx context.Context, req resource.UpdateRequest,
 			"Error Reading bucket state",
 			fmt.Sprintf("Could not read bucket name %s: %s", plan.Key.ValueString(), err),
 		)
+
 		return
 	}
 
-	err = plan.FromClientResponse(bucket)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error creating bucket",
-			fmt.Sprintf("Could not convert updated Bucket from client response, unexpected error: %s", err),
-		)
-		return
-	}
-
+	plan.FromClientResponse(bucket)
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors updating state", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors updating state",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
 	}
 }
 
@@ -193,7 +201,12 @@ func (r *bucketResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	diags := req.State.Get(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors getting current plan", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors getting current plan",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
@@ -203,6 +216,7 @@ func (r *bucketResource) Delete(ctx context.Context, req resource.DeleteRequest,
 			"Error Deleting bucket",
 			fmt.Sprintf("Could not delete bucket, unexpected error: %s", err),
 		)
+
 		return
 	}
 }

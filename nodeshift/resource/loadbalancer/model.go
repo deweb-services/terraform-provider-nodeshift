@@ -1,7 +1,6 @@
-package load_balancer
+package loadbalancer
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -20,7 +19,7 @@ type ForwardingRuleModel struct {
 	Out RuleEndpointModel `tfsdk:"out"`
 }
 
-type LBResourceModel struct {
+type ResourceModel struct {
 	Name            types.String `tfsdk:"name"`
 	Replicas        types.Map    `tfsdk:"replicas"`
 	CPUUUIDs        types.List   `tfsdk:"cpu_uuids"`
@@ -29,10 +28,9 @@ type LBResourceModel struct {
 
 	UUID   types.String `tfsdk:"uuid"`
 	Status types.String `tfsdk:"status"`
-	TaskID types.String `tfsdk:"task_id"`
 }
 
-func (m *LBResourceModel) ToClientRequest() (*client.LoadBalancerConfig, error) {
+func (m *ResourceModel) ToClientRequest() (*client.CreateLBRequest, error) {
 	replicas := make(map[string]int)
 	for k, v := range m.Replicas.Elements() {
 		if intVal, ok := v.(types.Int64); ok && !intVal.IsNull() {
@@ -51,13 +49,13 @@ func (m *LBResourceModel) ToClientRequest() (*client.LoadBalancerConfig, error) 
 	for _, ruleAttr := range m.ForwardingRules.Elements() {
 		rule, err := convertToForwardingRule(ruleAttr)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert resource to client required type: %w", err)
+			return nil, fmt.Errorf("failed to convert forwarding rule to client required type: %w", err)
 		}
 
 		forwardingRules = append(forwardingRules, *rule)
 	}
 
-	return &client.LoadBalancerConfig{
+	return &client.CreateLBRequest{
 		Name:            m.Name.ValueString(),
 		Replicas:        replicas,
 		CPUUUIDs:        cpuUUIDs,
@@ -68,22 +66,30 @@ func (m *LBResourceModel) ToClientRequest() (*client.LoadBalancerConfig, error) 
 
 func convertToForwardingRule(attr attr.Value) (*client.ForwardingRule, error) {
 	if attr.IsNull() {
-		return nil, errors.New("forward rule property is required and cannot be empty")
+		return nil, fmt.Errorf("forward rule is required: %w", client.ErrPropertyEmpty)
 	}
 
 	ruleObj, ok := attr.(types.Object)
 	if !ok {
-		return nil, errors.New("forward rule property should be Object type")
+		return nil, fmt.Errorf("forward rule should be Object type: %w", client.ErrPropertyType)
 	}
 
-	inAttr := ruleObj.Attributes()["in"].(types.Object)
+	inAttr, ok := ruleObj.Attributes()["in"].(types.Object)
+	if !ok {
+		return nil, fmt.Errorf("failed to cast forward rule -> in: %w", client.ErrPropertyCast)
+	}
+
 	if inAttr.IsNull() {
-		return nil, errors.New("forward rule in property should be Object type")
+		return nil, fmt.Errorf("forward rule -> in should be Object type: %w", client.ErrPropertyType)
 	}
 
-	outAttr := ruleObj.Attributes()["out"].(types.Object)
+	outAttr, ok := ruleObj.Attributes()["out"].(types.Object)
+	if !ok {
+		return nil, fmt.Errorf("failed to cast forward rule -> out: %w", client.ErrPropertyCast)
+	}
+
 	if outAttr.IsNull() {
-		return nil, errors.New("forward rule out property should be Object type")
+		return nil, fmt.Errorf("forward rule -> out should be Object type: %w", client.ErrPropertyType)
 	}
 
 	inProtocol, err := getProtocol(inAttr)
@@ -121,12 +127,16 @@ func convertToForwardingRule(attr attr.Value) (*client.ForwardingRule, error) {
 func getProtocol(attr types.Object) (string, error) {
 	protocol := attr.Attributes()["protocol"]
 	if protocol.IsNull() {
-		return "", errors.New("forward rule -> protocol cannot be empty")
+		return "", fmt.Errorf("forward rule -> protocol is required: %w", client.ErrPropertyEmpty)
 	}
 
-	pt := protocol.(types.String)
+	pt, ok := protocol.(types.String)
+	if !ok {
+		return "", fmt.Errorf("failed to cast forward rule -> protocol: %w", client.ErrPropertyCast)
+	}
+
 	if pt.IsNull() {
-		return "", errors.New("forward rule -> protocol cannot be empty")
+		return "", fmt.Errorf("forward rule -> protocol is required: %w", client.ErrPropertyEmpty)
 	}
 
 	return pt.ValueString(), nil
@@ -135,34 +145,29 @@ func getProtocol(attr types.Object) (string, error) {
 func getPort(attr types.Object) (int, error) {
 	port := attr.Attributes()["port"]
 	if port.IsNull() {
-		return 0, errors.New("forward rule -> port cannot be empty")
+		return 0, fmt.Errorf("forward rule -> port is required: %w", client.ErrPropertyEmpty)
 	}
 
-	pt := port.(types.Int64)
+	pt, ok := port.(types.Int64)
+	if !ok {
+		return 0, fmt.Errorf("failed to cast forward rule -> port: %w", client.ErrPropertyCast)
+	}
+
 	if pt.IsNull() {
-		return 0, errors.New("forward rule -> port cannot be empty")
+		return 0, fmt.Errorf("forward rule -> port is required: %w", client.ErrPropertyEmpty)
 	}
 
 	return int(pt.ValueInt64()), nil
 }
 
-func (m *LBResourceModel) FromClientResponse(c *client.LoadBalancerConfigResponse) error {
+func (m *ResourceModel) FromClientResponse(c *client.GetLBResponse) {
 	m.UUID = types.StringValue(c.UUID)
 	m.Status = types.StringValue(c.Status)
-	m.TaskID = types.StringValue(c.TaskID)
-	return nil
 }
 
-func (m *LBResourceModel) FromGClientResponse(c *client.LoadBalancerConfigResponse) error {
+func (m *ResourceModel) FromClientRentedLBResponse(c *client.GetLBResponse) error {
 	m.UUID = types.StringValue(c.UUID)
 	m.Status = types.StringValue(c.Status)
-	m.TaskID = types.StringValue(c.TaskID)
-	return nil
-}
 
-func (m *LBResourceModel) FromClientRentedLBResponse(c *client.GetLBResponse) error {
-	m.UUID = types.StringValue(c.UUID)
-	m.Status = types.StringValue(c.Status)
-	m.TaskID = types.StringValue(c.TaskID)
 	return nil
 }

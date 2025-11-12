@@ -5,12 +5,12 @@ import (
 	"time"
 )
 
-type LoadBalancerConfig struct {
+type CreateLBRequest struct {
 	Name            string           `json:"name"`
 	Replicas        map[string]int   `json:"replicas"`
 	CPUUUIDs        []string         `json:"cpuUuids"`
 	ForwardingRules []ForwardingRule `json:"forwardingRules"`
-	VPCUUID         string           `json:"vpcUuid"`
+	VPCUUID         string           `json:"vpcUuid,omitempty"`
 }
 
 type ForwardingRule struct {
@@ -23,16 +23,13 @@ type RuleEndpoint struct {
 	Port     int    `json:"port"`
 }
 
-type LoadBalancerConfigResponse struct {
-	UUID   string `json:"uuid"`
-	Status string `json:"status"`
-	TaskID string `json:"taskId"`
+type createLBResponse struct {
+	UUID string `json:"uuid"`
 }
 
 type GetLBResponse struct {
 	UUID            string              `json:"uuid"`
 	Name            string              `json:"name"`
-	TaskID          string              `json:"taskId"`
 	Status          string              `json:"status"`
 	ReplicasAmount  int                 `json:"replicasAmount"`
 	CPUAmount       int                 `json:"cpuAmount"`
@@ -101,13 +98,12 @@ type VPCResource struct {
 	CRU       int       `json:"cru"`
 	MRU       int       `json:"mru"`
 	SRU       int       `json:"sru"`
-	TaskID    string    `json:"taskId"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 type Deployment struct {
 	UUID         string    `json:"uuid"`
-	Status       int       `json:"status"`
+	Status       string    `json:"status"`
 	IP           string    `json:"ip"`
 	CRU          int       `json:"cru"`
 	MRU          int       `json:"mru"`

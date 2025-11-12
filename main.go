@@ -4,8 +4,9 @@ import (
 	"context"
 	"log"
 
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider"
 )
 
 func main() {

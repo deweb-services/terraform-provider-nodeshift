@@ -16,12 +16,12 @@ import (
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/deployment"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/gpu"
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/load_balancer"
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/loadbalancer"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/s3"
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/resource/vpc"
 )
 
-// Ensure the implementation satisfies the expected interfaces
+// Ensure the implementation satisfies the expected interfaces.
 var (
 	_ provider.Provider = &nodeshiftProvider{}
 )
@@ -71,6 +71,14 @@ func (p *nodeshiftProvider) Schema(_ context.Context, _ provider.SchemaRequest, 
 				Description: "Nodeshift s3 region",
 				Optional:    true,
 			},
+			APIEndpoint: schema.StringAttribute{
+				Description: "Nodeshift API endpoint address",
+				Optional:    true,
+			},
+			WithInsecure: schema.BoolAttribute{
+				Description: "Nodeshift insecure connection",
+				Optional:    true,
+			},
 		},
 	}
 }
@@ -85,6 +93,7 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 	profile := os.Getenv(EnvKeyProfile)
 	s3Endpoint := os.Getenv(EnvKeyS3Endpoint)
 	s3Region := os.Getenv(EnvKeyS3Region)
+	ae := os.Getenv(EnvKeyAPIEndpoint)
 
 	values := []string{
 		accessKey,
@@ -93,6 +102,7 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 		profile,
 		s3Endpoint,
 		s3Region,
+		ae,
 	}
 
 	// Retrieve provider data from configuration
@@ -100,7 +110,12 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 	diags := req.Config.Get(ctx, &config)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
-		tflog.Error(ctx, "Errors configuring Nodeshift client", map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()})
+		tflog.Error(
+			ctx,
+			"Errors configuring Nodeshift client",
+			map[string]interface{}{"count": resp.Diagnostics.ErrorsCount(), "errors": resp.Diagnostics.Errors()},
+		)
+
 		return
 	}
 
@@ -126,6 +141,10 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 
 	if config.S3Region.ValueString() != "" {
 		values[5] = config.S3Region.ValueString()
+	}
+
+	if config.APIEndpoint.ValueString() != "" {
+		values[6] = config.APIEndpoint.ValueString()
 	}
 
 	type Attribute struct {
@@ -165,6 +184,11 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 			Param:    &config.S3Region,
 			Required: false,
 		},
+		APIEndpoint: {
+			EnvName:  EnvKeyAPIEndpoint,
+			Param:    &config.APIEndpoint,
+			Required: false,
+		},
 	}
 
 	// If practitioner provided a configuration value for any of the attributes, it must be a known value.
@@ -172,7 +196,7 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 		if v.Param.IsUnknown() {
 			resp.Diagnostics.AddAttributeError(
 				path.Root(attrName),
-				fmt.Sprintf("Unknown Nodeshift API %s", attrName),
+				"Unknown Nodeshift API"+attrName,
 				fmt.Sprintf("The provider cannot create the Nodeshift API client as there is an unknown configuration "+
 					"value for the nodeshift API %s. Either target apply the source of the value first, set the value "+
 					"statically in the configuration, or use the %s environment variable.", attrName, v.EnvName),
@@ -193,7 +217,7 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 		if val == "" && v.Required {
 			resp.Diagnostics.AddAttributeError(
 				path.Root(attrKey),
-				fmt.Sprintf("Missing Nodeshift API %s", attrKey),
+				"Missing Nodeshift API "+attrKey,
 				fmt.Sprintf("The provider cannot create the Nodeshift API client as there is "+
 					"a missing or empty value for the Nodeshift API %s. Set the host value in the configuration "+
 					"or use the %s environment variable. If either is already set, ensure the value is not empty.",
@@ -212,15 +236,19 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 	tflog.Debug(ctx, "Creating Nodeshift client")
 	var cfg client.NodeshiftProviderConfiguration
 	cfg.FromSlice(values)
+	cfg.Insecure = config.WithInsecure.ValueBool()
 	tflog.Debug(ctx, fmt.Sprintf("%+v", values))
 
-	url := os.Getenv(EnvKeyAPIURL)
-	if url == "" {
-		url = client.APIURL
+	opts := []client.ClientOpt{client.ClientOptWithS3()}
+	if cfg.APIEndpoint != "" {
+		opts = append(opts, client.ClientOptWithURL(cfg.APIEndpoint))
+	}
+	if cfg.Insecure {
+		opts = append(opts, client.ClientOptWithInsecure())
 	}
 
 	// Create a new nodeshift client using the configuration values
-	cli := client.NewClient(ctx, cfg, client.ClientOptWithURL(url), client.ClientOptWithS3())
+	cli := client.NewClient(ctx, cfg, opts...)
 	// Make the nodeshift client available during DataSource and Resource
 	resp.DataSourceData = cli
 	resp.ResourceData = cli
@@ -239,6 +267,6 @@ func (p *nodeshiftProvider) Resources(_ context.Context) []func() resource.Resou
 		vpc.NewVPCResource,
 		gpu.NewGPUResource,
 		s3.NewBucketResource,
-		load_balancer.NewLBResource,
+		loadbalancer.NewLBResource,
 	}
 }

@@ -1,122 +1,88 @@
 package vpc
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestVPCResourceModel_FromClientResponse(t *testing.T) {
+func TestVPCResourceModel_ToClientRequest(t *testing.T) {
+	t.Parallel()
+
 	type fields struct {
 		ID          types.String
 		IPRange     types.String
 		Name        types.String
 		Description types.String
 	}
-	type args struct {
-		c *client.VPCConfig
-	}
 	tests := []struct {
 		name    string
 		fields  fields
-		args    args
+		want    *client.CreateVPCRequest
 		wantErr bool
 	}{
 		{
-			name: "vpc resource model from client response",
+			name: "empty range; vpc resource model to client request; expect ok",
 			fields: fields{
 				ID:          types.String{},
 				IPRange:     types.String{},
 				Name:        types.String{},
 				Description: types.String{},
 			},
-			args: args{
-				c: &client.VPCConfig{
-					ID:          "",
-					Name:        "",
-					Description: "",
-					IPRange:     "",
-				},
+			want: &client.CreateVPCRequest{
+				Name:        "",
+				Description: "",
+				IPRange:     "",
 			},
-			wantErr: false,
 		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			m := &VPCResourceModel{
-				ID:          tt.fields.ID,
-				IPRange:     tt.fields.IPRange,
-				Name:        tt.fields.Name,
-				Description: tt.fields.Description,
-			}
-			if err := m.FromClientResponse(tt.args.c); (err != nil) != tt.wantErr {
-				t.Errorf("FromClientResponse() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestVPCResourceModel_ToClientRequest(t *testing.T) {
-	type fields struct {
-		ID          types.String
-		IPRange     types.String
-		Name        types.String
-		Description types.String
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		want    *client.VPCConfig
-		wantErr bool
-	}{
 		{
-			name: "vpc resource model to client request ",
+			name: "filled range; vpc resource model to client request; expect ok",
+			fields: fields{
+				ID:          types.String{},
+				IPRange:     basetypes.NewStringValue("127.0"),
+				Name:        types.String{},
+				Description: types.String{},
+			},
+			want: &client.CreateVPCRequest{
+				Name:        "",
+				Description: "",
+				IPRange:     "127.0",
+			},
+		},
+		{
+			name: "vpc resource model to client request; expect error",
 			fields: fields{
 				ID:          types.String{},
 				IPRange:     basetypes.NewStringValue("127.0.0.1/24"),
 				Name:        types.String{},
 				Description: types.String{},
 			},
-			want: &client.VPCConfig{
-				ID:          "",
-				Name:        "",
-				Description: "",
-				IPRange:     "127.0.0.1/24",
-			},
-			wantErr: false,
-		},
-		{
-			name: "vpc resource model to client request error",
-			fields: fields{
-				ID:          types.String{},
-				IPRange:     types.String{},
-				Name:        types.String{},
-				Description: types.String{},
-			},
-			want:    nil,
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &VPCResourceModel{
-				ID:          tt.fields.ID,
+			t.Parallel()
+
+			m := &ResourceModel{
+				UUID:        tt.fields.ID,
 				IPRange:     tt.fields.IPRange,
 				Name:        tt.fields.Name,
 				Description: tt.fields.Description,
 			}
 			got, err := m.ToClientRequest()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ToClientRequest() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				require.Error(t, err)
+
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ToClientRequest() got = %v, want %v", got, tt.want)
-			}
+
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

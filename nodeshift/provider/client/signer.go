@@ -24,8 +24,7 @@ type CredentialsOpt func() *credentials.Credentials
 type SignerOpt func(signer *Signer)
 
 func NewSigner(credentialsOpt CredentialsOpt, opts ...SignerOpt) *Signer {
-	credentials := credentialsOpt()
-	signer := &Signer{v4: v4.NewSigner(credentials)}
+	signer := &Signer{v4: v4.NewSigner(credentialsOpt())}
 
 	for _, opt := range opts {
 		opt(signer)
@@ -37,10 +36,12 @@ func NewSigner(credentialsOpt CredentialsOpt, opts ...SignerOpt) *Signer {
 func (s *Signer) SignRequest(req *http.Request, body io.ReadSeeker) error {
 	// TODO: normal fix
 	originalURL := req.URL
-	req.URL, _ = url.Parse(strings.Replace(req.URL.String(), "/api", "", -1))
+	req.URL, _ = url.Parse(strings.ReplaceAll(req.URL.String(), "/api", ""))
+
 	if err := s.signRequest(req, body); err != nil {
-		return err
+		return fmt.Errorf("failed to sign request: %w", err)
 	}
+
 	req.URL = originalURL
 
 	return nil
@@ -80,6 +81,7 @@ func WithDebugLogger(logger aws.Logger) SignerOpt {
 	}
 }
 
+// nolint: containedctx
 type DebugLogger struct {
 	context.Context
 }

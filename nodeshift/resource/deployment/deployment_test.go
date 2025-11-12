@@ -1,19 +1,22 @@
 package deployment
 
 import (
-	"context"
-	"reflect"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 
 	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func TestNewDeploymentResource(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		want resource.Resource
@@ -25,34 +28,27 @@ func TestNewDeploymentResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewDeploymentResource(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewDeploymentResource() = %v, want %v", got, tt.want)
-			}
+			t.Parallel()
+
+			assert.Equal(t, tt.want, NewDeploymentResource())
 		})
 	}
 }
 
 func Test_vmResource_Configure(t *testing.T) {
-	type fields struct {
-		client *client.NodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		in0 context.Context
 		req resource.ConfigureRequest
 		in2 *resource.ConfigureResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource configure",
-			fields: fields{
-				client: &client.NodeshiftClient{},
-			},
 			args: args{
-				in0: context.TODO(),
 				req: resource.ConfigureRequest{
 					ProviderData: &client.NodeshiftClient{},
 				},
@@ -61,11 +57,7 @@ func Test_vmResource_Configure(t *testing.T) {
 		},
 		{
 			name: "vm resource configure error",
-			fields: fields{
-				client: &client.NodeshiftClient{},
-			},
 			args: args{
-				in0: context.TODO(),
 				req: resource.ConfigureRequest{},
 				in2: &resource.ConfigureResponse{},
 			},
@@ -73,39 +65,34 @@ func Test_vmResource_Configure(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Configure(tt.args.in0, tt.args.req, tt.args.in2)
+			r.Configure(t.Context(), tt.args.req, tt.args.in2)
 		})
 	}
 }
 
 func Test_vmResource_Create(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.CreateRequest
 		resp *resource.CreateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource create",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                             tftypes.NewValue(tftypes.String, ""),
+							UUID:                           tftypes.NewValue(tftypes.String, ""),
 							DeploymentKeysImage:            tftypes.NewValue(tftypes.String, DeploymentKeysImage),
 							DeploymentKeysRegion:           tftypes.NewValue(tftypes.String, DeploymentKeysRegion),
 							DeploymentKeysCPU:              tftypes.NewValue(tftypes.Number, 1),
@@ -114,20 +101,18 @@ func Test_vmResource_Create(t *testing.T) {
 							DeploymentKeysDiskType:         tftypes.NewValue(tftypes.String, DeploymentKeysDiskType),
 							DeploymentKeysAssignPublicIPv4: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
-							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
 							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
 							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
-							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a deployment",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the deployment, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
 									Computed:    true,
 								},
 								DeploymentKeysImage: schema.StringAttribute{
@@ -164,11 +149,6 @@ func Test_vmResource_Create(t *testing.T) {
 									Optional:    true,
 									Description: AssignPublicIPv6Description,
 								},
-								DeploymentKeysAssignYggIP: schema.BoolAttribute{
-									Computed:    true,
-									Optional:    true,
-									Description: AssignYggIPDescription,
-								},
 								DeploymentKeysSSHKey: schema.StringAttribute{
 									Required:    true,
 									Description: SSHKeyDescription,
@@ -193,10 +173,6 @@ func Test_vmResource_Create(t *testing.T) {
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
 									Description: PublicIPv6Description,
-								},
-								DeploymentKeysYggIP: schema.StringAttribute{
-									Computed:    true,
-									Description: YggIPDescription,
 								},
 							},
 						},
@@ -212,15 +188,78 @@ func Test_vmResource_Create(t *testing.T) {
 		},
 		{
 			name: "vm resource create schema error",
-			fields: fields{
-				client: &client.NodeshiftClient{},
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Config: tfsdk.Config{
-						Raw:    tftypes.Value{},
-						Schema: schema.Schema{},
+						Raw: tftypes.Value{},
+						Schema: schema.Schema{
+							Description: "Manages a deployment",
+							Attributes: map[string]schema.Attribute{
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
+									Computed:    true,
+								},
+								DeploymentKeysImage: schema.StringAttribute{
+									Required:    true,
+									Description: ImageDescription,
+								},
+								DeploymentKeysRegion: schema.StringAttribute{
+									Required:    true,
+									Description: RegionDescription,
+								},
+								DeploymentKeysCPU: schema.Int64Attribute{
+									Required:    true,
+									Description: CPUDescription,
+								},
+								DeploymentKeysRAM: schema.Int64Attribute{
+									Required:    true,
+									Description: RAMDescription,
+								},
+								DeploymentKeysDiskSize: schema.Int64Attribute{
+									Required:    true,
+									Description: DiskSizeDescription,
+								},
+								DeploymentKeysDiskType: schema.StringAttribute{
+									Required:    true,
+									Description: DiskTypeDescription,
+								},
+								DeploymentKeysAssignPublicIPv4: schema.BoolAttribute{
+									Computed:    true,
+									Optional:    true,
+									Description: AssignPublicIPv4Description,
+								},
+								DeploymentKeysAssignPublicIPv6: schema.BoolAttribute{
+									Computed:    true,
+									Optional:    true,
+									Description: AssignPublicIPv6Description,
+								},
+								DeploymentKeysSSHKey: schema.StringAttribute{
+									Required:    true,
+									Description: SSHKeyDescription,
+									Sensitive:   true,
+								},
+								DeploymentKeysSSHKeyName: schema.StringAttribute{
+									Required:    true,
+									Description: SSHKeyNameDescription,
+								},
+								DeploymentKeysHostName: schema.StringAttribute{
+									Required:    true,
+									Description: HostNameDescription,
+								},
+								DeploymentKeysNetworkUUID: schema.StringAttribute{
+									Optional:    true,
+									Description: NetworkUUIDDescription,
+								},
+								DeploymentKeysPublicIPv4: schema.StringAttribute{
+									Computed:    true,
+									Description: PublicIPv4Description,
+								},
+								DeploymentKeysPublicIPv6: schema.StringAttribute{
+									Computed:    true,
+									Description: PublicIPv6Description,
+								},
+							},
+						},
 					},
 					Plan: tfsdk.Plan{
 						Raw:    tftypes.Value{},
@@ -232,16 +271,11 @@ func Test_vmResource_Create(t *testing.T) {
 		},
 		{
 			name: "vm resource create convert error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                             tftypes.NewValue(tftypes.String, ""),
-							DeploymentKeysImage:            tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+							UUID:                           tftypes.NewValue(tftypes.String, ""),
 							DeploymentKeysRegion:           tftypes.NewValue(tftypes.String, DeploymentKeysRegion),
 							DeploymentKeysCPU:              tftypes.NewValue(tftypes.Number, 1),
 							DeploymentKeysRAM:              tftypes.NewValue(tftypes.Number, 2),
@@ -249,20 +283,18 @@ func Test_vmResource_Create(t *testing.T) {
 							DeploymentKeysDiskType:         tftypes.NewValue(tftypes.String, DeploymentKeysDiskType),
 							DeploymentKeysAssignPublicIPv4: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
-							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
 							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
 							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
-							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a deployment",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the deployment, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
 									Computed:    true,
 								},
 								DeploymentKeysImage: schema.StringAttribute{
@@ -299,11 +331,6 @@ func Test_vmResource_Create(t *testing.T) {
 									Optional:    true,
 									Description: AssignPublicIPv6Description,
 								},
-								DeploymentKeysAssignYggIP: schema.BoolAttribute{
-									Computed:    true,
-									Optional:    true,
-									Description: AssignYggIPDescription,
-								},
 								DeploymentKeysSSHKey: schema.StringAttribute{
 									Required:    true,
 									Description: SSHKeyDescription,
@@ -328,10 +355,6 @@ func Test_vmResource_Create(t *testing.T) {
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
 									Description: PublicIPv6Description,
-								},
-								DeploymentKeysYggIP: schema.StringAttribute{
-									Computed:    true,
-									Description: YggIPDescription,
 								},
 							},
 						},
@@ -343,39 +366,59 @@ func Test_vmResource_Create(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().CreateDeployment(gomock.Any(), gomock.Any()).Return(
+				&client.GetDeploymentResponse{
+					UUID:         "123e4567-e89b-12d3-a456-426614174000",
+					Status:       "running",
+					IP:           "192.168.1.10",
+					Cru:          4,
+					Mru:          8192,
+					Sru:          200,
+					Hru:          100,
+					HddType:      1,
+					Provider:     42,
+					Hostname:     "test-node.local",
+					SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
+					SSHKeyName:   "test-key",
+					Image:        7,
+					ImageVersion: "v1.2.3",
+					ChosenPlanID: 101,
+					Price:        "12.34",
+					CreatedAt:    time.Date(2025, 10, 7, 12, 0, 0, 0, time.UTC),
+				}, nil,
+			).AnyTimes()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Create(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Create(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vmResource_Delete(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.DeleteRequest
 		resp *resource.DeleteResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource delete",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                             tftypes.NewValue(tftypes.String, ""),
+							UUID:                           tftypes.NewValue(tftypes.String, ""),
 							DeploymentKeysImage:            tftypes.NewValue(tftypes.String, DeploymentKeysImage),
 							DeploymentKeysRegion:           tftypes.NewValue(tftypes.String, DeploymentKeysRegion),
 							DeploymentKeysCPU:              tftypes.NewValue(tftypes.Number, 1),
@@ -384,20 +427,18 @@ func Test_vmResource_Delete(t *testing.T) {
 							DeploymentKeysDiskType:         tftypes.NewValue(tftypes.String, DeploymentKeysDiskType),
 							DeploymentKeysAssignPublicIPv4: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
-							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
 							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
 							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
-							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a deployment",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the deployment, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
 									Computed:    true,
 								},
 								DeploymentKeysImage: schema.StringAttribute{
@@ -434,11 +475,6 @@ func Test_vmResource_Delete(t *testing.T) {
 									Optional:    true,
 									Description: AssignPublicIPv6Description,
 								},
-								DeploymentKeysAssignYggIP: schema.BoolAttribute{
-									Computed:    true,
-									Optional:    true,
-									Description: AssignYggIPDescription,
-								},
 								DeploymentKeysSSHKey: schema.StringAttribute{
 									Required:    true,
 									Description: SSHKeyDescription,
@@ -464,10 +500,6 @@ func Test_vmResource_Delete(t *testing.T) {
 									Computed:    true,
 									Description: PublicIPv6Description,
 								},
-								DeploymentKeysYggIP: schema.StringAttribute{
-									Computed:    true,
-									Description: YggIPDescription,
-								},
 							},
 						},
 					},
@@ -477,13 +509,7 @@ func Test_vmResource_Delete(t *testing.T) {
 		},
 		{
 			name: "vm resource delete error",
-			fields: fields{
-				client: &client.NodeshiftClient{
-					Config: client.NodeshiftProviderConfiguration{},
-				},
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Schema: schema.Schema{},
@@ -495,35 +521,35 @@ func Test_vmResource_Delete(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().DeleteDeployment(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Delete(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Delete(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vmResource_ImportState(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.ImportStateRequest
 		resp *resource.ImportStateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource import state",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ImportStateRequest{
 					ID: "test",
 				},
@@ -537,35 +563,30 @@ func Test_vmResource_ImportState(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.ImportState(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.ImportState(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vmResource_Metadata(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		in0  context.Context
 		req  resource.MetadataRequest
 		resp *resource.MetadataResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource metadata",
-			fields: fields{
-				client: &client.NodeshiftClient{},
-			},
 			args: args{
-				in0: context.TODO(),
 				req: resource.MetadataRequest{
 					ProviderTypeName: "test",
 				},
@@ -577,39 +598,34 @@ func Test_vmResource_Metadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Metadata(tt.args.in0, tt.args.req, tt.args.resp)
+			r.Metadata(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vmResource_Read(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.ReadRequest
 		resp *resource.ReadResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource read",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                             tftypes.NewValue(tftypes.String, "id"),
+							UUID:                           tftypes.NewValue(tftypes.String, "id"),
 							DeploymentKeysImage:            tftypes.NewValue(tftypes.String, DeploymentKeysImage),
 							DeploymentKeysRegion:           tftypes.NewValue(tftypes.String, DeploymentKeysRegion),
 							DeploymentKeysCPU:              tftypes.NewValue(tftypes.Number, 1),
@@ -618,20 +634,18 @@ func Test_vmResource_Read(t *testing.T) {
 							DeploymentKeysDiskType:         tftypes.NewValue(tftypes.String, DeploymentKeysDiskType),
 							DeploymentKeysAssignPublicIPv4: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
-							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
 							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
 							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
-							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a deployment",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the deployment, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
 									Computed:    true,
 								},
 								DeploymentKeysImage: schema.StringAttribute{
@@ -668,11 +682,6 @@ func Test_vmResource_Read(t *testing.T) {
 									Optional:    true,
 									Description: AssignPublicIPv6Description,
 								},
-								DeploymentKeysAssignYggIP: schema.BoolAttribute{
-									Computed:    true,
-									Optional:    true,
-									Description: AssignYggIPDescription,
-								},
 								DeploymentKeysSSHKey: schema.StringAttribute{
 									Required:    true,
 									Description: SSHKeyDescription,
@@ -697,10 +706,6 @@ func Test_vmResource_Read(t *testing.T) {
 								DeploymentKeysPublicIPv6: schema.StringAttribute{
 									Computed:    true,
 									Description: PublicIPv6Description,
-								},
-								DeploymentKeysYggIP: schema.StringAttribute{
-									Computed:    true,
-									Description: YggIPDescription,
 								},
 							},
 						},
@@ -716,11 +721,7 @@ func Test_vmResource_Read(t *testing.T) {
 		},
 		{
 			name: "vm resource read error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw:    tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{}),
@@ -735,35 +736,55 @@ func Test_vmResource_Read(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().GetDeployment(gomock.Any(), gomock.Any()).Return(
+				&client.GetDeploymentResponse{
+					UUID:         "123e4567-e89b-12d3-a456-426614174000",
+					Status:       "running",
+					IP:           "192.168.1.10",
+					Cru:          4,
+					Mru:          8192,
+					Sru:          200,
+					Hru:          100,
+					HddType:      1,
+					Provider:     42,
+					Hostname:     "test-node.local",
+					SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
+					SSHKeyName:   "test-key",
+					Image:        7,
+					ImageVersion: "v1.2.3",
+					ChosenPlanID: 101,
+					Price:        "12.34",
+					CreatedAt:    time.Date(2025, 10, 7, 12, 0, 0, 0, time.UTC),
+				}, nil,
+			).AnyTimes()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Read(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Read(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vmResource_Schema(t *testing.T) {
-	type fields struct {
-		client *client.NodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		in0  context.Context
 		in1  resource.SchemaRequest
 		resp *resource.SchemaResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource schema",
-			fields: fields{
-				client: &client.NodeshiftClient{},
-			},
 			args: args{
-				in0:  context.TODO(),
 				in1:  resource.SchemaRequest{},
 				resp: &resource.SchemaResponse{},
 			},
@@ -771,40 +792,35 @@ func Test_vmResource_Schema(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Schema(tt.args.in0, tt.args.in1, tt.args.resp)
+			r.Schema(t.Context(), tt.args.in1, tt.args.resp)
 		})
 	}
 }
 
 func Test_vmResource_Update(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.UpdateRequest
 		resp *resource.UpdateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vm resource update",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Config: tfsdk.Config{},
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                             tftypes.NewValue(tftypes.String, "id"),
+							UUID:                           tftypes.NewValue(tftypes.String, "id"),
 							DeploymentKeysImage:            tftypes.NewValue(tftypes.String, DeploymentKeysImage),
 							DeploymentKeysRegion:           tftypes.NewValue(tftypes.String, DeploymentKeysRegion),
 							DeploymentKeysCPU:              tftypes.NewValue(tftypes.Number, 1),
@@ -813,20 +829,18 @@ func Test_vmResource_Update(t *testing.T) {
 							DeploymentKeysDiskType:         tftypes.NewValue(tftypes.String, DeploymentKeysDiskType),
 							DeploymentKeysAssignPublicIPv4: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
-							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
 							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
 							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
-							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a deployment",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the deployment, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
 									Computed:    true,
 								},
 								DeploymentKeysImage: schema.StringAttribute{
@@ -863,11 +877,6 @@ func Test_vmResource_Update(t *testing.T) {
 									Optional:    true,
 									Description: AssignPublicIPv6Description,
 								},
-								DeploymentKeysAssignYggIP: schema.BoolAttribute{
-									Computed:    true,
-									Optional:    true,
-									Description: AssignYggIPDescription,
-								},
 								DeploymentKeysSSHKey: schema.StringAttribute{
 									Required:    true,
 									Description: SSHKeyDescription,
@@ -893,10 +902,6 @@ func Test_vmResource_Update(t *testing.T) {
 									Computed:    true,
 									Description: PublicIPv6Description,
 								},
-								DeploymentKeysYggIP: schema.StringAttribute{
-									Computed:    true,
-									Description: YggIPDescription,
-								},
 							},
 						},
 					},
@@ -911,11 +916,7 @@ func Test_vmResource_Update(t *testing.T) {
 		},
 		{
 			name: "vm resource update error",
-			fields: fields{
-				client: &client.NodeshiftClient{},
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Config: tfsdk.Config{},
 					Plan: tfsdk.Plan{
@@ -932,16 +933,12 @@ func Test_vmResource_Update(t *testing.T) {
 		},
 		{
 			name: "vm resource update convert error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Config: tfsdk.Config{},
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                             tftypes.NewValue(tftypes.String, "id"),
+							UUID:                           tftypes.NewValue(tftypes.String, "id"),
 							DeploymentKeysImage:            tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
 							DeploymentKeysRegion:           tftypes.NewValue(tftypes.String, DeploymentKeysRegion),
 							DeploymentKeysCPU:              tftypes.NewValue(tftypes.Number, 1),
@@ -950,20 +947,18 @@ func Test_vmResource_Update(t *testing.T) {
 							DeploymentKeysDiskType:         tftypes.NewValue(tftypes.String, DeploymentKeysDiskType),
 							DeploymentKeysAssignPublicIPv4: tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysAssignPublicIPv6: tftypes.NewValue(tftypes.Bool, false),
-							DeploymentKeysAssignYggIP:      tftypes.NewValue(tftypes.Bool, false),
 							DeploymentKeysSSHKey:           tftypes.NewValue(tftypes.String, DeploymentKeysSSHKey),
 							DeploymentKeysSSHKeyName:       tftypes.NewValue(tftypes.String, DeploymentKeysSSHKeyName),
 							DeploymentKeysHostName:         tftypes.NewValue(tftypes.String, DeploymentKeysHostName),
 							DeploymentKeysNetworkUUID:      tftypes.NewValue(tftypes.String, DeploymentKeysNetworkUUID),
 							DeploymentKeysPublicIPv4:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv4),
 							DeploymentKeysPublicIPv6:       tftypes.NewValue(tftypes.String, DeploymentKeysPublicIPv6),
-							DeploymentKeysYggIP:            tftypes.NewValue(tftypes.String, DeploymentKeysYggIP),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a deployment",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the deployment, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the deployment, computed",
 									Computed:    true,
 								},
 								DeploymentKeysImage: schema.StringAttribute{
@@ -1000,11 +995,6 @@ func Test_vmResource_Update(t *testing.T) {
 									Optional:    true,
 									Description: AssignPublicIPv6Description,
 								},
-								DeploymentKeysAssignYggIP: schema.BoolAttribute{
-									Computed:    true,
-									Optional:    true,
-									Description: AssignYggIPDescription,
-								},
 								DeploymentKeysSSHKey: schema.StringAttribute{
 									Required:    true,
 									Description: SSHKeyDescription,
@@ -1030,10 +1020,6 @@ func Test_vmResource_Update(t *testing.T) {
 									Computed:    true,
 									Description: PublicIPv6Description,
 								},
-								DeploymentKeysYggIP: schema.StringAttribute{
-									Computed:    true,
-									Description: YggIPDescription,
-								},
 							},
 						},
 					},
@@ -1049,10 +1035,58 @@ func Test_vmResource_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().UpdateDeployment(gomock.Any(), gomock.Any(), gomock.Any()).Return(
+				&client.GetDeploymentResponse{
+					UUID:         "123e4567-e89b-12d3-a456-426614174000",
+					Status:       "running",
+					IP:           "192.168.1.10",
+					Cru:          4,
+					Mru:          8192,
+					Sru:          200,
+					Hru:          100,
+					HddType:      1,
+					Provider:     42,
+					Hostname:     "test-node.local",
+					SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
+					SSHKeyName:   "test-key",
+					Image:        7,
+					ImageVersion: "v1.2.3",
+					ChosenPlanID: 101,
+					Price:        "12.34",
+					CreatedAt:    time.Date(2025, 10, 7, 12, 0, 0, 0, time.UTC),
+				}, nil,
+			).AnyTimes()
+			c.EXPECT().GetDeployment(gomock.Any(), gomock.Any()).Return(
+				&client.GetDeploymentResponse{
+					UUID:         "123e4567-e89b-12d3-a456-426614174000",
+					Status:       "running",
+					IP:           "192.168.1.10",
+					Cru:          4,
+					Mru:          8192,
+					Sru:          200,
+					Hru:          100,
+					HddType:      1,
+					Provider:     42,
+					Hostname:     "test-node.local",
+					SSHKey:       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD...",
+					SSHKeyName:   "test-key",
+					Image:        7,
+					ImageVersion: "v1.2.3",
+					ChosenPlanID: 101,
+					Price:        "12.34",
+					CreatedAt:    time.Date(2025, 10, 7, 12, 0, 0, 0, time.UTC),
+				}, nil,
+			).AnyTimes()
+
 			r := &vmResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Update(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Update(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }

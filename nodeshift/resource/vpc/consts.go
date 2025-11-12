@@ -1,14 +1,16 @@
 package vpc
 
+import "errors"
+
 const (
-	ID = "id"
+	UUID = "uuid"
 )
 
 const (
-	// Required
-	VPCIPRangeKeys = "ip_range"
-	VPCNameKeys    = "name"
+	IPRangeKeys = "ip_range"
+	NameKeys    = "name"
 
-	// Optional
-	VPCDescriptionKeys = "description"
+	DescriptionKeys = "description"
 )
+
+var errIncorrectOctet = errors.New("incorrect octet for IP range")

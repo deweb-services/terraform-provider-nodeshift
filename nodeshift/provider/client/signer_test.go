@@ -10,13 +10,15 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/stretchr/testify/require"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	v4 "github.com/aws/aws-sdk-go/aws/signer/v4"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewSigner_WithStaticCredentials(t *testing.T) {
+	t.Parallel()
+
 	accessKey := "ACCESS_KEY"
 	secretKey := "SECRET_KEY"
 
@@ -30,6 +32,8 @@ func TestNewSigner_WithStaticCredentials(t *testing.T) {
 }
 
 func TestNewSigner_WithSharedCredentials(t *testing.T) {
+	t.Parallel()
+
 	filename := "credentials"
 	profile := "default"
 
@@ -42,50 +46,41 @@ func TestNewSigner_WithSharedCredentials(t *testing.T) {
 }
 
 func TestSigner_SignRequest(t *testing.T) {
+	t.Parallel()
+
 	accessKey := "ACCESS_KEY"
 	secretKey := "SECRET_KEY"
 
 	signer := NewSigner(WithStaticCredentials(accessKey, secretKey), WithDebugLogger(t))
 
 	// Create a sample HTTP request
-	req, err := http.NewRequest(http.MethodGet, "https://localhost:6005", nil)
-	assert.NoError(t, err)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "https://localhost:6005", nil)
+	require.NoError(t, err)
 
 	err = signer.SignRequest(req, nil)
-	assert.NoError(t, err)
-
-	for header, value := range req.Header {
-		t.Logf("header: %s, value: %s", header, value)
-	}
-
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	authHeader := req.Header.Get("Authorization")
 	assert.NotEmpty(t, authHeader)
 
-	authHeaderValues := strings.Split(strings.Replace(authHeader, ",", "", -1), " ")
+	authHeaderValues := strings.Split(strings.ReplaceAll(authHeader, ",", ""), " ")
 
 	assert.Equal(t, "AWS4-HMAC-SHA256", authHeaderValues[0])
 	assert.Equal(t, "SignedHeaders=host;x-amz-date", authHeaderValues[2])
 }
 
 func TestDebugLogger_Log(t *testing.T) {
-	type fields struct {
-		Context context.Context
-	}
+	t.Parallel()
+
 	type args struct {
 		values []interface{}
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "debug logger",
-			fields: fields{
-				Context: context.TODO(),
-			},
 			args: args{
 				values: []any{"test"},
 			},
@@ -93,76 +88,43 @@ func TestDebugLogger_Log(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			l := &DebugLogger{
-				Context: tt.fields.Context,
+				Context: t.Context(),
 			}
 			l.Log(tt.args.values...)
 		})
 	}
 }
 
-func TestNewSigner(t *testing.T) {
-	type args struct {
-		credentialsOpt CredentialsOpt
-		opts           []SignerOpt
-	}
-	opt := WithStaticCredentials("", "")
-	signer := &v4.Signer{
-		Credentials: opt(),
-	}
-	tests := []struct {
-		name string
-		args args
-		want *Signer
-	}{
-		{
-			name: "new signer",
-			args: args{
-				credentialsOpt: opt,
-				opts:           []SignerOpt{},
-			},
-			want: &Signer{
-				v4: signer,
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, NewSigner(tt.args.credentialsOpt, tt.args.opts...), "NewSigner(%v, %v)", tt.args.credentialsOpt)
-		})
-	}
-}
-
 func TestSigner_SignRequest1(t *testing.T) {
-	type fields struct {
-		v4 *v4.Signer
-	}
+	t.Parallel()
+
 	type args struct {
 		req     *http.Request
 		body    io.ReadSeeker
 		wantErr bool
 	}
-	newUrl, _ := url.Parse(exampleUrlString)
+	newURL, err := url.Parse(exampleURLString)
+	require.NoError(t, err)
+
 	rq := &http.Request{
 		Header: make(http.Header, 0),
-		URL:    newUrl,
+		URL:    newURL,
 	}
-	ctx, cls := context.WithCancel(context.TODO())
+	ctx, cls := context.WithCancel(t.Context())
 	rq = rq.WithContext(ctx)
 	cls()
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "sign request",
-			fields: fields{
-				v4: defaultSigner.v4,
-			},
 			args: args{
 				req: &http.Request{
-					URL:    newUrl,
+					URL:    newURL,
 					Header: make(http.Header, 0),
 				},
 				body: bytes.NewReader([]byte{}),
@@ -170,9 +132,6 @@ func TestSigner_SignRequest1(t *testing.T) {
 		},
 		{
 			name: "sign request error",
-			fields: fields{
-				v4: defaultSigner.v4,
-			},
 			args: args{
 				req:     rq,
 				wantErr: true,
@@ -181,49 +140,49 @@ func TestSigner_SignRequest1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := &Signer{
-				v4: tt.fields.v4,
+				v4: NewSigner(WithStaticCredentials("access", "secret")).v4,
 			}
 			err := s.SignRequest(tt.args.req, tt.args.body)
 			if !tt.args.wantErr {
 				assert.NoError(t, err)
 			} else {
-				assert.NotNil(t, err)
+				require.Error(t, err)
 			}
 		})
 	}
 }
 
 func TestSigner_signRequest(t *testing.T) {
-	type fields struct {
-		v4 *v4.Signer
-	}
+	t.Parallel()
+
 	type args struct {
 		req     *http.Request
 		body    io.ReadSeeker
 		wantErr bool
 	}
-	newUrl, _ := url.Parse(exampleUrlString)
+
+	newURL, err := url.Parse(exampleURLString)
+	require.NoError(t, err)
+
 	rq := &http.Request{
 		Header: make(http.Header, 0),
-		URL:    newUrl,
+		URL:    newURL,
 	}
-	ctx, cls := context.WithCancel(context.TODO())
+	ctx, cls := context.WithCancel(t.Context())
 	rq = rq.WithContext(ctx)
 	cls()
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "sign request",
-			fields: fields{
-				v4: defaultSigner.v4,
-			},
 			args: args{
 				req: &http.Request{
-					URL:    newUrl,
+					URL:    newURL,
 					Header: make(http.Header, 0),
 				},
 				body: bytes.NewReader([]byte{}),
@@ -231,9 +190,6 @@ func TestSigner_signRequest(t *testing.T) {
 		},
 		{
 			name: "sign request error",
-			fields: fields{
-				v4: defaultSigner.v4,
-			},
 			args: args{
 				req:     rq,
 				body:    bytes.NewReader([]byte{}),
@@ -243,20 +199,24 @@ func TestSigner_signRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			s := &Signer{
-				v4: tt.fields.v4,
+				v4: NewSigner(WithStaticCredentials("access", "secret")).v4,
 			}
 			err := s.signRequest(tt.args.req, tt.args.body)
 			if !tt.args.wantErr {
 				assert.NoError(t, err)
 			} else {
-				assert.NotNil(t, err)
+				require.Error(t, err)
 			}
 		})
 	}
 }
 
 func TestWithAnonymousCredentials(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		want *credentials.Credentials
@@ -268,12 +228,16 @@ func TestWithAnonymousCredentials(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equalf(t, tt.want, WithAnonymousCredentials()(), "WithAnonymousCredentials()")
 		})
 	}
 }
 
 func TestWithDebugLogger(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
 		logger aws.Logger
 	}
@@ -292,7 +256,9 @@ func TestWithDebugLogger(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			d := defaultSigner
+			t.Parallel()
+
+			d := NewSigner(WithStaticCredentials("access", "secret"))
 			WithDebugLogger(tt.args.logger)(d)
 
 			assert.NotNil(t, d.v4.Logger)
@@ -301,6 +267,8 @@ func TestWithDebugLogger(t *testing.T) {
 }
 
 func TestWithSharedCredentials(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
 		filename string
 		profile  string
@@ -321,6 +289,8 @@ func TestWithSharedCredentials(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			c := WithSharedCredentials(tt.args.filename, tt.args.profile)()
 			assert.Equal(t, tt.want, c)
 		})
@@ -328,6 +298,8 @@ func TestWithSharedCredentials(t *testing.T) {
 }
 
 func TestWithStaticCredentials(t *testing.T) {
+	t.Parallel()
+
 	type args struct {
 		accessKey string
 		secretKey string
@@ -348,6 +320,8 @@ func TestWithStaticCredentials(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tt.want, WithStaticCredentials(tt.args.accessKey, tt.args.secretKey)())
 		})
 	}

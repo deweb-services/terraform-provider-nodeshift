@@ -1,18 +1,21 @@
 package vpc
 
 import (
-	"context"
-	"reflect"
 	"testing"
 
-	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
+
+	"github.com/deweb-services/terraform-provider-nodeshift/nodeshift/provider/client"
 )
 
 func TestNewVPCResource(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		want resource.Resource
@@ -24,34 +27,27 @@ func TestNewVPCResource(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewVPCResource(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewVPCResource() = %v, want %v", got, tt.want)
-			}
+			t.Parallel()
+
+			assert.Equal(t, tt.want, NewVPCResource())
 		})
 	}
 }
 
 func Test_vpcResource_Configure(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		in0 context.Context
 		req resource.ConfigureRequest
 		in2 *resource.ConfigureResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vpc resource configure",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				in0: context.TODO(),
 				req: resource.ConfigureRequest{
 					ProviderData: &client.NodeshiftClient{},
 				},
@@ -60,11 +56,7 @@ func Test_vpcResource_Configure(t *testing.T) {
 		},
 		{
 			name: "vpc resource configure error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				in0: context.TODO(),
 				req: resource.ConfigureRequest{},
 				in2: nil,
 			},
@@ -72,59 +64,54 @@ func Test_vpcResource_Configure(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vpcResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Configure(tt.args.in0, tt.args.req, tt.args.in2)
+			r.Configure(t.Context(), tt.args.req, tt.args.in2)
 		})
 	}
 }
 
 func Test_vpcResource_Create(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.CreateRequest
 		resp *resource.CreateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vpc resource create",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                 tftypes.NewValue(tftypes.String, ID),
-							VPCIPRangeKeys:     tftypes.NewValue(tftypes.String, "127.0.0.1/24"),
-							VPCNameKeys:        tftypes.NewValue(tftypes.String, VPCNameKeys),
-							VPCDescriptionKeys: tftypes.NewValue(tftypes.String, VPCDescriptionKeys),
+							UUID:            tftypes.NewValue(tftypes.String, UUID),
+							IPRangeKeys:     tftypes.NewValue(tftypes.String, "127.0.0.1/24"),
+							NameKeys:        tftypes.NewValue(tftypes.String, NameKeys),
+							DescriptionKeys: tftypes.NewValue(tftypes.String, DescriptionKeys),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a VPC",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the VPC, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the VPC, computed",
 									Computed:    true,
 								},
-								VPCIPRangeKeys: schema.StringAttribute{
+								IPRangeKeys: schema.StringAttribute{
 									Description: "IP range of the VPC",
 									Required:    true,
 								},
-								VPCNameKeys: schema.StringAttribute{
+								NameKeys: schema.StringAttribute{
 									Description: "Name of the VPC",
 									Required:    true,
 								},
-								VPCDescriptionKeys: schema.StringAttribute{
+								DescriptionKeys: schema.StringAttribute{
 									Description: "Description of the VPC",
 									Optional:    true,
 								},
@@ -142,11 +129,7 @@ func Test_vpcResource_Create(t *testing.T) {
 		},
 		{
 			name: "vpc resource create error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Plan: tfsdk.Plan{
 						Raw:    tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{}),
@@ -158,35 +141,31 @@ func Test_vpcResource_Create(t *testing.T) {
 		},
 		{
 			name: "vpc resource create error convert",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.CreateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                 tftypes.NewValue(tftypes.String, ID),
-							VPCIPRangeKeys:     tftypes.NewValue(tftypes.String, VPCIPRangeKeys),
-							VPCNameKeys:        tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
-							VPCDescriptionKeys: tftypes.NewValue(tftypes.String, VPCDescriptionKeys),
+							UUID:            tftypes.NewValue(tftypes.String, UUID),
+							IPRangeKeys:     tftypes.NewValue(tftypes.String, IPRangeKeys),
+							NameKeys:        tftypes.NewValue(tftypes.DynamicPseudoType, tftypes.UnknownValue),
+							DescriptionKeys: tftypes.NewValue(tftypes.String, DescriptionKeys),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a VPC",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the VPC, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the VPC, computed",
 									Computed:    true,
 								},
-								VPCIPRangeKeys: schema.StringAttribute{
+								IPRangeKeys: schema.StringAttribute{
 									Description: "IP range of the VPC",
 									Required:    true,
 								},
-								VPCNameKeys: schema.StringAttribute{
+								NameKeys: schema.StringAttribute{
 									Description: "Name of the VPC",
 									Required:    true,
 								},
-								VPCDescriptionKeys: schema.StringAttribute{
+								DescriptionKeys: schema.StringAttribute{
 									Description: "Description of the VPC",
 									Optional:    true,
 								},
@@ -205,59 +184,81 @@ func Test_vpcResource_Create(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().CreateVPC(gomock.Any(), gomock.Any()).Return(
+				&client.GetVPCResponse{
+					UUID:        "vpc-123e4567-e89b-12d3-a456-426614174000",
+					Name:        "test-vpc",
+					Description: "This is a test VPC",
+					IPRange:     "10.0.0.0/24",
+					Status:      "running",
+					Resources: []client.Resources{
+						{
+							IP:     "10.0.0.2",
+							Status: "running",
+						},
+						{
+							IP:     "10.0.0.3",
+							Status: "running",
+						},
+						{
+							IP:     "10.0.0.4",
+							Status: "running",
+						},
+					},
+				}, nil,
+			).AnyTimes()
+
 			r := &vpcResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Create(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Create(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vpcResource_Delete(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.DeleteRequest
 		resp *resource.DeleteResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vpc resource delete",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                 tftypes.NewValue(tftypes.String, ID),
-							VPCIPRangeKeys:     tftypes.NewValue(tftypes.String, VPCIPRangeKeys),
-							VPCNameKeys:        tftypes.NewValue(tftypes.String, VPCNameKeys),
-							VPCDescriptionKeys: tftypes.NewValue(tftypes.String, VPCDescriptionKeys),
+							UUID:            tftypes.NewValue(tftypes.String, UUID),
+							IPRangeKeys:     tftypes.NewValue(tftypes.String, IPRangeKeys),
+							NameKeys:        tftypes.NewValue(tftypes.String, NameKeys),
+							DescriptionKeys: tftypes.NewValue(tftypes.String, DescriptionKeys),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a VPC",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the VPC, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the VPC, computed",
 									Computed:    true,
 								},
-								VPCIPRangeKeys: schema.StringAttribute{
+								IPRangeKeys: schema.StringAttribute{
 									Description: "IP range of the VPC",
 									Required:    true,
 								},
-								VPCNameKeys: schema.StringAttribute{
+								NameKeys: schema.StringAttribute{
 									Description: "Name of the VPC",
 									Required:    true,
 								},
-								VPCDescriptionKeys: schema.StringAttribute{
+								DescriptionKeys: schema.StringAttribute{
 									Description: "Description of the VPC",
 									Optional:    true,
 								},
@@ -270,11 +271,7 @@ func Test_vpcResource_Delete(t *testing.T) {
 		},
 		{
 			name: "vpc resource delete error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.DeleteRequest{
 					State: tfsdk.State{
 						Raw:    tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{}),
@@ -287,60 +284,62 @@ func Test_vpcResource_Delete(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().DeleteVPC(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
 			r := &vpcResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Delete(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Delete(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vpcResource_ImportState(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.ImportStateRequest
 		resp *resource.ImportStateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
-			name:   "vpc resource import state",
-			fields: fields{},
+			name: "vpc resource import state",
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ImportStateRequest{
-					ID: ID,
+					ID: UUID,
 				},
 				resp: &resource.ImportStateResponse{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                 tftypes.NewValue(tftypes.String, ID),
-							VPCIPRangeKeys:     tftypes.NewValue(tftypes.String, VPCIPRangeKeys),
-							VPCNameKeys:        tftypes.NewValue(tftypes.String, VPCNameKeys),
-							VPCDescriptionKeys: tftypes.NewValue(tftypes.String, VPCDescriptionKeys),
+							UUID:            tftypes.NewValue(tftypes.String, UUID),
+							IPRangeKeys:     tftypes.NewValue(tftypes.String, IPRangeKeys),
+							NameKeys:        tftypes.NewValue(tftypes.String, NameKeys),
+							DescriptionKeys: tftypes.NewValue(tftypes.String, DescriptionKeys),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a VPC",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the VPC, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the VPC, computed",
 									Computed:    true,
 								},
-								VPCIPRangeKeys: schema.StringAttribute{
+								IPRangeKeys: schema.StringAttribute{
 									Description: "IP range of the VPC",
 									Required:    true,
 								},
-								VPCNameKeys: schema.StringAttribute{
+								NameKeys: schema.StringAttribute{
 									Description: "Name of the VPC",
 									Required:    true,
 								},
-								VPCDescriptionKeys: schema.StringAttribute{
+								DescriptionKeys: schema.StringAttribute{
 									Description: "Description of the VPC",
 									Optional:    true,
 								},
@@ -353,33 +352,30 @@ func Test_vpcResource_ImportState(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vpcResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.ImportState(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.ImportState(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vpcResource_Metadata(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		in0  context.Context
 		req  resource.MetadataRequest
 		resp *resource.MetadataResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
-			name:   "vpc resource metadata",
-			fields: fields{},
+			name: "vpc resource metadata",
 			args: args{
-				in0: context.TODO(),
 				req: resource.MetadataRequest{
 					ProviderTypeName: "type name",
 				},
@@ -391,59 +387,54 @@ func Test_vpcResource_Metadata(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vpcResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Metadata(tt.args.in0, tt.args.req, tt.args.resp)
+			r.Metadata(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vpcResource_Read(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.ReadRequest
 		resp *resource.ReadResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vpc resource read",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                 tftypes.NewValue(tftypes.String, ID),
-							VPCIPRangeKeys:     tftypes.NewValue(tftypes.String, "127.0.0.1/24"),
-							VPCNameKeys:        tftypes.NewValue(tftypes.String, VPCNameKeys),
-							VPCDescriptionKeys: tftypes.NewValue(tftypes.String, VPCDescriptionKeys),
+							UUID:            tftypes.NewValue(tftypes.String, UUID),
+							IPRangeKeys:     tftypes.NewValue(tftypes.String, "127.0.0.1/24"),
+							NameKeys:        tftypes.NewValue(tftypes.String, NameKeys),
+							DescriptionKeys: tftypes.NewValue(tftypes.String, DescriptionKeys),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a VPC",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the VPC, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the VPC, computed",
 									Computed:    true,
 								},
-								VPCIPRangeKeys: schema.StringAttribute{
+								IPRangeKeys: schema.StringAttribute{
 									Description: "IP range of the VPC",
 									Required:    true,
 								},
-								VPCNameKeys: schema.StringAttribute{
+								NameKeys: schema.StringAttribute{
 									Description: "Name of the VPC",
 									Required:    true,
 								},
-								VPCDescriptionKeys: schema.StringAttribute{
+								DescriptionKeys: schema.StringAttribute{
 									Description: "Description of the VPC",
 									Optional:    true,
 								},
@@ -461,11 +452,7 @@ func Test_vpcResource_Read(t *testing.T) {
 		},
 		{
 			name: "vpc resource read error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw:    tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{}),
@@ -477,35 +464,31 @@ func Test_vpcResource_Read(t *testing.T) {
 		},
 		{
 			name: "vpc resource read convert error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.ReadRequest{
 					State: tfsdk.State{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                 tftypes.NewValue(tftypes.String, ID),
-							VPCIPRangeKeys:     tftypes.NewValue(tftypes.String, VPCIPRangeKeys),
-							VPCNameKeys:        tftypes.NewValue(tftypes.String, VPCNameKeys),
-							VPCDescriptionKeys: tftypes.NewValue(tftypes.String, VPCDescriptionKeys),
+							UUID:            tftypes.NewValue(tftypes.String, UUID),
+							IPRangeKeys:     tftypes.NewValue(tftypes.String, IPRangeKeys),
+							NameKeys:        tftypes.NewValue(tftypes.String, NameKeys),
+							DescriptionKeys: tftypes.NewValue(tftypes.String, DescriptionKeys),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a VPC",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the VPC, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the VPC, computed",
 									Computed:    true,
 								},
-								VPCIPRangeKeys: schema.StringAttribute{
+								IPRangeKeys: schema.StringAttribute{
 									Description: "IP range of the VPC",
 									Required:    true,
 								},
-								VPCNameKeys: schema.StringAttribute{
+								NameKeys: schema.StringAttribute{
 									Description: "Name of the VPC",
 									Required:    true,
 								},
-								VPCDescriptionKeys: schema.StringAttribute{
+								DescriptionKeys: schema.StringAttribute{
 									Description: "Description of the VPC",
 									Optional:    true,
 								},
@@ -524,53 +507,75 @@ func Test_vpcResource_Read(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().GetVPC(gomock.Any(), gomock.Any()).Return(
+				&client.GetVPCResponse{
+					UUID:        "vpc-123e4567-e89b-12d3-a456-426614174000",
+					Name:        "test-vpc",
+					Description: "This is a test VPC",
+					IPRange:     "10.0.0.0/24",
+					Status:      "running",
+					Resources: []client.Resources{
+						{
+							IP:     "10.0.0.2",
+							Status: "running",
+						},
+						{
+							IP:     "10.0.0.3",
+							Status: "running",
+						},
+						{
+							IP:     "10.0.0.4",
+							Status: "running",
+						},
+					},
+				}, nil,
+			).AnyTimes()
+
 			r := &vpcResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Read(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Read(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }
 
 func Test_vpcResource_Schema(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		c        context.Context
 		request  resource.SchemaRequest
 		response *resource.SchemaResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vpc resource schema",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				c:       context.TODO(),
 				request: resource.SchemaRequest{},
 				response: &resource.SchemaResponse{
 					Schema: schema.Schema{
 						Description: "Manages a VPC",
 						Attributes: map[string]schema.Attribute{
-							ID: schema.StringAttribute{
-								Description: "String ID of the VPC, computed",
+							UUID: schema.StringAttribute{
+								Description: "String UUID of the VPC, computed",
 								Computed:    true,
 							},
-							VPCIPRangeKeys: schema.StringAttribute{
+							IPRangeKeys: schema.StringAttribute{
 								Description: "IP range of the VPC",
 								Required:    true,
 							},
-							VPCNameKeys: schema.StringAttribute{
+							NameKeys: schema.StringAttribute{
 								Description: "Name of the VPC",
 								Required:    true,
 							},
-							VPCDescriptionKeys: schema.StringAttribute{
+							DescriptionKeys: schema.StringAttribute{
 								Description: "Description of the VPC",
 								Optional:    true,
 							},
@@ -582,59 +587,54 @@ func Test_vpcResource_Schema(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			r := &vpcResource{
-				client: tt.fields.client,
+				client: client.NewMockINodeshiftClient(gomock.NewController(t)),
 			}
-			r.Schema(tt.args.c, tt.args.request, tt.args.response)
+			r.Schema(t.Context(), tt.args.request, tt.args.response)
 		})
 	}
 }
 
 func Test_vpcResource_Update(t *testing.T) {
-	type fields struct {
-		client client.INodeshiftClient
-	}
+	t.Parallel()
+
 	type args struct {
-		ctx  context.Context
 		req  resource.UpdateRequest
 		resp *resource.UpdateResponse
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name string
+		args args
 	}{
 		{
 			name: "vpc resource update",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                 tftypes.NewValue(tftypes.String, ID),
-							VPCIPRangeKeys:     tftypes.NewValue(tftypes.String, "127.0.0.1/24"),
-							VPCNameKeys:        tftypes.NewValue(tftypes.String, VPCNameKeys),
-							VPCDescriptionKeys: tftypes.NewValue(tftypes.String, VPCDescriptionKeys),
+							UUID:            tftypes.NewValue(tftypes.String, UUID),
+							IPRangeKeys:     tftypes.NewValue(tftypes.String, "127.0.0.1/24"),
+							NameKeys:        tftypes.NewValue(tftypes.String, NameKeys),
+							DescriptionKeys: tftypes.NewValue(tftypes.String, DescriptionKeys),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a VPC",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the VPC, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the VPC, computed",
 									Computed:    true,
 								},
-								VPCIPRangeKeys: schema.StringAttribute{
+								IPRangeKeys: schema.StringAttribute{
 									Description: "IP range of the VPC",
 									Required:    true,
 								},
-								VPCNameKeys: schema.StringAttribute{
+								NameKeys: schema.StringAttribute{
 									Description: "Name of the VPC",
 									Required:    true,
 								},
-								VPCDescriptionKeys: schema.StringAttribute{
+								DescriptionKeys: schema.StringAttribute{
 									Description: "Description of the VPC",
 									Optional:    true,
 								},
@@ -652,11 +652,7 @@ func Test_vpcResource_Update(t *testing.T) {
 		},
 		{
 			name: "vpc resource update error",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Plan: tfsdk.Plan{
 						Raw:    tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{}),
@@ -668,35 +664,31 @@ func Test_vpcResource_Update(t *testing.T) {
 		},
 		{
 			name: "vpc resource update",
-			fields: fields{
-				client: client.NewMockedClient(),
-			},
 			args: args{
-				ctx: context.TODO(),
 				req: resource.UpdateRequest{
 					Plan: tfsdk.Plan{
 						Raw: tftypes.NewValue(tftypes.Object{}, map[string]tftypes.Value{
-							ID:                 tftypes.NewValue(tftypes.String, ID),
-							VPCIPRangeKeys:     tftypes.NewValue(tftypes.String, VPCIPRangeKeys),
-							VPCNameKeys:        tftypes.NewValue(tftypes.String, VPCNameKeys),
-							VPCDescriptionKeys: tftypes.NewValue(tftypes.String, VPCDescriptionKeys),
+							UUID:            tftypes.NewValue(tftypes.String, UUID),
+							IPRangeKeys:     tftypes.NewValue(tftypes.String, IPRangeKeys),
+							NameKeys:        tftypes.NewValue(tftypes.String, NameKeys),
+							DescriptionKeys: tftypes.NewValue(tftypes.String, DescriptionKeys),
 						}),
 						Schema: schema.Schema{
 							Description: "Manages a VPC",
 							Attributes: map[string]schema.Attribute{
-								ID: schema.StringAttribute{
-									Description: "String ID of the VPC, computed",
+								UUID: schema.StringAttribute{
+									Description: "String UUID of the VPC, computed",
 									Computed:    true,
 								},
-								VPCIPRangeKeys: schema.StringAttribute{
+								IPRangeKeys: schema.StringAttribute{
 									Description: "IP range of the VPC",
 									Required:    true,
 								},
-								VPCNameKeys: schema.StringAttribute{
+								NameKeys: schema.StringAttribute{
 									Description: "Name of the VPC",
 									Required:    true,
 								},
-								VPCDescriptionKeys: schema.StringAttribute{
+								DescriptionKeys: schema.StringAttribute{
 									Description: "Description of the VPC",
 									Optional:    true,
 								},
@@ -715,10 +707,62 @@ func Test_vpcResource_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			c := client.NewMockINodeshiftClient(ctrl)
+
+			c.EXPECT().UpdateVPC(gomock.Any(), gomock.Any(), gomock.Any()).Return(
+				&client.GetVPCResponse{
+					UUID:        "vpc-123e4567-e89b-12d3-a456-426614174000",
+					Name:        "test-vpc",
+					Description: "This is a test VPC",
+					IPRange:     "10.0.0.0/24",
+					Status:      "running",
+					Resources: []client.Resources{
+						{
+							IP:     "10.0.0.2",
+							Status: "running",
+						},
+						{
+							IP:     "10.0.0.3",
+							Status: "running",
+						},
+						{
+							IP:     "10.0.0.4",
+							Status: "running",
+						},
+					},
+				}, nil,
+			).AnyTimes()
+			c.EXPECT().GetVPC(gomock.Any(), gomock.Any()).Return(
+				&client.GetVPCResponse{
+					UUID:        "vpc-123e4567-e89b-12d3-a456-426614174000",
+					Name:        "test-vpc",
+					Description: "This is a test VPC",
+					IPRange:     "10.0.0.0/24",
+					Status:      "running",
+					Resources: []client.Resources{
+						{
+							IP:     "10.0.0.2",
+							Status: "running",
+						},
+						{
+							IP:     "10.0.0.3",
+							Status: "running",
+						},
+						{
+							IP:     "10.0.0.4",
+							Status: "running",
+						},
+					},
+				}, nil,
+			).AnyTimes()
+
 			r := &vpcResource{
-				client: tt.fields.client,
+				client: c,
 			}
-			r.Update(tt.args.ctx, tt.args.req, tt.args.resp)
+			r.Update(t.Context(), tt.args.req, tt.args.resp)
 		})
 	}
 }

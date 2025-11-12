@@ -12,4 +12,7 @@ type nodeshiftProviderModel struct {
 
 	S3Endpoint types.String `tfsdk:"s3_endpoint"`
 	S3Region   types.String `tfsdk:"s3_region"`
+
+	APIEndpoint  types.String `tfsdk:"api_endpoint"`
+	WithInsecure types.Bool   `tfsdk:"with_insecure"`
 }
