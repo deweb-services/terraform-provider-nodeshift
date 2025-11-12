@@ -93,7 +93,7 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 	profile := os.Getenv(EnvKeyProfile)
 	s3Endpoint := os.Getenv(EnvKeyS3Endpoint)
 	s3Region := os.Getenv(EnvKeyS3Region)
-	ae := os.Getenv(EnvKeyAPIENDPOINT)
+	ae := os.Getenv(EnvKeyAPIEndpoint)
 
 	values := []string{
 		accessKey,
@@ -185,7 +185,7 @@ func (p *nodeshiftProvider) Configure(ctx context.Context, req provider.Configur
 			Required: false,
 		},
 		APIEndpoint: {
-			EnvName:  EnvKeyAPIENDPOINT,
+			EnvName:  EnvKeyAPIEndpoint,
 			Param:    &config.APIEndpoint,
 			Required: false,
 		},

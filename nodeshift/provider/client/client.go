@@ -177,9 +177,6 @@ func ClientOptWithURL(url string) ClientOpt {
 
 func ClientOptWithS3() ClientOpt {
 	return func(c *NodeshiftClient) {
-		if c.Config.S3Endpoint == "" {
-			return
-		}
 		if err := c.newAwsClient(); err != nil {
 			tflog.Error(context.Background(), err.Error())
 		}
@@ -210,8 +207,11 @@ func (c *NodeshiftClient) newAwsClient() error {
 	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
 		o.Region = c.Config.S3Region
 		o.HTTPClient = c.client
-		o.Credentials = credentials.NewStaticCredentialsProvider(c.Config.AccessKey,
-			c.Config.SecretAccessKey, "")
+		o.Credentials = credentials.NewStaticCredentialsProvider(
+			c.Config.AccessKey,
+			c.Config.SecretAccessKey,
+			"",
+		)
 		o.BaseEndpoint = aws.String(c.Config.S3Endpoint)
 		o.UsePathStyle = true
 	})
